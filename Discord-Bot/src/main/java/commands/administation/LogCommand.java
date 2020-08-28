@@ -32,10 +32,10 @@ public class LogCommand implements ServerCommand{
 		
 		if (member.hasPermission(channel, Permission.ADMINISTRATOR)) {
 			
-			String[] messageSplit = message.getContentDisplay().split(" ");
+			String[] messageSplit = message.getContentDisplay().split("\\s+");
 			
 			//%log 15
-			if(messageSplit.length == 2) {
+			if(messageSplit.length >= 2) {
 				try {
 					int amount = Integer.parseInt(messageSplit[1]);
 					if(amount > 0) {
@@ -47,20 +47,22 @@ public class LogCommand implements ServerCommand{
 							channel.sendMessage("Sagmal soll ich jetzt Romane schreiben?!?! ```Nachrichtenlimit: 100```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
 						}
 					}
-					else {
+					else if (amount == 0) {
 						channel.sendMessage("Stell Dir vor, Du hast null Kekse und verteilst sie gleichmäßig an null Freunde. Siehst Du? Das macht keinen Sinn. Und das Krümelmonster ist traurig, weil keine Kekse mehr da sind und Du bist traurig, weil Du keine Freunde hast.").complete().delete().queueAfter(25, TimeUnit.SECONDS);			
 					}
+					else {
+						channel.sendMessage("Zukunftsvorhersage in 5, 4, 3, $%*, $%& - **critical ERROR occurred**").complete().delete().queueAfter(12, TimeUnit.SECONDS);
+					}
+					
 				}
-				catch (NumberFormatException e) {
-					System.err.println("Cought exception: log amount larger than int (LogCommand.java)");
-				}
-				catch (ArrayIndexOutOfBoundsException e) {
+				catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
 					channel.sendMessage("Falsche Formatierung: ```%log <Anzahl>```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
 				}
 			}
 			else {
-				channel.sendMessage("Zukunftsvorhersage in 5, 4, 3, $%*, $%& - **critical ERROR occurred**").complete().delete().queueAfter(12, TimeUnit.SECONDS);
+				channel.sendMessage("Falsche Formatierung: ```%log <Anzahl>```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
 			}
+			
 		}
 		else {
 			channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
@@ -85,10 +87,20 @@ public class LogCommand implements ServerCommand{
 		String author = "author";
 		String messageText = "text";
 			
-		for (Message message : messageList) {
+		for (int i = messageList.size() - 1; i >= 0; i --) {
+			Message message = messageList.get(i);
 			messageTime = message.getTimeCreated().format(dateFormat).toString();
 			author = "(" + message.getAuthor().getId() + ")" + message.getAuthor().getName().toString();
+			
 			messageText = message.getContentRaw();
+			if (!message.getAttachments().isEmpty()) {
+				if (!messageText.equals("")) {
+					messageText += " ";
+				}
+				messageText += "(" + message.getAttachments().get(0).getUrl() + ")";
+			}
+			
+			
 			
 			textList.add(messageTime + " - by: " + String.format("%-"+50+"."+50+"s" , author) + " - message: " + messageText);
 		}
@@ -116,20 +128,29 @@ public class LogCommand implements ServerCommand{
 		EmbedBuilder embed = new EmbedBuilder();
 		File file = new File(DiscordBot.INSTANCE.getLogFilePath());
 		String fileName = "log " + OffsetDateTime.now().format(dateFormat) + " " + channel.getName() + ".txt";
-		try {
-			embed.setColor(0xcc880); //orange-braun
-			embed.setTitle(":scroll: Logfile created");
-			embed.setAuthor(originMessage.getGuild().getSelfMember().getNickname());
-			embed.setTimestamp(OffsetDateTime.now());
-			embed.setThumbnail(originMessage.getGuild().getSelfMember().getUser().getAvatarUrl());
-			embed.setDescription("Log - requested by " + originMessage.getAuthor().getAsMention() + "\n enthält die letzten " + amount + " Nachrichten aus <#" + channel.getId() + ">");
-			audit.sendFile(file, fileName).embed(embed.build()).complete();
+		
+		if (audit != null) {
+		
+			try {
+				embed.setColor(0xcc880); //orange-braun
+				embed.setTitle(":scroll: Logfile created");
+				embed.setAuthor(originMessage.getGuild().getSelfMember().getNickname());
+				embed.setTimestamp(OffsetDateTime.now());
+				embed.setThumbnail(originMessage.getGuild().getSelfMember().getUser().getAvatarUrl());
+				embed.setDescription("Log - requested by " + originMessage.getAuthor().getAsMention() + "\n enthält die letzten " + amount + " Nachrichten aus <#" + channel.getId() + ">");
+				audit.sendFile(file, fileName).embed(embed.build()).complete();
+				
+				channel.sendMessage(originMessage.getAuthor().getAsMention() + " Es wurde ein Log-File in den Audit-Channel geschickt").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+			}
+			catch (IllegalArgumentException | UnsupportedOperationException e) {
+				e.printStackTrace();
+			}
+			catch (InsufficientPermissionException e) {
+				channel.sendMessage("Dem Bot fehlt die Berechtigung das LogFile zu senden. ```Benötigt Berechtigungen: message_read, message_write, message_attach_files```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+			}
 		}
-		catch (IllegalArgumentException | UnsupportedOperationException e) {
-			e.printStackTrace();
-		}
-		catch (InsufficientPermissionException e) {
-			channel.sendMessage("Dem Bot fehlt die Berechtigung das LogFile zu senden. ```Benötigt Berechtigungen: message_read, message_write, message_attach_files```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+		else {
+			channel.sendMessage("Es ist keine #audit Channel festgelegt in welchen das Log geschickt werden könnte.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
 		}
 		
 		// .txt wird gelöscht

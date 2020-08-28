@@ -11,6 +11,7 @@ import main.java.commands.administation.KillCommand;
 import main.java.commands.administation.LogCommand;
 import main.java.commands.administation.ReactCommand;
 import main.java.commands.administation.ReactRemoveCommand;
+import main.java.commands.administation.ReactRolesCommand;
 import main.java.commands.administation.ReportCommand;
 import main.java.commands.administation.RoleCreation;
 import main.java.commands.administation.UserInfoCommand;
@@ -49,9 +50,11 @@ public class CommandManager {
 		
 		// moderation
 		this.commands.put("clear", new ClearCommand());
+		this.commands.put("delete", new ClearCommand());
 		this.commands.put("createrole", new RoleCreation());
 		this.commands.put("react", new ReactCommand());
 		this.commands.put("unreact", new ReactRemoveCommand());
+		this.commands.put("reactionrole", new ReactRolesCommand());
 		this.commands.put("userinfo", new UserInfoCommand());
 		this.commands.put("killbot4future", new KillCommand());
 		this.commands.put("ban", new BanCommand());

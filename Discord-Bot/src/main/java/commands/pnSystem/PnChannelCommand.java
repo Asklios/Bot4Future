@@ -21,7 +21,7 @@ Long guildID;
 		
 		if(member.hasPermission(channel, Permission.ADMINISTRATOR)) {
 			
-			String[] messageSplit = message.getContentDisplay().split(" ");
+			String[] messageSplit = message.getContentDisplay().split("\\s+");
 			
 					
 			// %pnchannel #botpn

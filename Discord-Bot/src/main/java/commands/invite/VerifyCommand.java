@@ -19,12 +19,21 @@ public class VerifyCommand implements ServerCommand {
 	public void performCommand(Member member, TextChannel channel, Message message) {
 		
 		long specialCodeRoleId = GuildDataXmlReadWrite.readSpecialCodeRole(member.getGuild().getIdLong());
+		Role highestBotRole = message.getGuild().getSelfMember().getRoles().get(0);
+		long verifiableRoleId = GuildDataXmlReadWrite.readVerifiableRole(member.getGuild().getIdLong());
+		Role verifiableRole = message.getGuild().getRoleById(verifiableRoleId);
 		
 		try {
 			if(specialCodeRoleId != 0) {
 				
 				if(hasRole(member, specialCodeRoleId)) {
-					giveVerifiableRole(member, channel, message);
+					
+					if (highestBotRole.canInteract(verifiableRole)) {
+						giveVerifiableRole(member, channel, message);
+					}
+					else {
+						channel.sendMessage("Diese Rolle kann nicht verwendet werden, da sie höher als die Bot-Rolle ist.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+					}
 				}
 			}
 			else {

@@ -18,7 +18,7 @@ public class ClearCommand implements ServerCommand{
 	public void performCommand(Member member, TextChannel channel, Message message) {
 		
 		if(member.hasPermission(channel, Permission.MESSAGE_MANAGE)) {
-			String[] messageSplit = message.getContentDisplay().split(" ");
+			String[] messageSplit = message.getContentDisplay().split("\\s+");
 		
 					
 			// %clear 3

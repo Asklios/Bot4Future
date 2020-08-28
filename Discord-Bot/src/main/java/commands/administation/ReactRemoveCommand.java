@@ -21,7 +21,7 @@ public class ReactRemoveCommand implements ServerCommand{
 		
 		if(member.hasPermission(channel, Permission.MESSAGE_MANAGE)) {
 		
-			String[] messageText = message.getContentDisplay().split(" ");
+			String[] messageText = message.getContentDisplay().split("\\s+");
 			List<TextChannel> channels = message.getMentionedChannels();
 		
 			if (!channels.isEmpty() && messageText.length >= 4) {

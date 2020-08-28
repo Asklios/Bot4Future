@@ -223,8 +223,11 @@ public class GuildDataXmlReadWrite {
         		element.removeChild(getUserById(userId, eGuild, element));
         	}
         	XmlBase.save(doc, xmlFile);
-		} catch (SAXException | IOException | ParserConfigurationException | TransformerException | NullPointerException e) {
+		} catch (SAXException | IOException | ParserConfigurationException | TransformerException e) {
 			e.printStackTrace();
+		}
+		catch (NullPointerException e) {
+			
 		}
 	}
 	

@@ -11,11 +11,14 @@ import java.util.concurrent.CompletionException;
 import javax.security.auth.login.LoginException;
 
 import main.java.files.GuildDataXmlReadWrite;
+import main.java.files.LiteSQL;
 import main.java.files.PropertiesReader;
+import main.java.files.SQLManager;
 import main.java.listener.AuditListener;
 import main.java.listener.AutoListener;
 import main.java.listener.CommandListener;
 import main.java.listener.EventAuditListener;
+import main.java.listener.ReactionListener;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
@@ -50,6 +53,10 @@ public class DiscordBot {
 				
 	public DiscordBot() throws LoginException, IllegalArgumentException {	
 		INSTANCE = this;
+		
+		LiteSQL.connect();
+		SQLManager.onCreate();
+		
 		try {
 			PropertiesReader props = new PropertiesReader();
 			botToken = props.getBotToken();
@@ -78,6 +85,8 @@ public class DiscordBot {
 		builder.addEventListeners(new CommandListener());
 		builder.addEventListeners(new AuditListener());
 		builder.addEventListeners(new EventAuditListener());
+		builder.addEventListeners(new ReactionListener());
+		
 		try {
 			shardMan = builder.build();
 		} catch(LoginException | CompletionException e) {
@@ -107,6 +116,7 @@ public class DiscordBot {
 						if (shardMan != null) {
 							shardMan.setStatus(OnlineStatus.OFFLINE);
 							shardMan.shutdown();
+							LiteSQL.disconnect();
 							System.out.println("Bot Status: offline");
 						}
 						

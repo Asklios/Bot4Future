@@ -24,16 +24,22 @@
 	</repository>
   </repositories>
   <dependencies>
-  <dependency>
-    <groupId>net.dv8tion</groupId>
-    <artifactId>JDA</artifactId>
-    <version>4.2.0_169</version>
-    <exclusions>
-        <exclusion>
-            <groupId>club.minnced</groupId>
-            <artifactId>opus-java</artifactId>
-        </exclusion>
-    </exclusions>
-</dependency>
-  </dependencies>
+	  <dependency>
+	    <groupId>net.dv8tion</groupId>
+	    <artifactId>JDA</artifactId>
+	    <version>4.2.0_169</version>
+	    <exclusions>
+	        <exclusion>
+	            <groupId>club.minnced</groupId>
+	            <artifactId>opus-java</artifactId>
+	        </exclusion>
+	    </exclusions>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
+	<dependency>
+	    <groupId>org.xerial</groupId>
+	    <artifactId>sqlite-jdbc</artifactId>
+	    <version>3.32.3.2</version>
+	</dependency>
+	</dependencies>
 </project>

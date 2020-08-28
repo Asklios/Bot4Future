@@ -38,7 +38,7 @@ public class CommandListener extends ListenerAdapter {
 
 
 			if(message.startsWith("%")) { // Festlegung des Präfix 
-				String[] args = message.substring(1).split(" ");
+				String[] args = message.substring(1).split("\\s+");
 				if(args.length > 0) {
 					if(!DiscordBot.INSTANCE.getCmdMan().perform(args[0], event.getMember(), channel, event.getMessage())) {
 						channel.sendMessage("unknown command").complete().delete().queueAfter(5, TimeUnit.SECONDS);

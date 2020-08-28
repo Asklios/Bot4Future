@@ -21,7 +21,7 @@ public class SpecialCodeRoleCommand implements ServerCommand{
 		
 		if(member.hasPermission(channel, Permission.ADMINISTRATOR)) {
 			
-			String[] messageSplit = message.getContentDisplay().split(" ");
+			String[] messageSplit = message.getContentDisplay().split("\\s+");
 
 			// %specialcoderole @Rolle
 			if(messageSplit.length == 2) {

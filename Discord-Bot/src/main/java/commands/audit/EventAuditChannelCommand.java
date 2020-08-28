@@ -27,7 +27,7 @@ public class EventAuditChannelCommand implements ServerCommand {
 		
 		if(member.hasPermission(channel, Permission.ADMINISTRATOR)) {// wenn der Nutzer die "Admin" Berechtigung hat
 			
-			String[] messageSplit = message.getContentDisplay().split(" ");
+			String[] messageSplit = message.getContentDisplay().split("\\s+");
 			
 					
 			// %auditchannel #audit

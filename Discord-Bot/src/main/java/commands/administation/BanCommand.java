@@ -21,7 +21,7 @@ public class BanCommand implements ServerCommand{
 
 		if(member.hasPermission(channel, Permission.BAN_MEMBERS)) {
 
-			//[%ban <reason> %<Member1> <Member2> <Member 3>]
+			//[%ban <reason> % <Member1> <Member2> <Member 3>]
 			String[] messageSplit = message.getContentDisplay().split("%");
 			String reason = messageSplit[1].replace("ban ", "");
 
@@ -39,7 +39,7 @@ public class BanCommand implements ServerCommand{
 				}
 			}
 			else {
-				channel.sendMessage("```%ban <reason> %<Member1> <Member2> <Member3>```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+				channel.sendMessage("```%ban <reason> % <@Member1> <@Member2> <@Member3>```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
 			}
 		}
 		else {

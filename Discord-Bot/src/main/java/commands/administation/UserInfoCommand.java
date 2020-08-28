@@ -22,11 +22,23 @@ public class UserInfoCommand implements ServerCommand {
 		
 			channel.sendTyping().queue();
 			List<Member> mention = message.getMentionedMembers();
-			if(message.getContentDisplay().split(" ").length > 1 && mention.size() > 0) {
+			String[] messageSplit = message.getContentDisplay().split("\\s+");
+			String messageSplitID = messageSplit[1].substring(3, 20); //<@!ID>
+			
+			if(message.getContentDisplay().split("\\s+").length > 1 && mention.size() > 0) {
 				for(Member user : mention) {
-					onInfo(member, user, channel);
+					if (member.getGuild().getMemberById(user.getIdLong()) != null) {
+						onInfo(member, user, channel);
+					}
+					else {
+						channel.sendMessage(member.getAsMention() + " Der Account konnte nicht gefunden werden.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+					}
 				}
-			} else {
+			}
+			else if (message.getGuild().getMemberById(messageSplitID) == null && messageSplit.length > 0) { 
+				channel.sendMessage(member.getAsMention() + " Der Nutzer \"" + messageSplitID + "\" konnte nicht gefunden werden.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+			}
+			else {
 				EmbedBuilder builder = new EmbedBuilder();
 				channel.sendMessage("Falsche Formatierung!").complete().delete().queueAfter(5, TimeUnit.SECONDS);
 				builder.setDescription("%userinfo @User1 (@User2) (@User3) (...)");
@@ -49,13 +61,16 @@ public class UserInfoCommand implements ServerCommand {
 		
 		String formatUserJoined = userjoined.format(dateFormat);
 		String formatUserCreated = usercreated.format(dateFormat);
-			
 		
 		EmbedBuilder builder = new EmbedBuilder();
 		builder.setFooter("Requested by " + requester.getGuild().getMemberById(requester.getIdLong()).getEffectiveName());
-		builder.setColor(0x1da64a);
+		if (user.getColor() != null)
+			builder.setColor(user.getColor()); 
+		else 
+			builder.setColor(0x1da64a);
 		builder.setTimestamp(OffsetDateTime.now());
 		builder.setThumbnail(user.getUser().getEffectiveAvatarUrl());
+		builder.setTitle(user.getEffectiveName(), user.getUser().getEffectiveAvatarUrl());
 		
 		StringBuilder strBuilder = new StringBuilder();
 		

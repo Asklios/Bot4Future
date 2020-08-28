@@ -21,7 +21,7 @@ public class RoleCreation implements ServerCommand{
 		if(member.hasPermission(channel, Permission.MANAGE_ROLES)) {
 		
 			Guild guild = channel.getGuild();
-			String[] args = message.getContentDisplay().split(" ");
+			String[] args = message.getContentDisplay().split("\\s+");
 			int length = args.length;
 		
 			if(length == 2 || length == 3) {

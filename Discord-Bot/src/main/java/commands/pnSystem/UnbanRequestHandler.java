@@ -95,13 +95,25 @@ public class UnbanRequestHandler {
 				request.setReason(message);
 				users.remove(userID);
 	
-				channel.sendMessage("Dein Entbannungsantrag wurde an die Verantwortlichen gesendet").queue();
+				
 				
 				GuildDataXmlReadWrite.writeUnbanRequestValue(userID, request.getGuildID(), true);
 	
 				Guild guild = event.getJDA().getGuildById(request.getGuildID());
 				String reason = request.getReason();
-				TextChannel audit = guild.getTextChannelById(GuildDataXmlReadWrite.readAuditChannelId(guild.getIdLong()));
+				TextChannel audit = null;
+				
+				if (!guild.getTextChannelById(GuildDataXmlReadWrite.readPnChannelId(guild.getIdLong())).equals(null)) {
+					audit = guild.getTextChannelById(GuildDataXmlReadWrite.readPnChannelId(guild.getIdLong()));
+					channel.sendMessage("Dein Entbannungsantrag wurde an die Verantwortlichen gesendet").queue();
+				}
+				else if (!guild.getTextChannelById(GuildDataXmlReadWrite.readAuditChannelId(guild.getIdLong())).equals(null)) {
+					audit = guild.getTextChannelById(GuildDataXmlReadWrite.readAuditChannelId(guild.getIdLong()));
+					channel.sendMessage("Dein Entbannungsantrag wurde an die Verantwortlichen gesendet").queue();
+				}
+				else {
+					channel.sendMessage("Es konnte keine Nachricht gesendet werden, da der Server die Funktion nicht aktiviert hat.").queue();
+				}
 	
 				EmbedBuilder b = new EmbedBuilder();
 				b.setColor(0xff00ff); //helles Lila
@@ -110,7 +122,12 @@ public class UnbanRequestHandler {
 				b.setThumbnail(channel.getUser().getAvatarUrl() == null ? channel.getUser().getDefaultAvatarUrl() : channel.getUser().getAvatarUrl());
 				b.setDescription("**Nutzer:** " + channel.getUser().getName() + "(" + userID + ") \n \n"
 						+ "**Begründung:** " + reason + "\n \n **Gebannt wegen:** " + guild.retrieveBanById(userID).complete().getReason());
-				audit.sendMessage(b.build()).queue();
+				try {
+					audit.sendMessage(b.build()).queue();
+				}
+				catch (IllegalArgumentException e) {
+					
+				}
 			}
 		}
 		return;

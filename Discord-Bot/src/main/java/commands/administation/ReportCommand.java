@@ -44,7 +44,6 @@ public class ReportCommand implements ServerCommand {
 			
 				try {
 					int amount = 100;
-					channel.sendMessage(reportingUser.getAsMention() + " Die verantwortlichen Moderatoren wurden benachrichtigt, es sind keine weiteren Pings nötig.").complete().delete().queueAfter(15, TimeUnit.SECONDS);
 					writeFile(message, channel, amount, reportedMember, reportingUser, reason);
 					
 				}
@@ -83,10 +82,18 @@ public class ReportCommand implements ServerCommand {
 		String author = "author";
 		String messageText = "text";
 			
-		for (Message message : messageList) {
+		for (int i = messageList.size() - 1; i >= 0; i --) {
+			Message message = messageList.get(i);
 			messageTime = message.getTimeCreated().format(dateFormat).toString();
 			author = "(" + message.getAuthor().getId() + ")" + message.getAuthor().getName().toString();
+			
 			messageText = message.getContentRaw();
+			if (!message.getAttachments().isEmpty()) {
+				if (!messageText.equals("")) {
+					messageText += " ";
+				}
+				messageText += "(" + message.getAttachments().get(0).getUrl() + ")";
+			}
 			
 			textList.add(messageTime + " - by: " + String.format("%-"+50+"."+50+"s" , author) + " - message: " + messageText);
 		}
@@ -114,24 +121,33 @@ public class ReportCommand implements ServerCommand {
 		EmbedBuilder embed = new EmbedBuilder();
 		File file = new File(DiscordBot.INSTANCE.getLogFilePath());
 		String fileName = "log-report " + OffsetDateTime.now().format(dateFormat) + " " + channel.getName() + ".txt";
-		try {
-			embed.setColor(0xff00ff); //helles Lila
-			embed.setTitle(":mag: User reported");
-			embed.setAuthor(originMessage.getGuild().getSelfMember().getNickname());
-			embed.setTimestamp(OffsetDateTime.now());
-			embed.setThumbnail(originMessage.getGuild().getSelfMember().getUser().getAvatarUrl());
-			embed.setDescription(reportedMember.getAsMention() + " wurde von " + originMessage.getAuthor().getAsMention() + " reported" + 
-			"\n reason: *" + reason + "*\n" +
-			"\n Das Log enthält die letzten " + amount + " Nachrichten aus <#" + channel.getId() + ">");
-			audit.sendFile(file, fileName).embed(embed.build()).complete();
-		}
-		catch (IllegalArgumentException | UnsupportedOperationException e) {
-			e.printStackTrace();
-		}
-		catch (InsufficientPermissionException e) {
-			channel.sendMessage(":no_entry_sign: Dem Bot fehlt die nötigen Berechtigungen um den Befehl erfolgreich auszuführen").complete().delete().queueAfter(10, TimeUnit.SECONDS);
-		}
 		
+		if (audit != null) {
+		
+			try {
+				embed.setColor(0xff00ff); //helles Lila
+				embed.setTitle(":mag: User reported");
+				embed.setAuthor(originMessage.getGuild().getSelfMember().getNickname());
+				embed.setTimestamp(OffsetDateTime.now());
+				embed.setThumbnail(originMessage.getGuild().getSelfMember().getUser().getAvatarUrl());
+				embed.setDescription(reportedMember.getAsMention() + " wurde von " + originMessage.getAuthor().getAsMention() + " reported" + 
+				"\n reason: *" + reason + "*\n" +
+				"\n Das Log enthält die letzten " + amount + " Nachrichten aus <#" + channel.getId() + ">");
+				audit.sendFile(file, fileName).embed(embed.build()).complete();
+				
+				channel.sendMessage(reportingUser.getAsMention() + " Die verantwortlichen Moderatoren wurden benachrichtigt, es sind keine weiteren Pings nötig.").complete().delete().queueAfter(15, TimeUnit.SECONDS);
+			}
+			catch (IllegalArgumentException | UnsupportedOperationException e) {
+				e.printStackTrace();
+			}
+			catch (InsufficientPermissionException e) {
+				channel.sendMessage(":no_entry_sign: Dem Bot fehlt die nötigen Berechtigungen um den Befehl erfolgreich auszuführen").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+			}
+		}
+		else {
+			channel.sendMessage("Dieser Command kann nicht genutzt werden, da noch kein `#audit` Channel festgelegt wurde.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+		}
+			
 		// .txt wird gelöscht
 		file.delete();
 		

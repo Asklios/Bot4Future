@@ -41,10 +41,18 @@ public class AdminHelpCommand implements ServerCommand{
 					" \r\n" +
 					
 					//Mod Commands
+					"**Account bannen und PN senden:** --> *permission.BAN_MEMBERS* \r\n" + 
+					" \r\n" +
+					" ```%ban <reason> % @User1 (@User2) (@User3) (...) ```\r\n" +
+					" \r\n" +
 					"**:arrows_counterclockwise: Auf eine Nachricht reagieren/ Reaktion entfernen:** --> *permission.MESSAGE_MANAGE* \r\n" + 
 					" ```\r\n" +
 					" %react #channel <MessageID> :emote: (:emote2:) (...)\r\n" +
 					" %unreact #channel <MessageID> :emote: :emote2: :emote3: ```\r\n" +
+					" \r\n" +
+					"**:bust_in_silhouette:Eine Rolle über Reaktionen vergeben:** --> *permission.MESSAGE_MANAGE* \r\n" + 
+					" \r\n" +
+					" ```%reactionrole #channel <MessageID> :emote: @Rolle ```\r\n" +
 					" \r\n" +
 					"**:roll_of_paper: Erstellen einer Rolle:** --> *permission.MANAGE_ROLES* \r\n" + 
 					" ```\r\n" +
