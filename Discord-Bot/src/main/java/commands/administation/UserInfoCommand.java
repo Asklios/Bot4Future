@@ -1,97 +1,158 @@
 package main.java.commands.administation;
 
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import main.java.commands.ServerCommand;
+import main.java.files.impl.UserRecordsDatabaseSQLite;
+import main.java.files.interfaces.UserRecordsDatabase;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.*;
+
+import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class UserInfoCommand implements ServerCommand {
 
-	@Override
-	public void performCommand(Member member, TextChannel channel, Message message) {
-		
-		if(member.hasPermission(channel, Permission.KICK_MEMBERS)) {
-		
-			channel.sendTyping().queue();
-			List<Member> mention = message.getMentionedMembers();
-			String[] messageSplit = message.getContentDisplay().split("\\s+");
-			String messageSplitID = messageSplit[1].substring(3, 20); //<@!ID>
-			
-			if(message.getContentDisplay().split("\\s+").length > 1 && mention.size() > 0) {
-				for(Member user : mention) {
-					if (member.getGuild().getMemberById(user.getIdLong()) != null) {
-						onInfo(member, user, channel);
-					}
-					else {
-						channel.sendMessage(member.getAsMention() + " Der Account konnte nicht gefunden werden.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
-					}
-				}
-			}
-			else if (message.getGuild().getMemberById(messageSplitID) == null && messageSplit.length > 0) { 
-				channel.sendMessage(member.getAsMention() + " Der Nutzer \"" + messageSplitID + "\" konnte nicht gefunden werden.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
-			}
-			else {
-				EmbedBuilder builder = new EmbedBuilder();
-				channel.sendMessage("Falsche Formatierung!").complete().delete().queueAfter(5, TimeUnit.SECONDS);
-				builder.setDescription("%userinfo @User1 (@User2) (@User3) (...)");
-				channel.sendMessage(builder.build()).complete().delete().queueAfter(5, TimeUnit.SECONDS);
-			}
-		} else {
-			channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
-		}
-	}
+    private UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
+
+    @Override
+    public void performCommand(Member member, TextChannel channel, Message message) {
+
+        if (!member.hasPermission(channel, Permission.KICK_MEMBERS)) {
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            return;
+        }
+
+        channel.sendTyping().queue();
+
+        Guild guild = channel.getGuild();
+        Member mention = null;
+        try {
+            mention = message.getMentionedMembers().get(0);
+        } catch (IndexOutOfBoundsException e) {
+            // Wenn kein Nutzer erwähnt wird
+        }
+
+        String[] messageSplit = message.getContentDisplay().split("\\s+");
+
+        if (messageSplit.length > 1 && !message.getMentionedMembers().isEmpty()) {
+
+            if (member.getGuild().getMemberById(mention.getId()) != null) {
+                onInfo(member, mention, channel);
+            } else {
+                channel.sendMessage(member.getAsMention() + " - " + mention.getAsMention() + " konnte nicht gefunden werden.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            }
+
+        }
+        else if (messageSplit.length > 1) {
+            Member idMention;
+            try {
+                idMention = guild.getMemberById(messageSplit[1]);
+            } catch (NullPointerException | NumberFormatException e) {
+                channel.sendMessage(member.getAsMention() + " - Der User \"" + messageSplit[1] + "\" konnte nicht gefunden werden.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                return;
+            }
+
+            if (idMention == null) {
+                channel.sendMessage("Falsche Formatierung: `%userinfo @user`").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                return;
+            }
+
+            if (member.getGuild().getMemberById(idMention.getIdLong()) != null) {
+                onInfo(member, idMention, channel);
+            } else {
+                channel.sendMessage(member.getAsMention() + " - " + mention.getAsMention() + " konnte nicht gefunden werden.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            }
+
+        }
+        else {
+            channel.sendMessage("Falsche Formatierung: `%userinfo @user`").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+        }
+    }
 
 
-	
-	private void onInfo(Member requester, Member user, TextChannel channel) {
-		
-		
-		OffsetDateTime usercreated = user.getTimeCreated();
-		OffsetDateTime userjoined =user.getTimeJoined();
-		
-		DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-		
-		String formatUserJoined = userjoined.format(dateFormat);
-		String formatUserCreated = usercreated.format(dateFormat);
-		
-		EmbedBuilder builder = new EmbedBuilder();
-		builder.setFooter("Requested by " + requester.getGuild().getMemberById(requester.getIdLong()).getEffectiveName());
-		if (user.getColor() != null)
-			builder.setColor(user.getColor()); 
-		else 
-			builder.setColor(0x1da64a);
-		builder.setTimestamp(OffsetDateTime.now());
-		builder.setThumbnail(user.getUser().getEffectiveAvatarUrl());
-		builder.setTitle(user.getEffectiveName(), user.getUser().getEffectiveAvatarUrl());
-		
-		StringBuilder strBuilder = new StringBuilder();
-		
-		strBuilder.append("**User:** " + user.getAsMention() + "\n");
-		strBuilder.append("**ClientID:** " + user.getId() + "\n");
-		strBuilder.append("\n");
-		strBuilder.append("**TimeJoined:** "+ formatUserJoined + "\n");
-		strBuilder.append("**TimeCreated:** "+ formatUserCreated + "\n");
-		
-		strBuilder.append(" \n *Rollen:* \n");
-		
-		StringBuilder roleBuilder = new StringBuilder();
-		for(Role role : user.getRoles()) {
-			roleBuilder.append(role.getAsMention() + " ");
-		}
-		strBuilder.append(roleBuilder.toString().trim() + "\n");
-		
-		builder.setDescription(strBuilder);
-		
-		channel.sendMessage(builder.build()).complete().delete().queueAfter(60, TimeUnit.SECONDS);
-		
-	}
+    private void onInfo(Member requester, Member user, TextChannel channel) {
+
+
+        OffsetDateTime usercreated = user.getTimeCreated();
+        OffsetDateTime userjoined = user.getTimeJoined();
+
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+
+        String formatUserJoined = userjoined.format(dateFormat);
+        String formatUserCreated = usercreated.format(dateFormat);
+
+        //.db request
+        Map<String,Integer> records = null;
+        int activeBans;
+        int activeWarnings;
+        int activeMutes;
+        int totalBans;
+        int totalWarnings;
+        int totalMutes;
+
+        try {
+            records = this.userRecordsDatabase.recordNumbers(user.getIdLong());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        if (records == null){
+            activeBans = 0;
+            activeWarnings = 0;
+            activeMutes = 0;
+            totalBans = 0;
+            totalWarnings = 0;
+            totalMutes = 0;
+
+        }
+        else {
+            activeBans = records.get("ban");
+            activeWarnings = records.get("warning");
+            activeMutes = records.get("mute");
+            totalBans = records.get("bantotal");
+            totalWarnings = records.get("warntotal");
+            totalMutes = records.get("mutetotal");
+        }
+
+        //Ausgabe der UserInfo Nachricht
+        EmbedBuilder builder = new EmbedBuilder();
+        builder.setFooter("Requested by " + requester.getGuild().getMemberById(requester.getIdLong()).getEffectiveName());
+        if (user.getColor() != null)
+            builder.setColor(user.getColor());
+        else
+            builder.setColor(0x1da64a);
+        builder.setTimestamp(OffsetDateTime.now());
+        builder.setThumbnail(user.getUser().getEffectiveAvatarUrl());
+        builder.setTitle(user.getEffectiveName(), user.getUser().getEffectiveAvatarUrl());
+
+        StringBuilder strBuilder = new StringBuilder();
+
+        strBuilder.append("**User:** " + user.getAsMention() + "\n");
+        strBuilder.append("**ClientID:** " + user.getId() + "\n");
+        strBuilder.append("\n");
+        strBuilder.append("**TimeJoined:** " + formatUserJoined + "\n");
+        strBuilder.append("**TimeCreated:** " + formatUserCreated + "\n");
+        strBuilder.append("Anzahl der Verwarnungen: " + activeWarnings + "\n");
+        strBuilder.append("Anzahl aktiver Mutes: " + activeMutes + "\n");
+        strBuilder.append("Anzahl aktiver Bans: " + activeBans + "\n \n");
+        strBuilder.append("Anzahl aller Mutes: " + totalMutes + "\n");
+        strBuilder.append("Anzahl aller Bans: " + totalBans + "\n");
+
+        strBuilder.append(" \n *Rollen:* \n");
+
+        StringBuilder roleBuilder = new StringBuilder();
+        for (Role role : user.getRoles()) {
+            roleBuilder.append(role.getAsMention() + " ");
+        }
+        strBuilder.append(roleBuilder.toString().trim() + "\n");
+
+        builder.setDescription(strBuilder);
+
+        channel.sendMessage(builder.build()).complete().delete().queueAfter(60, TimeUnit.SECONDS);
+
+    }
 }
 

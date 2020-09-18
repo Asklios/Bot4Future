@@ -21,8 +21,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.restaction.pagination.AuditLogPaginationAction;*/
 
 public class EventAuditListener extends ListenerAdapter {
-	
-	//Event wenn eine Nachricht bearbeitet wird
+
+    //Event wenn eine Nachricht bearbeitet wird
 	/*@Override
 	public void onGuildMessageUpdate (GuildMessageUpdateEvent event) {
 		
@@ -38,8 +38,8 @@ public class EventAuditListener extends ListenerAdapter {
 		//outputMessageUpdateMessage(guild.getTextChannelById(GuildDataXmlReadWrite.readEventAuditChannelId(guild.getIdLong())), targetUser);
 		
 	}*/
-	
-	//Event wenn eine Nachricht gelöscht wird
+
+    //Event wenn eine Nachricht gelöscht wird
 	
 	/*
 	//Event wenn ein Nutzer beitritt
@@ -51,8 +51,8 @@ public class EventAuditListener extends ListenerAdapter {
 		
 		outputMemberJoinMessage(guild.getTextChannelById(GuildDataXmlReadWrite.readEventAuditChannelId(guild.getIdLong())), targetUser);
 	}*/
-	
-	//Event wenn ein Nutzer den Server verlässt
+
+    //Event wenn ein Nutzer den Server verlässt
 	/*@Override
 	public void onGuildMemberLeave (GuildMemberLeaveEvent event) {
 		

@@ -1,40 +1,36 @@
 package main.java.commands.invite;
 
-import java.util.concurrent.TimeUnit;
-
 import main.java.commands.ServerCommand;
-import main.java.files.GuildDataXmlReadWrite;
+import main.java.files.impl.GuildDatabaseSQLite;
+import main.java.files.interfaces.GuildDatabase;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 
-public class GetSpecialCodeCommand implements ServerCommand{
+import java.util.concurrent.TimeUnit;
 
-// gibt den aktuell festgelegtn SpecialInviteCode aus	
-	
-	@Override
-	public void performCommand(Member member, TextChannel channel, Message message) {
-			
-		if(member.hasPermission(channel, Permission.ADMINISTRATOR)) {
-		
-		
-			try {
-				String inviteCode = GuildDataXmlReadWrite.readSpecialCode(member.getGuild().getIdLong());
-				if(!inviteCode.equals("")) {
-					channel.sendMessage("\"" + inviteCode + "\" ist der aktuelle Special-Code.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
-				}
-				else {
-					channel.sendMessage("Der aktuelle Special-Code ist nicht festgelegt.\n```%specialcode <code>```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
-				}
-			} catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-				System.err.println("Cought Exception: NumberFormatException (SpecialInviteCodeCommand.java - performCommand)");
-			}
-		}
-		else {
-			channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
-		}
-	}	
+public class GetSpecialCodeCommand implements ServerCommand {
+
+    GuildDatabase guildDatabase = new GuildDatabaseSQLite();
+
+    @Override
+    public void performCommand(Member member, TextChannel channel, Message message) {
+
+        if (!member.hasPermission(channel, Permission.ADMINISTRATOR)) {
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            return;
+        }
+
+        String inviteCode = this.guildDatabase.getSpecialCode(channel.getGuild());
+
+        if (inviteCode == null) {
+            channel.sendMessage("Der aktuelle Special-Code ist nicht festgelegt.\n```%specialcode <code>```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            return;
+        }
+
+        channel.sendMessage("\"" + inviteCode + "\" ist der aktuelle Special-Code.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+    }
 }
 
 

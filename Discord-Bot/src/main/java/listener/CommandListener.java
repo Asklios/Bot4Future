@@ -1,8 +1,5 @@
 package main.java.listener;
 
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
-
 import main.java.DiscordBot;
 import main.java.commands.invite.SpecialCodeCommand;
 import main.java.commands.pnSystem.UnbanRequestHandler;
@@ -16,72 +13,71 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
 public class CommandListener extends ListenerAdapter {
 
-	@Override
-	public void onMessageReceived(MessageReceivedEvent event) {
-		if (event.getAuthor().isBot()) return;
+    @Override
+    public void onMessageReceived(MessageReceivedEvent event) {
+        if (event.getAuthor().isBot()) return;
 
-		String message = event.getMessage().getContentDisplay(); // Nachricht wie sie ankommt mit Formatierung
+        String message = event.getMessage().getContentDisplay(); // Nachricht wie sie ankommt mit Formatierung
 
-		// wenn die Nachricht aus einem Private-Channel stammt
-		if (event.isFromType(ChannelType.PRIVATE)) {
+        // wenn die Nachricht aus einem Private-Channel stammt
+        if (event.isFromType(ChannelType.PRIVATE)) {
 
-			UnbanRequestHandler.handle(event);
-		}
-
-
-
-		// wenn die Nachricht aus einem Text-Channel von einem Server stammt
-		if(event.isFromType(ChannelType.TEXT)) {
-			TextChannel channel = event.getTextChannel();
+            UnbanRequestHandler.handle(event);
+        }
 
 
-			if(message.startsWith("%")) { // Festlegung des Präfix 
-				String[] args = message.substring(1).split("\\s+");
-				if(args.length > 0) {
-					if(!DiscordBot.INSTANCE.getCmdMan().perform(args[0], event.getMember(), channel, event.getMessage())) {
-						channel.sendMessage("unknown command").complete().delete().queueAfter(5, TimeUnit.SECONDS);
-					}
-				}
-				try {
-					event.getMessage().delete().queueAfter(5, TimeUnit.SECONDS);
-				}
-				catch (ErrorResponseException e) {
-					e.printStackTrace();
-				}
-			}
+        // wenn die Nachricht aus einem Text-Channel von einem Server stammt
+        if (event.isFromType(ChannelType.TEXT)) {
+            TextChannel channel = event.getTextChannel();
 
-			else {
-				DiscordBot.INSTANCE.getAutoListener().autoListen(event.getMember(), channel, event.getMessage());
-			}
 
-		}
+            if (message.startsWith("%")) { // Festlegung des Präfix
+                String[] args = message.substring(1).split("\\s+");
+                if (args.length > 0) {
+                    if (!DiscordBot.INSTANCE.getCmdMan().perform(args[0], event.getMember(), channel, event.getMessage())) {
+                        channel.sendMessage("unknown command").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                    }
+                }
+                try {
+                    event.getMessage().delete().queueAfter(5, TimeUnit.SECONDS);
+                } catch (ErrorResponseException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                DiscordBot.INSTANCE.getAutoListener().autoListen(event.getMember(), channel, event.getMessage());
+            }
 
-	}
+        }
 
-	// Invite Manager
-	@Override
-	public void onGuildMemberJoin(GuildMemberJoinEvent event) {
-		SpecialCodeCommand.guildMemberJoin(event);
-	}
+    }
 
-	@Override
-	public void onGuildJoin(GuildJoinEvent event) {
-		System.out.println("connected to: " + event.getGuild().getName());
-		ArrayList<Guild> singleGuildList = new ArrayList<Guild>();
-		singleGuildList.add(event.getGuild());
+    // Invite Manager
+    @Override
+    public void onGuildMemberJoin(GuildMemberJoinEvent event) {
+        SpecialCodeCommand.guildMemberJoin(event);
+    }
 
-		DiscordBot.INSTANCE.updateGuilds(singleGuildList);
-		SpecialCodeCommand.writeInviteCount(singleGuildList);
-	}
+    @Override
+    public void onGuildJoin(GuildJoinEvent event) {
+        System.out.println("connected to: " + event.getGuild().getName());
+        ArrayList<Guild> singleGuildList = new ArrayList<Guild>();
+        singleGuildList.add(event.getGuild());
 
-	@Override
-	public void onReady(ReadyEvent event) {
-		System.out.println("ready");
-		DiscordBot.INSTANCE.updateGuilds(event.getJDA().getGuilds());
-		SpecialCodeCommand.writeInviteCount(event.getJDA().getGuilds());
-	}	
+        DiscordBot.INSTANCE.updateGuilds(singleGuildList);
+        SpecialCodeCommand.writeInviteCount(singleGuildList);
+    }
+
+    @Override
+    public void onReady(ReadyEvent event) {
+        System.out.println("ready");
+        DiscordBot.INSTANCE.updateGuilds(event.getJDA().getGuilds());
+        SpecialCodeCommand.writeInviteCount(event.getJDA().getGuilds());
+    }
 }
 
 

@@ -1,37 +1,31 @@
 package main.java.commands.invite;
 
-import java.util.concurrent.TimeUnit;
-
 import main.java.commands.ServerCommand;
-import main.java.files.GuildDataXmlReadWrite;
+import main.java.files.impl.GuildDatabaseSQLite;
+import main.java.files.interfaces.GuildDatabase;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 
-public class GetSpecialCodeRoleCommand implements ServerCommand{
+import java.util.concurrent.TimeUnit;
 
-	// gibt die Rolle aus welche bei Beitritt über den special Code vergeben wird.	
-		
-	@Override
-	public void performCommand(Member member, TextChannel channel, Message message) {
-		if(member.hasPermission(channel, Permission.ADMINISTRATOR)) {
-		
-			try {
-				
-				long specialCodeRoleId = GuildDataXmlReadWrite.readSpecialCodeRole(member.getGuild().getIdLong());
-				if(specialCodeRoleId != 0) {
-					String roleMention = message.getGuild().getRoleById(specialCodeRoleId).getAsMention();
-					channel.sendMessage(roleMention + " ist die aktuelle Special-Code-Rolle.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
-				} else {
-					channel.sendMessage("Die aktuelle Special-Code-Rolle ist nicht festgelegt.\n```%specialcoderole @role```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
-				}
-				
-			} catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-				System.err.println("Cought Exception: NumberFormatException (SpecialInviteCodeCommand.java - performCommand)");
-			}
-		} else {
-			channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
-		}
-	}	
+public class GetSpecialCodeRoleCommand implements ServerCommand {
+
+    private GuildDatabase guildDatabase = new GuildDatabaseSQLite();
+
+    @Override
+    public void performCommand(Member member, TextChannel channel, Message message) {
+        if (!member.hasPermission(Permission.ADMINISTRATOR)) return;
+
+        Role specialRole = this.guildDatabase.getSpecialRole(member.getGuild());
+
+        if (specialRole == null) {
+            channel.sendMessage("Die special Rolle wurde noch nicht festgelegt `%specialcoderole @role`").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            return;
+        }
+
+        channel.sendMessage("Die aktuelle specialcoderole ist " + specialRole.getAsMention()).complete().delete().queueAfter(5, TimeUnit.SECONDS);
+    }
 }

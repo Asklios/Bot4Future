@@ -1,21 +1,17 @@
 package main.java.commands.audit;
 
 import main.java.commands.ServerCommand;
-/*import java.util.concurrent.TimeUnit;
-
-import de.java.main.files.GuildDataXmlReadWrite;
-import net.dv8tion.jda.api.Permission;*/
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
 
-public class GetEventAuditChannelCommand implements ServerCommand{
+public class GetEventAuditChannelCommand implements ServerCommand {
 
-	@Override
-	public void performCommand(Member m, TextChannel channel, Message message) {
-		// nur damit kein fehler kommt, kann wieder gelöscht werden
-		
-	}
+    @Override
+    public void performCommand(Member member, TextChannel channel, Message message) {
+        // nur damit kein fehler kommt, kann wieder gelöscht werden
+
+    }
 
 	/*
 	// gibt den aktuell festgelegten Event-Audit-Channel aus	
@@ -43,5 +39,5 @@ public class GetEventAuditChannelCommand implements ServerCommand{
 		} else {
 			channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
 		}
-	}*/				
+	}*/
 }
