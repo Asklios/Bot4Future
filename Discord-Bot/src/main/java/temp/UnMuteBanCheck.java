@@ -22,7 +22,7 @@ public class UnMuteBanCheck extends TimerTask {
 	}
 
 	public void run() {
-		System.out.println("Unmute/ban loop");
+		//System.out.println("Unmute/ban loop");
 		ResultSet results = LiteSQL.onQuery("SELECT id, userid, endtime, guildid, note, type FROM userrecords WHERE note != 'lifted' AND (type = 'mute' OR type = 'tempban')");
 		GuildDatabase roleDatabase = new GuildDatabaseSQLite();
 		try {
@@ -36,12 +36,13 @@ public class UnMuteBanCheck extends TimerTask {
 				String type = results.getString("type");
                 String[] roleIds = note.split("⫠");
 				
-                Guild guild = DiscordBot.INSTANCE.shardMan.getGuildById(guildId);
+                Guild guild = DiscordBot.INSTANCE.jda.getGuildById(guildId);
                 Member member = null;
                 if(type.equals("mute")) {
 					try {
-						member = guild.getMemberById(userId);
+						member = guild.retrieveMemberById(userId).complete();
 					} catch(NullPointerException e) {
+						//
 					}
                 }
 				//set already unmuted members to lifted
@@ -59,7 +60,6 @@ public class UnMuteBanCheck extends TimerTask {
 						 UnMuteBanTask task = new UnMuteBanTask(id, type, endTime, userId, member, guild, roleIds);
 						 task.start();
 					}
-					continue;
 				} else {
 					UnMuteBanTask task = new UnMuteBanTask(id, type, endTime, userId, member, guild, roleIds);
 					task.execute();

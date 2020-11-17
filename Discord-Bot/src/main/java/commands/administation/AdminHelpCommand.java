@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.time.OffsetDateTime;
 import java.util.concurrent.TimeUnit;
@@ -16,8 +17,6 @@ public class AdminHelpCommand implements ServerCommand {
     public void performCommand(Member member, TextChannel channel, Message message) {
 
         if (member.hasPermission(channel, Permission.MESSAGE_MANAGE)) {
-
-            channel.sendMessage(member.getAsMention() + ", du findest eine Wall-of-Text in deinen PNs.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
 
             EmbedBuilder builder1 = new EmbedBuilder();
             builder1.setTitle("Botbefehle");
@@ -49,19 +48,30 @@ public class AdminHelpCommand implements ServerCommand {
                             "**:hammer: Account bannen und PN senden:** --> *permission.BAN_MEMBERS* \r\n" +
                             " ```%ban <reason> % @User1 (@User2) (@User3) (...) \r\n" +
                             "%banid <userId> <reason> \n" +
-                            "%tempban <@user> <time> <reason>``` \n" +
+                            "%tempban @user <time> <reason>``` \n" +
                             " \r\n" +
                             "**:warning: Nutzer*in verwarnen:** --> *permission.KICK_MEMBERS*" +
-                            "```%warn <@user> <reason>``` " +
-                            "```%mute <@user> <time> <reason>``` \n" +
+                            "```%warn @user <reason>``` " +
+                            "```%mute @user <time> <reason>``` \n" +
                             ":mute: **Festlegen der Mute-Rolle:** --> *permission.ADMINISTRATOR* \n" +
-                            "```%muterole <@role> \n" +
-                            "%getmuterole``` \n \n" +
+                            "```%muterole @role \n" +
+                            "%getmuterole``` \n" +
+                            "*Mit diesem Command kann eine neue Mute-Rolle erstellt werden welche automatisch für die Textchannels kofiguriert wird auf welche die " +
+                            "@publicRole Zugriff hat* \n" +
+                            "```%newmuterole @publicRole``` \n" +
 
+                            "**:telephone: TK-Anwesenheit:** --> *permission.MESSAGE_MANAGE*\n" +
+                            "```%presence <Voice-Channel-Id> <Call-Name>\n" +
+                            "%getpresence <Id oder Name> ```\n" +
+                            "*Admins können alle Daten löschen die für ihren Server gespeicht wurden.* \n" +
+                            "```%removeallcalldata ``` \n " +
+
+
+                            /*
                             "**:bar_chart: Poll-Command:** --> *permission.MESSAGE_MANAGE*\n" +
                             "```%poll <emote1> % <text1> % <emote2> % <text2> % <emote3> % <text3> \n" +
                             "%getpoll #channel <MessageId Poll> \n" +
-                            "%closepoll #channel <MessageId Poll> ``` \n " +
+                            "%closepoll #channel <MessageId Poll> ``` \n " +*/
 
                             " ");
 
@@ -83,9 +93,22 @@ public class AdminHelpCommand implements ServerCommand {
                             " ```\r\n" +
                             "%createrole <Name> (<#FarbeHex>) ``` \r\n" +
                             " \r\n" +
+                            "**:twisted_rightwards_arrows: Rollen sortieren:** --> *permission.ADMINISTRATOR* \r\n" +
+                            " ```\r\n" +
+                            "%sortroles @startrole @endrole ``` \r\n" +
+                            " \r\n" +
                             "**:no_entry_sign: Bulk delete:** --> *permission.MESSAGE_MANAGE* \r\n" +
                             " ```\r\n" +
                             "%clear <Anzahl der zu löschenden Nachrichten> ``` \r\n" +
+                            " \r\n" +
+                            "*Nachrichten eines Nutzers löschen (überprüft die letzten 100 Nachrichten)* \r\n" +
+                            "```%clearuser @user ```\r\n" +
+                            " \r\n" +
+                            "**:snail: SlowMode (1 min):** --> *permission.KICK_MEMBERS* \r\n" +
+                            "*Bei allen Textkanälen auf welche die Rolle Zugriff hat wird der SlowMode auf 1 min gesetzt/entfernt.* \r\n" +
+                            " ```\r\n" +
+                            "%slow @role \r\n" +
+                            "%slowend @role ``` \r\n" +
                             " \r\n" +
                             " \r\n" +
                             "**:scroll: Log:** -->  *permission.MESSAGE_MANAGE*" +
@@ -160,14 +183,24 @@ public class AdminHelpCommand implements ServerCommand {
 
                             "");
 
-            member.getUser().openPrivateChannel().queue((ch) -> {
-                ch.sendMessage(builder1.build()).queue();
-                ch.sendMessage(builder2.build()).queue();
-                ch.sendMessage(builder3.build()).queue();
-                ch.sendMessage(builder4.build()).queue();
-            });
+            try {
+                member.getUser().openPrivateChannel().queue((ch) -> {
+                    ch.sendMessage(builder1.build()).queue();
+                    ch.sendMessage(builder2.build()).queue();
+                    ch.sendMessage(builder3.build()).queue();
+                    ch.sendMessage(builder4.build()).queue();
+                });
+
+                channel.sendMessage(member.getAsMention() + ", du findest eine Wall-of-Text in deinen PNs.")
+                        .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+
+            } catch (ErrorResponseException e) {
+                channel.sendMessage(member.getAsMention() + ", der Bot kann dir keine PN schicken. Bitte überprüfe deine Privatsphäreeinstellungen.")
+                        .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+            }
         } else {
-            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(")
+                    .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
         }
     }
 }

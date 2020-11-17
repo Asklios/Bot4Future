@@ -20,7 +20,7 @@ public class SpecialCodeRoleCommand implements ServerCommand {
     public void performCommand(Member member, TextChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.ADMINISTRATOR)) {
-            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             return;
         }
 
@@ -28,10 +28,10 @@ public class SpecialCodeRoleCommand implements ServerCommand {
 
         // %specialcoderole @Rolle
         if (messageSplit.length != 2) {
-            channel.sendMessage("Falsche Formatierung!").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("Falsche Formatierung!").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             EmbedBuilder builder = new EmbedBuilder();
             builder.setDescription("%specialrole @role");
-            channel.sendMessage(builder.build()).complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage(builder.build()).queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             return;
         }
 
@@ -39,19 +39,19 @@ public class SpecialCodeRoleCommand implements ServerCommand {
             Role highestBotRole = message.getGuild().getSelfMember().getRoles().get(0);
 
             if (message.getMentionedRoles().isEmpty()) {
-                channel.sendMessage("Es wurde keine Rolle erwähnt. \n ```%specialcoderole @Rolle```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("Es wurde keine Rolle erwähnt. \n ```%specialcoderole @Rolle```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
                 return;
             }
 
             if (!message.getMentionedRoles().get(0).isManaged() && highestBotRole.canInteract(message.getMentionedRoles().get(0))) {
 
                 this.guildDatabase.setSpecialRole(channel.getGuild(), message.getMentionedRoles().get(0));
-                channel.sendMessage("SpecialCodeRole wurde auf " + message.getMentionedRoles().get(0).getAsMention() + " gesetzt").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("SpecialCodeRole wurde auf " + message.getMentionedRoles().get(0).getAsMention() + " gesetzt").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
 
             } else if (!highestBotRole.canInteract(message.getMentionedRoles().get(0))) {
-                channel.sendMessage("Diese Rolle kann nicht verwendet werden, da sie höher als die Bot-Rolle ist.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("Diese Rolle kann nicht verwendet werden, da sie höher als die Bot-Rolle ist.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             } else if (message.getMentionedRoles().get(0).isManaged()) {
-                channel.sendMessage("Diese Rolle kann nicht verwendet werden, da sie von einer Integration verwaltet wird.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("Diese Rolle kann nicht verwendet werden, da sie von einer Integration verwaltet wird.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             }
         } catch (NumberFormatException e) {
             e.printStackTrace();

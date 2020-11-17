@@ -1,4 +1,4 @@
-package main.java.files.interfaces;
+package main.java.files;
 
 public class TimeMillis {
 
@@ -37,5 +37,16 @@ public class TimeMillis {
         long timeInt = Long.parseLong(timeString.replace("sec", ""));
         long secondMillis = 1000;
         return timeInt*secondMillis;
+    }
+
+    public static String upTime(long millis) {
+        long secondsUptime = millis / 1000;
+        long minutesUptime = ((secondsUptime % 86400) % 3600) / 60;
+        long hoursUptime = (secondsUptime % 86400) / 3600;
+        long daysUptime = secondsUptime / 86400;
+
+        return (daysUptime == 0 ? "" : daysUptime + "d:") +
+                (hoursUptime == 0 ? "" : hoursUptime + "h:") +
+                minutesUptime + "min:" + secondsUptime + "sec";
     }
 }

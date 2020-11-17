@@ -2,8 +2,9 @@ package main.java.commands.administation;
 
 import main.java.DiscordBot;
 import main.java.commands.ServerCommand;
+import main.java.files.TimeMillis;
 import main.java.files.impl.ChannelDatabaseSQLite;
-import main.java.files.impl.GetMemberFromMessageFind;
+import main.java.files.GetMemberFromMessage;
 import main.java.files.impl.GuildDatabaseSQLite;
 import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.*;
@@ -22,8 +23,6 @@ import java.util.stream.Collectors;
 
 public class MuteCommand implements ServerCommand {
 
-
-    private GetMemberFromMessage getMemberFromMessage = new GetMemberFromMessageFind();
     private GuildDatabase guildDatabase = new GuildDatabaseSQLite();
     private UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
     private ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
@@ -32,7 +31,7 @@ public class MuteCommand implements ServerCommand {
     public void performCommand(Member member, TextChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.KICK_MEMBERS)) {
-            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             return;
         }
 
@@ -44,23 +43,23 @@ public class MuteCommand implements ServerCommand {
         Role muteRole = this.guildDatabase.getMuteRole(guild);
 
         if (muteRole == null) {
-            channel.sendMessage("Es wurde noch keine Muterolle festgelegt. `%muterole @role`").complete().delete().queueAfter(5,TimeUnit.SECONDS);
+            channel.sendMessage("Es wurde noch keine Muterolle festgelegt. `%muterole @role`").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 
         if (messageSplit.length == 0) {
             channel.sendMessage("`%mute @user <time> <reason>` ```<time> = <Anzahl><Einheit> \n \n " +
-                    "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                    "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 
         if (messageSplit.length < 3) {
             channel.sendMessage("Falsche Formatierung. `%mute @user <time> <reason>` ```<time> = <Anzahl><Einheit> \n \n " +
-                    "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").complete().delete().queueAfter(15,TimeUnit.SECONDS);
+                    "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").queue(m -> m.delete().queueAfter(15,TimeUnit.SECONDS));
             return;
         }
 
-        Member mention = this.getMemberFromMessage.firstMentionedMember(message);
+        Member mention = GetMemberFromMessage.firstMentionedMember(message); //getMemberFromMessage.firstMentionedMember(message);
         String timeString = messageSplit[2];
         long timeMillis = getTimeMillis(member, channel, timeString);
         long date = System.currentTimeMillis();
@@ -72,7 +71,7 @@ public class MuteCommand implements ServerCommand {
 
         //es konnte kein Member gefunden/gelesen werden
         if (mention == null) {
-            channel.sendMessage(member.getAsMention() + " - Die UserId \"" + messageSplit[1] + "\" konnte nicht gefunden werden.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage(member.getAsMention() + " - Die UserId \"" + messageSplit[1] + "\" konnte nicht gefunden werden.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             return;
         }
 
@@ -87,7 +86,7 @@ public class MuteCommand implements ServerCommand {
         for (Role r : removeRoles) {
             if (!guild.getSelfMember().getRoles().get(0).canInteract(r)) {
                 channel.sendMessage("Der Bot kann " + mention.getEffectiveName() + " nicht muten, da seine Rollen zu niedrig sind.")
-                        .complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                        .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 return;
             }
         }
@@ -98,21 +97,24 @@ public class MuteCommand implements ServerCommand {
 
         this.userRecordsDatabase.addRecord(muteUserID, date, endtime, "mute", guildID, reason, muteMemberRoles);
 
-        channel.sendMessage(mention.getAsMention() + " wurde für " + timeString + " gemuted.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+        channel.sendMessage(mention.getAsMention() + " wurde für " + timeString + " gemuted.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
 
         //inform user
         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm");
         Date endDate = new Date(endtime);
         User muteUser = mention.getUser();
-        PrivateChannel privateChannel = muteUser.openPrivateChannel().complete();
-        EmbedBuilder p = new EmbedBuilder();
-        p.setTitle("Du wurdest auf " + guild.getName() + " gemuted. \n Server-ID: *" + message.getGuild().getId() + "*");
-        p.setDescription("**Begründung:** " + reason + "\n \n Endet: " + sdf.format(endDate));
-        p.setImage(message.getGuild().getBannerUrl());
-        p.setTimestamp(OffsetDateTime.now());
-        p.setColor(0xff000);
 
-        privateChannel.sendMessage(p.build()).complete();
+        muteUser.openPrivateChannel().queue(priv -> {
+
+            EmbedBuilder p = new EmbedBuilder();
+            p.setTitle("Du wurdest auf " + guild.getName() + " gemuted. \n Server-ID: *" + message.getGuild().getId() + "*");
+            p.setDescription("**Begründung:** " + reason + "\n \n Endet: " + sdf.format(endDate));
+            p.setImage(message.getGuild().getBannerUrl());
+            p.setTimestamp(OffsetDateTime.now());
+            p.setColor(0xff000);
+
+            priv.sendMessage(p.build()).queue();
+        });
 
         // audit Message
         TextChannel audit = this.channelDatabase.getAuditChannel(guild);
@@ -183,6 +185,6 @@ public class MuteCommand implements ServerCommand {
 
     private void sendMessageTimeFormat(Member member, TextChannel channel) {
         channel.sendMessage(member.getAsMention() + " Die Zeitangabe wurde falsch formatiert. ```<time> = <Anzahl><Einheit> \n \n " +
-        "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+        "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
     }
 }

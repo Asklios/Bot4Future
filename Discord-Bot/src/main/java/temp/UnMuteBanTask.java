@@ -53,19 +53,27 @@ public class UnMuteBanTask extends Thread {
 	            	guild.addRoleToMember(member, guild.getRoleById(s)).queue();
 	            }
 				LiteSQL.onUpdate("UPDATE userrecords SET note = 'lifted' WHERE id = " + sqlId);
-				channelDatabase.getAuditChannel(guild).sendMessage("Der Mute von " + member.getAsMention() + " ist abgelaufen.").complete();
+				channelDatabase.getAuditChannel(guild).sendMessage("Der Mute von " + member.getAsMention() + " ist abgelaufen.").queue();
 			} catch(NullPointerException e) {
-				LiteSQL.onUpdate("UPDATE userrecords SET note = 'lifted' WHERE id = " + sqlId);
-				channelDatabase.getAuditChannel(guild).sendMessage("Der Mute von " + member.getAsMention() + " ist abgelaufen.").complete();
+				try {
+					LiteSQL.onUpdate("UPDATE userrecords SET note = 'lifted' WHERE id = " + sqlId);
+					channelDatabase.getAuditChannel(guild).sendMessage("Der Mute von " + member.getAsMention() + " ist abgelaufen.").queue();
+				}
+				catch (NullPointerException f) {
+					//f.printStackTrace();
+				}
+			}
+			catch (IllegalArgumentException e) {
+				System.out.println("Could not remove mute role from missing member. (" + member.getId() + ")");
 			}
 		} else {
 			try {
-				guild.unban("" + userId).complete();
+				guild.unban("" + userId).queue();
 				LiteSQL.onUpdate("UPDATE userrecords SET note = 'lifted' WHERE id = " + sqlId);
-				channelDatabase.getAuditChannel(guild).sendMessage("Der Tempban von " + member.getAsMention() + " ist abgelaufen.").complete();
+				channelDatabase.getAuditChannel(guild).sendMessage("Der Tempban von " + member.getAsMention() + " ist abgelaufen.").queue();
 			} catch(ErrorResponseException e1) {
 				LiteSQL.onUpdate("UPDATE userrecords SET note = 'lifted' WHERE id = " + sqlId);
-				channelDatabase.getAuditChannel(guild).sendMessage("Der Tempban von " + member.getAsMention() + " ist abgelaufen.").complete();
+				channelDatabase.getAuditChannel(guild).sendMessage("Der Tempban von " + member.getAsMention() + " ist abgelaufen.").queue();
 			} catch(NullPointerException e3) {
 				//
 			}

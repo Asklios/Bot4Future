@@ -63,4 +63,14 @@ public class LiteSQL {
         }
         return null;
     }
+
+    public static PreparedStatement prepStmt(String sql) {
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = conn.prepareStatement(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return pstmt;
+    }
 }

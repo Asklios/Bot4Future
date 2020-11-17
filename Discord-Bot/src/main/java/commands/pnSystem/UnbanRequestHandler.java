@@ -40,7 +40,7 @@ public class UnbanRequestHandler {
             UnbanRequest request = users.get(userID);
             if (message.equalsIgnoreCase("exit") || message.equalsIgnoreCase("cancel")) {
                 users.remove(userID);
-                channel.sendMessage("**Vorgang abgebrochen**").complete();
+                channel.sendMessage("**Vorgang abgebrochen**").queue();
                 return;
             }
             if (request.getGuildID() == 0) {
@@ -127,9 +127,11 @@ public class UnbanRequestHandler {
                 LiteSQL.onUpdate("INSERT INTO unbanhandlerreactions(guildid, channelid, messageid, bannedid) VALUES(" +
                         guild.getIdLong() + ", " + audit.getIdLong() + ", " + auditMessageId + ", " + channel.getUser().getIdLong() + ")");
 
-                Message auditMessage = audit.retrieveMessageById(auditMessageId).complete();
-                auditMessage.addReaction("U+2705").complete();
-                auditMessage.addReaction("U+274C").complete();
+                audit.retrieveMessageById(auditMessageId).queue(a -> {
+                    a.addReaction("U+2705").queue();
+                    a.addReaction("U+274C").queue();
+                });
+
             }
         }
     }

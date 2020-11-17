@@ -2,15 +2,20 @@ package main.java;
 
 import main.java.commands.ServerCommand;
 import main.java.commands.administation.*;
+import main.java.commands.administation.poll.ClosePollCommand;
+import main.java.commands.administation.poll.GetPollCommand;
+import main.java.commands.administation.poll.PollCommand;
+import main.java.commands.administation.presence.PresenceCommand;
+import main.java.commands.administation.presence.RemoveCallDataCommand;
+import main.java.commands.administation.presence.RequestCallDatabase;
 import main.java.commands.audit.AuditChannelCommand;
 import main.java.commands.audit.GetAuditChannelCommand;
-import main.java.commands.developer.DbClearCommand;
-import main.java.commands.developer.GetDbCommand;
-import main.java.commands.developer.GetXmlCommand;
+import main.java.commands.developer.*;
 import main.java.commands.developer.KillCommand;
 import main.java.commands.invite.*;
 import main.java.commands.pnSystem.GetPnChannelCommand;
 import main.java.commands.pnSystem.PnChannelCommand;
+import main.java.commands.user.HelpCommand;
 import main.java.commands.user.ProfilePictureGeneratorCommand;
 import main.java.commands.user.ReportCommand;
 import net.dv8tion.jda.api.entities.Member;
@@ -39,6 +44,7 @@ public class CommandManager {
         // moderation
         this.commands.put("clear", new ClearCommand());
         this.commands.put("delete", new ClearCommand());
+        this.commands.put("clearuser", new ClearMessagesFromUserCommand());
         this.commands.put("createrole", new RoleCreation());
         this.commands.put("sortroles", new RoleSortCommand());
         this.commands.put("react", new ReactCommand());
@@ -46,10 +52,13 @@ public class CommandManager {
         this.commands.put("reactionrole", new ReactRolesCommand());
         this.commands.put("dbclear", new DbClearCommand());
         this.commands.put("userinfo", new UserInfoCommand());
+        this.commands.put("slow", new SlowModeCommand());
+        this.commands.put("slowend", new RemoveSlowModeCommand());
         this.commands.put("warn", new WarnCommand());
         this.commands.put("mute", new MuteCommand());
         this.commands.put("muterole", new MuteRoleCommand());
         this.commands.put("getmuterole", new GetMuteRoleCommand());
+        this.commands.put("newmuterole", new NewMuteRoleCommand());
         this.commands.put("ban", new BanCommand());
         this.commands.put("banid", new BanIdCommand());
         this.commands.put("tempban", new TempBanCommand());
@@ -60,9 +69,12 @@ public class CommandManager {
         this.commands.put("pnchannel", new PnChannelCommand());
         this.commands.put("getpnchannel", new GetPnChannelCommand());
         this.commands.put("log", new LogCommand());
-        this.commands.put("poll", new PollCommand());
+        /*this.commands.put("poll", new PollCommand());
         this.commands.put("getpoll", new GetPollCommand());
-        this.commands.put("closepoll", new ClosePollCommand());
+        this.commands.put("closepoll", new ClosePollCommand());*/
+        this.commands.put("presence", new PresenceCommand());
+        this.commands.put("getpresence", new RequestCallDatabase());
+        this.commands.put("removeallcalldata", new RemoveCallDataCommand());
 
         //user
         this.commands.put("report", new ReportCommand());
@@ -77,7 +89,7 @@ public class CommandManager {
         this.commands.put("killbot4future", new KillCommand());
         this.commands.put("getxml", new GetXmlCommand());
         this.commands.put("getdb", new GetDbCommand());
-
+        this.commands.put("getguilds", new GetGuildsCommand());
 
     }
 

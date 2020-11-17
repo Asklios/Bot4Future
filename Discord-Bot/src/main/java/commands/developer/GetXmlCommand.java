@@ -20,8 +20,6 @@ public class GetXmlCommand implements ServerCommand {
         }
 
         File xmlFile = new File(DiscordBot.INSTANCE.getDataFilePath());
-        PrivateChannel privateChannel = member.getUser().openPrivateChannel().complete();
-
-        privateChannel.sendFile(xmlFile).queue();
+        member.getUser().openPrivateChannel().queue(p -> p.sendFile(xmlFile).queue());
     }
 }

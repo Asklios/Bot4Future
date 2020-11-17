@@ -29,7 +29,7 @@ public class LogCommand implements ServerCommand {
     public void performCommand(Member member, TextChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.MESSAGE_MANAGE)) {
-            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             return;
         }
 
@@ -44,21 +44,21 @@ public class LogCommand implements ServerCommand {
                         channel.sendTyping().queue();
                         writeFile(message, channel, amount);
                     } else {
-                        channel.sendMessage("Sagmal soll ich jetzt Romane schreiben?!?! ```Nachrichtenlimit: 100```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                        channel.sendMessage("Sagmal soll ich jetzt Romane schreiben?!?! ```Nachrichtenlimit: 100```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
                     }
                 } else if (amount == 0) {
                     channel.sendMessage("Stell Dir vor, Du hast null Kekse und verteilst sie " +
                             "gleichmäßig an null Freunde. Siehst Du? Das macht keinen Sinn. Und das Krümelmonster ist traurig, " +
-                            "weil keine Kekse mehr da sind und Du bist traurig, weil Du keine Freunde hast.").complete().delete().queueAfter(25, TimeUnit.SECONDS);
+                            "weil keine Kekse mehr da sind und Du bist traurig, weil Du keine Freunde hast.").queue(m -> m.delete().queueAfter(25,TimeUnit.SECONDS));
                 } else {
-                    channel.sendMessage("Zukunftsvorhersage in 5, 4, 3, $%*, $%& - **critical ERROR occurred**").complete().delete().queueAfter(12, TimeUnit.SECONDS);
+                    channel.sendMessage("Zukunftsvorhersage in 5, 4, 3, $%*, $%& - **critical ERROR occurred**").queue(m -> m.delete().queueAfter(12,TimeUnit.SECONDS));
                 }
 
             } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-                channel.sendMessage("Falsche Formatierung: ```%log <Anzahl>```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("Falsche Formatierung: ```%log <Anzahl>```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             }
         } else {
-            channel.sendMessage("Falsche Formatierung: ```%log <Anzahl>```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage("Falsche Formatierung: ```%log <Anzahl>```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
         }
 
 
@@ -153,16 +153,16 @@ public class LogCommand implements ServerCommand {
                 embed.setTimestamp(OffsetDateTime.now());
                 embed.setThumbnail(originMessage.getGuild().getSelfMember().getUser().getAvatarUrl());
                 embed.setDescription("Log - requested by " + originMessage.getAuthor().getAsMention() + "\n enthält die letzten " + amount + " Nachrichten aus <#" + channel.getId() + ">");
-                audit.sendFile(file, fileName).embed(embed.build()).complete();
+                audit.sendFile(file, fileName).embed(embed.build()).queue();
 
-                channel.sendMessage(originMessage.getAuthor().getAsMention() + " Es wurde ein Log-File in den Audit-Channel geschickt").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage(originMessage.getAuthor().getAsMention() + " Es wurde ein Log-File in den Audit-Channel geschickt").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             } catch (IllegalArgumentException | UnsupportedOperationException e) {
                 e.printStackTrace();
             } catch (InsufficientPermissionException e) {
-                channel.sendMessage("Dem Bot fehlt die Berechtigung das LogFile zu senden. ```Benötigt Berechtigungen: message_read, message_write, message_attach_files```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("Dem Bot fehlt die Berechtigung das LogFile zu senden. ```Benötigt Berechtigungen: message_read, message_write, message_attach_files```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             }
         } else {
-            channel.sendMessage("Es ist keine #audit Channel festgelegt in welchen das Log geschickt werden könnte.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage("Es ist keine #audit Channel festgelegt in welchen das Log geschickt werden könnte.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
         }
 
         // .txt wird gelöscht

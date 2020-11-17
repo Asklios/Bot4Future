@@ -59,14 +59,14 @@ public class RoleCreation implements ServerCommand {
                 }
 
             } else {
-                channel.sendMessage("Falsche Formatierung!").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                channel.sendMessage("Falsche Formatierung!").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 EmbedBuilder builder = new EmbedBuilder();
                 builder.setDescription("%createrole <Name> (<#FarbeHex>)"); // Antwort auf nur %createrole
-                channel.sendMessage(builder.build()).complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                channel.sendMessage(builder.build()).queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             }
             //message.delete().queue();
         } else {
-            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
         }
     }
 }

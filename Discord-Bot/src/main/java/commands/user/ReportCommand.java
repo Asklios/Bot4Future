@@ -51,13 +51,13 @@ public class ReportCommand implements ServerCommand {
                 } catch (NumberFormatException e) {
                     System.err.println("Cought exception: log amount larger than int (LogCommand.java)");
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    channel.sendMessage("Falsche Formatierung: ```%report @Nutzer <reason>```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                    channel.sendMessage("Falsche Formatierung: ```%report @Nutzer <reason>```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
                 }
             } else {
-                channel.sendMessage("Falsche Formatierung: ```%report @Nutzer <reason>```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("Falsche Formatierung: ```%report @Nutzer <reason>```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             }
         } else {
-            channel.sendMessage("```%report @Nutzer <reason>```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage("```%report @Nutzer <reason>```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
         }
     }
 
@@ -152,16 +152,17 @@ public class ReportCommand implements ServerCommand {
                 embed.setDescription(reportedMember.getAsMention() + " wurde von " + originMessage.getAuthor().getAsMention() + " reported" +
                         "\n reason: *" + reason + "*\n" +
                         "\n Das Log enthält die letzten " + amount + " Nachrichten aus <#" + channel.getId() + ">");
-                audit.sendFile(file, fileName).embed(embed.build()).complete();
+                audit.sendFile(file, fileName).embed(embed.build()).queue();
 
-                channel.sendMessage(reportingUser.getAsMention() + " Die verantwortlichen Moderatoren wurden benachrichtigt, es sind keine weiteren Pings nötig.").complete().delete().queueAfter(15, TimeUnit.SECONDS);
+                channel.sendMessage(reportingUser.getAsMention() + " Die verantwortlichen Moderatoren wurden benachrichtigt, es sind keine weiteren Pings nötig.")
+                        .queue(m -> m.delete().queueAfter(15,TimeUnit.SECONDS));
             } catch (IllegalArgumentException | UnsupportedOperationException e) {
                 e.printStackTrace();
             } catch (InsufficientPermissionException e) {
-                channel.sendMessage(":no_entry_sign: Dem Bot fehlt die nötigen Berechtigungen um den Befehl erfolgreich auszuführen").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage(":no_entry_sign: Dem Bot fehlt die nötigen Berechtigungen um den Befehl erfolgreich auszuführen").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             }
         } else {
-            channel.sendMessage("Dieser Command kann nicht genutzt werden, da noch kein `#audit` Channel festgelegt wurde.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage("Dieser Command kann nicht genutzt werden, da noch kein `#audit` Channel festgelegt wurde.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
         }
 
         // .txt wird gelöscht

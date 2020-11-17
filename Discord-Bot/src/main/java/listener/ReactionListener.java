@@ -60,9 +60,9 @@ public class ReactionListener extends ListenerAdapter {
         } catch (SQLException | NullPointerException e) {
             e.printStackTrace();
         } catch (HierarchyException e) {
-            event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht vergeben, da sie höher als die Bot-Rolle ist.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht vergeben, da sie höher als die Bot-Rolle ist.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
         } catch (IllegalArgumentException e) {
-            event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht vergeben, da sie nicht mehr existiert.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht vergeben, da sie nicht mehr existiert.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
         }
 
         //self reactions
@@ -75,7 +75,7 @@ public class ReactionListener extends ListenerAdapter {
                 if (setSelf.next()) {
                     long bannedID = setRR.getLong("bannedid");
 
-                    guild.unban(bannedID + "").complete();
+                    guild.unban(bannedID + "").queue();
 
                     LiteSQL.onUpdate("DELETE FROM unbanhandlerreactions WHERE guildid = " +
                             guildID + " AND channelid = " + channelID + " AND messageid = " + messageID);
@@ -154,7 +154,7 @@ public class ReactionListener extends ListenerAdapter {
         } catch (SQLException | NullPointerException e) {
             e.printStackTrace();
         } catch (HierarchyException e) {
-            event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht entziehen, da sie höher als die Bot-Rolle ist.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht entziehen, da sie höher als die Bot-Rolle ist.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
         } catch (IllegalArgumentException e) {
             // Reaktion von einer gelöschten Rolle wird entfernt
         }

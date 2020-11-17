@@ -83,7 +83,7 @@ public class AuditListener extends ListenerAdapter {
         builder.setFooter("by " + logEntry.getUser().getName());
         builder.addField("Name: ", targetUser.getAsMention(), false);
         builder.addField("ID: ", targetUser.getId(), false);
-        builder.addField(":page_facing_up:Begründung: ", logEntry.getReason(), false);
+        builder.addField(":page_facing_up:Begründung: ", logEntry.getReason() == null ? "" : logEntry.getReason(), false);
         builder.setTitle(":hammer: Nutzer gebannt:");
 
         channel.sendMessage(builder.build()).queue();

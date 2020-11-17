@@ -1,4 +1,4 @@
-package main.java.commands.administation;
+package main.java.commands.administation.poll;
 
 import main.java.commands.ServerCommand;
 import main.java.files.LiteSQL;
@@ -15,7 +15,7 @@ public class ClosePollCommand implements ServerCommand {
 
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {
-
+/*
         if (!member.hasPermission(Permission.MESSAGE_MANAGE)) {
             return;
         }
@@ -32,13 +32,13 @@ public class ClosePollCommand implements ServerCommand {
         try {
             guild.getTextChannelById(textChannelId).retrieveMessageById(messageIdString).complete();
         } catch (IllegalArgumentException | InsufficientPermissionException e) {
-            channel.sendMessage("Die Nachricht konnte nicht gefunden werden oder der Bot hat keine Berechtigung sie zu lesen").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("Die Nachricht konnte nicht gefunden werden oder der Bot hat keine Berechtigung sie zu lesen").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
         messageID = Long.parseLong(messageIdString);
 
         LiteSQL.onUpdate("DELETE FROM votereactions WHERE guildid = " + guildID + " AND channelid = " + channelID + " AND messageid = " + messageID);
 
-        channel.sendMessage("Die Abstimmung mit der ID: " + messageID + " wurde geschlossen.").queue();
+        channel.sendMessage("Die Abstimmung mit der ID: " + messageID + " wurde geschlossen.").queue();*/
     }
 }

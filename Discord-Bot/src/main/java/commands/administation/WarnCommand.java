@@ -37,22 +37,27 @@ public class WarnCommand implements ServerCommand {
             targetMember = message.getMentionedMembers().get(0);
         } catch (IndexOutOfBoundsException e) {
             try {
-                targetMember = guild.getMemberById(messageSplit[1]);
+                targetMember = guild.retrieveMemberById(messageSplit[1]).complete();
             } catch (NumberFormatException f) {
-                channel.sendMessage("Es wurde kein User erwähnt. `%warn @user <reason>`").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                channel.sendMessage("Es wurde kein User erwähnt. `%warn @user <reason>`").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 return;
             }
         }
 
         if (targetMember == null) {
-            channel.sendMessage("Es wurde kein User erwähnt. `%warn @user <reason>`").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("Es wurde kein User erwähnt. `%warn @user <reason>`").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 
         User targetUser = targetMember.getUser();
 
         if (messageSplit.length < 2) {
-            channel.sendMessage("`%warn @user <reason>`").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("`%warn @user <reason>`").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+            return;
+        }
+
+        if (reason.equals(" ")) {
+            channel.sendMessage("Es wurde keine Begründung angegeben. `%warn @user <reason>`").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 
@@ -71,10 +76,10 @@ public class WarnCommand implements ServerCommand {
         builder.addField("ID: ", targetUser.getId(), false);
         builder.addField(":page_facing_up:Begründung:", reason, false);
 
-        channel.sendMessage(targetMember.getEffectiveName() + " wurde verwarnt. Begründung: " + reason).complete().delete().queueAfter(5, TimeUnit.SECONDS);
+        channel.sendMessage(targetMember.getEffectiveName() + " wurde verwarnt. Begründung: " + reason).queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
 
         if (audit == null) {
-            channel.sendMessage("Es wurde noch kein Audit-Channel festgelegt `%audit #channel`").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("Es wurde noch kein Audit-Channel festgelegt `%audit #channel`").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 

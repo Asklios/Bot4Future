@@ -34,10 +34,10 @@ public class AuditChannelCommand implements ServerCommand {
 
                     try {
                         this.channelDatabase.saveAuditChannel(message.getMentionedChannels().get(0));
-                        channel.sendMessage("Das Audit wird jetzt in " + message.getMentionedChannels().get(0).getAsMention() + " gesendet.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                        channel.sendMessage("Das Audit wird jetzt in " + message.getMentionedChannels().get(0).getAsMention() + " gesendet.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
                     } catch (IndexOutOfBoundsException e) {
                         // System.err.println("Cought Exception: IndexOutOfBoundsException (AuditChannelCommand.java - performCommand)");
-                        channel.sendMessage("Textchannel nicht gefunden.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                        channel.sendMessage("Textchannel nicht gefunden.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
                     }
 
                 } catch (NumberFormatException e) {
@@ -46,12 +46,12 @@ public class AuditChannelCommand implements ServerCommand {
             } else {
 
                 EmbedBuilder builder = new EmbedBuilder();
-                channel.sendMessage("Falsche Formatierung!").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                channel.sendMessage("Falsche Formatierung!").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 builder.setDescription("%audit #channel");
-                channel.sendMessage(builder.build()).complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                channel.sendMessage(builder.build()).queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             }
         } else {
-            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
         }
     }
 }

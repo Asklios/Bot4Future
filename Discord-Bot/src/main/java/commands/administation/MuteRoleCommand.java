@@ -15,15 +15,24 @@ public class MuteRoleCommand implements ServerCommand {
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {
 
-        if (!member.hasPermission(Permission.ADMINISTRATOR)) return;
+        if (!member.hasPermission(Permission.ADMINISTRATOR)) {
+            channel.sendMessage("Du benötigst die Berechtigung Administrator um diesen Command zu nutzen. :(")
+                    .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
+            return;
+        }
 
-        if (message.getMentionedRoles().isEmpty()) return;
+        if (message.getMentionedRoles().isEmpty()) {
+            channel.sendMessage("Es wurde keine Rolle erwähnt. `%muterole @role`")
+                    .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
+            return;
+        }
 
         Guild guild = message.getGuild();
         Role newMuterole = message.getMentionedRoles().get(0);
 
         this.guildDatabase.setMuteRole(guild, newMuterole);
 
-        channel.sendMessage("Die Muterolle wurde auf " + newMuterole.getAsMention() + " festgelegt.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+        channel.sendMessage("Die Muterolle wurde auf " + newMuterole.getName() + " (" + newMuterole.getId() + ") festgelegt.")
+                .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
     }
 }

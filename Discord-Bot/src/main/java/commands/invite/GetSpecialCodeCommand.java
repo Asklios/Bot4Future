@@ -18,18 +18,18 @@ public class GetSpecialCodeCommand implements ServerCommand {
     public void performCommand(Member member, TextChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.ADMINISTRATOR)) {
-            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             return;
         }
 
         String inviteCode = this.guildDatabase.getSpecialCode(channel.getGuild());
 
         if (inviteCode == null) {
-            channel.sendMessage("Der aktuelle Special-Code ist nicht festgelegt.\n```%specialcode <code>```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage("Der aktuelle Special-Code ist nicht festgelegt.\n```%specialcode <code>```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             return;
         }
 
-        channel.sendMessage("\"" + inviteCode + "\" ist der aktuelle Special-Code.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+        channel.sendMessage("\"" + inviteCode + "\" ist der aktuelle Special-Code.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
     }
 }
 

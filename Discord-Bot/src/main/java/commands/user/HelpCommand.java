@@ -1,10 +1,11 @@
-package main.java.commands.administation;
+package main.java.commands.user;
 
 import main.java.commands.ServerCommand;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.time.OffsetDateTime;
 import java.util.concurrent.TimeUnit;
@@ -13,8 +14,6 @@ public class HelpCommand implements ServerCommand {
 
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {
-
-        channel.sendMessage(member.getAsMention() + ", bitte schau in deine PNs.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle("Bot Info");
@@ -29,7 +28,8 @@ public class HelpCommand implements ServerCommand {
                 + "```ServerID, festgelegte Einladung und zugehörige NutzerIDs/RollenIDs, Channel IDs in welche der Bot Nachrichten schicken soll \r\n"
                 + "IDs von gebannten, entbannten, verwarnten Nutzer*innen \r\n"
                 + "ServerID, ChannelID, MessageID und RoleID für jede aktive Reactionrole \r\n"
-                + "ServerID und ChannelID und MessageID für Reaktionsbasierte Funktionen \r\n"
+                + "ServerID, ChannelID und MessageID für Reaktionsbasierte Funktionen \r\n"
+                + "ServerID, UserIDs und Uhrzeit bei Verwendung von %presence, löschen mit %removeallcalldata \r\n"
                 + "Log/Report-files werden direkt nachdem sie verschickt wurden von dem Server gelöscht. ```\r\n"
                 + " \r\n"
                 + "```Für den Betrieb und die Bereitstellung des Servers ist die Bot UG der Messenger AG von Fridays for Future Deutschland verantwortlich ``` \r\n"
@@ -40,8 +40,17 @@ public class HelpCommand implements ServerCommand {
         builder.setTimestamp(OffsetDateTime.now());
 
         member.getUser().openPrivateChannel().queue((ch) -> {
-            ch.sendMessage(builder.build()).queue();
-
+            try {
+                ch.sendMessage(builder.build()).queue();
+                channel.sendMessage(member.getAsMention() + ", bitte schau in deine PNs.")
+                        .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+            } catch (ErrorResponseException e) {
+                channel.sendMessage(member.getAsMention() + ", der Bot kann dir keine PN schicken. Bitte überprüfe deine Privatsphäreeinstellungen.")
+                        .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+            }
+            catch (IllegalStateException e) {
+                //
+            }
         });
 
     }

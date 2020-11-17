@@ -1,4 +1,4 @@
-package main.java.commands.administation;
+package main.java.commands.administation.poll;
 
 import main.java.commands.ServerCommand;
 import main.java.files.LiteSQL;
@@ -18,9 +18,9 @@ public class PollCommand implements ServerCommand {
 
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {
-
+/*
         if (!member.hasPermission(Permission.MESSAGE_MANAGE)) {
-            channel.sendMessage("Du hast nicht die nötige Berechtigung um diesen Command zu nutzen.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("Du hast nicht die nötige Berechtigung um diesen Command zu nutzen.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 
@@ -30,7 +30,7 @@ public class PollCommand implements ServerCommand {
         String[] messageSplit = message.getContentRaw().substring(5).split("%");
 
         if (messageSplit.length < 2) {
-            channel.sendMessage("```%poll <emote1> % <text1> % <emote2> % <text2> % <emote3> % <text3> ...```").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("```%poll <emote1> % <text1> % <emote2> % <text2> % <emote3> % <text3> ...```").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 
@@ -53,7 +53,7 @@ public class PollCommand implements ServerCommand {
         }
 
         if (emotes == null) {
-            channel.sendMessage("Es wurden keine Emotes gefunden. ```%poll <emote1> % <text1> % <emote2> % <text2> % <emote3> % <text3> ...```").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("Es wurden keine Emotes gefunden. ```%poll <emote1> % <text1> % <emote2> % <text2> % <emote3> % <text3> ...```").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 
@@ -72,10 +72,10 @@ public class PollCommand implements ServerCommand {
         try {
             for (int i = 0; i < emotes.size(); i++) {
                 String emote = emotes.get(i).replaceAll(" ", "");
-                channel.addReactionById(messageId, emote).complete();
+                channel.addReactionById(messageId, emote).queue();
             }
         } catch (ErrorResponseException | IllegalArgumentException e) {
-            channel.sendMessage("Min. ein Emote konnte nicht gefunden werden. Es sind nur Unicode-Emotes erlaubt. ```%poll <emote1> % <text1> % <emote2> % <text2> % <emote3> % <text3> ...```").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("Min. ein Emote konnte nicht gefunden werden. Es sind nur Unicode-Emotes erlaubt. ```%poll <emote1> % <text1> % <emote2> % <text2> % <emote3> % <text3> ...```").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             channel.deleteMessageById(messageId).queue();
             return;
         }
@@ -95,6 +95,6 @@ public class PollCommand implements ServerCommand {
         }
 
         LiteSQL.onUpdate("INSERT INTO votereactions(guildid, channelid, messageid, emotes, texts, value) VALUES (" + guildId + ", " + channelId + ", "
-                + messageId + ", '" + emoteString + "', '" + textString + "', '" + valueString + "')");
+                + messageId + ", '" + emoteString + "', '" + textString + "', '" + valueString + "')");*/
     }
 }

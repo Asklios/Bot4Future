@@ -19,7 +19,8 @@ public class BanIdCommand implements ServerCommand {
     public void performCommand(Member member, TextChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.BAN_MEMBERS)) {
-            channel.sendMessage("Du benötigst die Berechtigung Nutzer zu bannen um diesen Command nutzen zu können.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("Du benötigst die Berechtigung Nutzer zu bannen um diesen Command nutzen zu können.")
+                    .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 
@@ -27,18 +28,27 @@ public class BanIdCommand implements ServerCommand {
         String[] messageSplit = message.getContentDisplay().split("\\s+");
         //String idString = null;
         long id = 0;
-        Member banMember;
+        Member banMember = null;
 
         try {
-            id = Long.parseLong(messageSplit[1]);
-            banMember = channel.getGuild().getMemberById(id);
+            try {
+                id = Long.parseLong(messageSplit[1]);
+            } catch (NumberFormatException e) {
+                channel.sendMessage("Es wurde keine korrekte ID angegeben. Eine ID besteht aus 18 Zahlen. " +
+                        "Möglicherweise wurde ein Leerzeichen zwischen ID und Begründung vergessen.")
+                        .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+                return;
+            }
+
+            banMember = channel.getGuild().retrieveMemberById(id).complete();
+
             if (banMember == null) {
-                channel.sendMessage("Unter dieser ID könnte kein User gefunden werden.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                channel.sendMessage("Unter dieser ID könnte kein User gefunden werden.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 return;
             }
         } catch (StringIndexOutOfBoundsException | NumberFormatException e) {
             e.printStackTrace();
-            channel.sendMessage("Es konnte keine gültige ID erkannt werden.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("Es konnte keine gültige ID erkannt werden.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 
@@ -50,19 +60,22 @@ public class BanIdCommand implements ServerCommand {
                 reason = String.join(messageSplit[i], " ", reason);
             }
 
+            if (reason.equals(" ")) {
+                channel.sendMessage("Es wurde keine Begründung angegeben. `%banid <ID> <reason>` ").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+            }
+
             if (id == (message.getAuthor().getIdLong())) {
                 channel.sendMessage(message.getAuthor().getAsMention() + " Du willst dich selbst bannen? Wirklich? Ich mein wenn du das wünschst ließe sich das natürlich einrichten, "
-                        + "aber dann musst du jemand andern bitten das für mich zu übernehmen. Ich mach das nicht, ich mein, beim nächten Mal bin ich dann dran... ").complete().delete().queueAfter(20, TimeUnit.SECONDS);
+                        + "aber dann musst du jemand andern bitten das für mich zu übernehmen. Ich mach das nicht, ich mein, beim nächten Mal bin ich dann dran... ")
+                        .queue(m -> m.delete().queueAfter(20,TimeUnit.SECONDS));
             } else {
                 banMember(message, banMember, reason);
                 outputAuditMessage(banMember.getUser(), message.getAuthor(), reason, message.getGuild());
             }
         } else {
-            channel.sendMessage("```%banid <ID> <reason>```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage("```%banid <ID> <reason>```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
         }
-
     }
-
 
     private void banMember(Message message, Member banMember, String reason) {
 
@@ -82,28 +95,27 @@ public class BanIdCommand implements ServerCommand {
                     pn.setDescription("**Begründung:** " + reason + "\n \n Wenn du Einspruch einlegen möchtest, dann tritt bitte unserem Bot-Dev-Server bei damit der Bot weiterhin deine Nachrichten lesen kann. "
                             + "\n https://discord.gg/KumdM4e \n \n Stelle anschließend deinen Antrag auf Entbannung indem du hier ```%unban``` schreibst. \n \n Wir haben keinen Einfluss darauf ob der Server einen Entbannungsantrag akzeptiert/annimt.");
 
-
                     pn.setImage(message.getGuild().getBannerUrl());
                     pn.setTimestamp(OffsetDateTime.now());
                     pn.setColor(0xff000);
 
-
-                    PrivateChannel ch = banMember.getUser().openPrivateChannel().complete();
-                    ch.sendMessage(pn.build()).complete();
-                    System.out.println("PN sent to " + banMember.getUser().getName() + " (" + banMember.getUser().getId() + ")");
-
+                    banMember.getUser().openPrivateChannel().queue(p -> {
+                        p.sendMessage(pn.build()).queue();
+                        System.out.println("PN sent to " + banMember.getUser().getName() + " (" + banMember.getUser().getId() + ")");
+                    });
 
                 } catch (IllegalStateException | ErrorResponseException e) {
-                    message.getChannel().sendMessage("Es konnte keine PN an den Nutzer gesendet werden.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                    message.getChannel().sendMessage("Es konnte keine PN an den Nutzer gesendet werden.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 } catch (IllegalMonitorStateException e) {
                     System.err.println("Cought Exception: IllegalMonitorStateException BanCommand.java (banMemberPN)");
                 }
 
                 //Nutzer wird gebannt
                 message.getGuild().ban(banMember, 1, reason).queue();
+                message.getChannel().sendMessage(banMember.getAsMention() + " wurde gebannt.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
 
             } else {
-                message.getChannel().sendMessage("Der Bot kann " + banMember.getAsMention() + " nicht bannen, da seine Rollen zu niedrig sind.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                message.getChannel().sendMessage("Der Bot kann " + banMember.getAsMention() + " nicht bannen, da seine Rollen zu niedrig sind.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             }
         }
     }
@@ -130,5 +142,4 @@ public class BanIdCommand implements ServerCommand {
 
         audit.sendMessage(builder.build()).queue();
     }
-
 }

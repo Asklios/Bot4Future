@@ -19,7 +19,7 @@ public class VerifiableRoleCommand implements ServerCommand {
     public void performCommand(Member member, TextChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.ADMINISTRATOR)) {
-            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             return;
         }
 
@@ -27,19 +27,19 @@ public class VerifiableRoleCommand implements ServerCommand {
             Role highestBotRole = message.getGuild().getSelfMember().getRoles().get(0);
 
             if (message.getMentionedRoles().isEmpty()) {
-                channel.sendMessage("Es wurde keine Rolle erwähnt. \n ```%verifiablerole @Rolle```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("Es wurde keine Rolle erwähnt. \n ```%verifiablerole @Rolle```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
                 return;
             }
 
             if (!message.getMentionedRoles().get(0).isManaged() && highestBotRole.canInteract(message.getMentionedRoles().get(0))) {
 
                 this.guildDatabase.setVerifyRole(channel.getGuild(), message.getMentionedRoles().get(0));
-                channel.sendMessage("VerifiableRole wurde auf " + message.getMentionedRoles().get(0).getAsMention() + " gesetzt").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("VerifiableRole wurde auf " + message.getMentionedRoles().get(0).getAsMention() + " gesetzt").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
 
             } else if (!highestBotRole.canInteract(message.getMentionedRoles().get(0))) {
-                channel.sendMessage("Diese Rolle kann nicht verwendet werden, da sie höher als die Bot-Rolle ist.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("Diese Rolle kann nicht verwendet werden, da sie höher als die Bot-Rolle ist.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             } else if (message.getMentionedRoles().get(0).isManaged()) {
-                channel.sendMessage("Diese Rolle kann nicht verwendet werden, da sie von einer Integration verwaltet wird.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("Diese Rolle kann nicht verwendet werden, da sie von einer Integration verwaltet wird.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             }
 
         } catch (NumberFormatException e) {

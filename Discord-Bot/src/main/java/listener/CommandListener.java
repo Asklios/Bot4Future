@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class CommandListener extends ListenerAdapter {
@@ -26,7 +27,6 @@ public class CommandListener extends ListenerAdapter {
 
         // wenn die Nachricht aus einem Private-Channel stammt
         if (event.isFromType(ChannelType.PRIVATE)) {
-
             UnbanRequestHandler.handle(event);
         }
 
@@ -35,25 +35,25 @@ public class CommandListener extends ListenerAdapter {
         if (event.isFromType(ChannelType.TEXT)) {
             TextChannel channel = event.getTextChannel();
 
-
             if (message.startsWith("%")) { // Festlegung des Präfix
                 String[] args = message.substring(1).split("\\s+");
                 if (args.length > 0) {
                     if (!DiscordBot.INSTANCE.getCmdMan().perform(args[0], event.getMember(), channel, event.getMessage())) {
-                        channel.sendMessage("unknown command").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                        channel.sendMessage("unknown command").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                     }
                 }
                 try {
                     event.getMessage().delete().queueAfter(5, TimeUnit.SECONDS);
                 } catch (ErrorResponseException e) {
-                    e.printStackTrace();
+                    System.err.println("CommandListener.java --> [ErrorResponseException] " +
+                            e.getErrorCode() + ": " + e.getMeaning());
+                    System.out.println("Possible cause: trying to delete a message that was already gone");
                 }
             } else {
-                DiscordBot.INSTANCE.getAutoListener().autoListen(event.getMember(), channel, event.getMessage());
+                DiscordBot.INSTANCE.getAutoListener().autoListen(Objects.requireNonNull(event.getMember()),
+                        channel, event.getMessage());
             }
-
         }
-
     }
 
     // Invite Manager

@@ -20,8 +20,6 @@ public class GetDbCommand  implements ServerCommand {
         }
 
         File dbFile = new File(DiscordBot.INSTANCE.getDbFilePath());
-        PrivateChannel privateChannel = member.getUser().openPrivateChannel().complete();
-
-        privateChannel.sendFile(dbFile).queue();
+        member.getUser().openPrivateChannel().queue(p -> p.sendFile(dbFile).queue());
     }
 }

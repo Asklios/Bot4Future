@@ -2,9 +2,8 @@ package main.java.commands.administation;
 
 import main.java.commands.ServerCommand;
 import main.java.files.impl.ChannelDatabaseSQLite;
-import main.java.files.impl.GetMemberFromMessageFind;
+import main.java.files.GetMemberFromMessage;
 import main.java.files.interfaces.ChannelDatabase;
-import main.java.files.interfaces.GetMemberFromMessage;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -16,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 
 public class BanCommand implements ServerCommand {
 
-    GetMemberFromMessage getMemberFromMessage = new GetMemberFromMessageFind();
     ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
     @Override
@@ -30,27 +28,38 @@ public class BanCommand implements ServerCommand {
 
             if (messageSplit.length > 2) {
                 String mentions = messageSplit[2];
-                List<Member> members = this.getMemberFromMessage.allMemberMentionsAndIds(mentions, message);
+                List<Member> members = GetMemberFromMessage.allMemberMentionsAndIds(mentions, message);
 
                 if (members.isEmpty()) {
-                    channel.sendMessage("Es konnten keine Erwähnungen oder Ids erkannt werden. ```%ban <reason> % <@Member1> <@Member2> <@Member3>```").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                    channel.sendMessage("Es konnten keine Erwähnungen oder Ids erkannt werden. ```%ban <reason> % <@Member1> <@Member2> <@Member3>```")
+                            .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                     return;
                 }
 
                 for (Member m : members) {
-                    if (m.getIdLong() == (message.getAuthor().getIdLong())) {
-                        channel.sendMessage(message.getAuthor().getAsMention() + " Du willst dich selbst bannen? Wirklich? Ich mein wenn du das wünschst ließe sich das natürlich einrichten, "
-                                + "aber dann musst du jemand andern bitten das für mich zu übernehmen. Ich mach das nicht, ich mein, beim nächten Mal bin ich dann dran... ").complete().delete().queueAfter(20, TimeUnit.SECONDS);
-
-                    } else {
-                        banMember(message, m, reason);
+                    try {
+                        if (m.getIdLong() == (message.getAuthor().getIdLong())) {
+                            channel.sendMessage(message.getAuthor().getAsMention() + " Du willst dich selbst bannen? Wirklich?" +
+                                    " Ich mein wenn du das wünschst ließe sich das natürlich einrichten, "
+                                    + "aber dann musst du jemand andern bitten das für mich zu übernehmen. " +
+                                    "Ich mach das nicht, ich mein, beim nächten Mal bin ich dann dran... ")
+                                    .queue(me -> me.delete().queueAfter(20,TimeUnit.SECONDS));
+                        } else {
+                            banMember(message, m, reason);
+                        }
+                    } catch (NullPointerException e) {
+                        channel.sendMessage("Ein Member konnte nicht gefunden werden. ")
+                                .queue(me -> me.delete().queueAfter(3,TimeUnit.SECONDS));
+                        System.out.println("user: " + m.getIdLong() + " not found. Skip Ban.");
                     }
                 }
             } else {
-                channel.sendMessage("```%ban <reason> % <@Member1> <@Member2> <@Member3>```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("```%ban <reason> % <@Member1> <@Member2> <@Member3>```")
+                        .queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             }
         } else {
-            channel.sendMessage("Du benötigst die Berechtigung Nutzer zu bannen um diesen Command nutzen zu können.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("Du benötigst die Berechtigung Nutzer zu bannen um diesen Command nutzen zu können.")
+                    .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
         }
     }
 
@@ -60,41 +69,44 @@ public class BanCommand implements ServerCommand {
 
             Role highestBotRole = message.getGuild().getSelfMember().getRoles().get(0);
 
-            if (banMember.getRoles().isEmpty() || highestBotRole.canInteract(banMember.getRoles().get(0))) {
-
-                try {
-
-                    // Nutzer wird per PN informiert
-                    EmbedBuilder pn = new EmbedBuilder();
-
-                    pn.setTitle("Du wurdest auf " + message.getGuild().getName().toString() + " gebannt. \n Server-ID: *" + message.getGuild().getId() + "*");
-
-                    pn.setDescription("**Begründung:** " + reason + "\n \n Wenn du Einspruch einlegen möchtest, dann tritt bitte unserem Bot-Dev-Server bei damit der Bot weiterhin deine Nachrichten lesen kann. "
-                            + "\n https://discord.gg/KumdM4e \n \n Stelle anschließend deinen Antrag auf Entbannung indem du hier ```%unban``` schreibst. \n \n Wir haben keinen Einfluss darauf ob der Server einen Entbannungsantrag akzeptiert/annimt.");
-
-                    pn.setImage(message.getGuild().getBannerUrl());
-                    pn.setTimestamp(OffsetDateTime.now());
-                    pn.setColor(0xff000);
-
-                    PrivateChannel ch = banMember.getUser().openPrivateChannel().complete();
-                    ch.sendMessage(pn.build()).complete();
-                    System.out.println("PN sent to " + banMember.getUser().getName() + " (" + banMember.getUser().getId() + ")");
-
-                } catch (IllegalStateException | ErrorResponseException e) {
-                    message.getChannel().sendMessage("Es konnte keine PN an den Nutzer gesendet werden.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
-                } catch (IllegalMonitorStateException e) {
-                    System.err.println("Cought Exception: IllegalMonitorStateException BanCommand.java (banMemberPN)");
-                }
-
-                //Nutzer wird gebannt
-                message.getGuild().ban(banMember, 1, reason).queue();
-
-                //Audit Nachricht wird gesendet
-                outputAuditMessage(banMember.getUser(), message.getAuthor(), reason, message.getGuild());
-
-            } else {
-                message.getChannel().sendMessage("Der Bot kann " + banMember.getAsMention() + " nicht bannen, da seine Rollen zu niedrig sind.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            if (!banMember.getRoles().isEmpty() && !highestBotRole.canInteract(banMember.getRoles().get(0))) {
+                message.getChannel().sendMessage("Der Bot kann " + banMember.getAsMention() + " nicht bannen, da seine Rollen zu niedrig sind.")
+                        .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+                return;
             }
+
+            try {
+                // Nutzer wird per PN informiert
+                EmbedBuilder pn = new EmbedBuilder();
+
+                pn.setTitle("Du wurdest auf " + message.getGuild().getName() + " gebannt. \n Server-ID: *" + message.getGuild().getId() + "*");
+
+                pn.setDescription("**Begründung:** " + reason + "\n \n Wenn du Einspruch einlegen möchtest, dann tritt bitte unserem Bot-Dev-Server bei damit der Bot weiterhin deine Nachrichten lesen kann. "
+                        + "\n https://discord.gg/KumdM4e \n \n Stelle anschließend deinen Antrag auf Entbannung indem du hier ```%unban``` schreibst. \n \n Wir haben keinen Einfluss darauf ob der Server einen Entbannungsantrag akzeptiert/annimt.");
+
+                pn.setImage(message.getGuild().getBannerUrl());
+                pn.setTimestamp(OffsetDateTime.now());
+                pn.setColor(0xff000);
+
+                banMember.getUser().openPrivateChannel().queue(p -> {
+                    p.sendMessage(pn.build()).queue();
+                    System.out.println("PN sent to " + banMember.getUser().getName() + " (" + banMember.getUser().getId() + ")");
+                });
+
+            } catch (IllegalStateException | ErrorResponseException e) {
+                message.getChannel().sendMessage("Es konnte keine PN an den Nutzer gesendet werden.")
+                        .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+            } catch (IllegalMonitorStateException e) {
+                System.err.println("Cought Exception: IllegalMonitorStateException BanCommand.java (banMemberPN)");
+            }
+
+            //Nutzer wird gebannt
+            message.getGuild().ban(banMember, 1, reason).queue();
+            message.getChannel().sendMessage(banMember.getAsMention() + " wurde gebannt.")
+                    .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+
+            //Audit Nachricht wird gesendet
+            outputAuditMessage(banMember.getUser(), message.getAuthor(), reason, message.getGuild());
         }
     }
 

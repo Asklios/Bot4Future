@@ -55,7 +55,7 @@ public class InviteManager {
                         Role role = this.guildDatabase.getSpecialRole(member.getGuild());
                         try {
                             if (role != null) {
-                                member.getGuild().addRoleToMember(member.getIdLong(), role).complete();
+                                member.getGuild().addRoleToMember(member.getIdLong(), role).queue();
                                 System.out.println(role.getName() + " was given to " + member.getId());
                             } else {
                                 System.out.println("memberid = " + (member.getGuild().getIdLong()));

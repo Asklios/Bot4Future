@@ -22,14 +22,14 @@ public class ReactRolesCommand implements ServerCommand {
 
         // %reactionrole #channel <MessageID> <Emote> @Rolle
         if (!member.hasPermission(channel, Permission.MESSAGE_MANAGE)) {
-            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             return;
         }
 
         String[] messageText = message.getContentDisplay().split("\\s+");
 
         if (messageText.length != 5) {
-            channel.sendMessage("```%reactionrole #channel <MessageID> <Emote> @Rolle```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage("```%reactionrole #channel <MessageID> <Emote> @Rolle```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             return;
         }
 
@@ -54,7 +54,7 @@ public class ReactRolesCommand implements ServerCommand {
                             ));
 
                     if (!isEmote) {
-                        channel.sendMessage("Kein gültiges Emote gefunden. `%reactionrole #channel <MessageID> <Emote> @Rolle`").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                        channel.sendMessage("Kein gültiges Emote gefunden. `%reactionrole #channel <MessageID> <Emote> @Rolle`").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                         return;
                     }
 
@@ -65,12 +65,12 @@ public class ReactRolesCommand implements ServerCommand {
                     //
                 }
             } else {
-                channel.sendMessage("Diese Rolle kann nicht verwendet werden, da sie höher als die Bot-Rolle ist.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("Diese Rolle kann nicht verwendet werden, da sie höher als die Bot-Rolle ist.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             }
         } else if (channels.isEmpty()) {
-            channel.sendMessage("Es wurde kein TextChannel erwähnt \n ```%reactionrole #channel <MessageID> <Emote> @Rolle```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage("Es wurde kein TextChannel erwähnt \n ```%reactionrole #channel <MessageID> <Emote> @Rolle```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
         } else {
-            channel.sendMessage("Es wurde keine Rolle erwähnt \n ```%reactionrole #channel <MessageID> <Emote> @Rolle```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage("Es wurde keine Rolle erwähnt \n ```%reactionrole #channel <MessageID> <Emote> @Rolle```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
         }
     }
 }

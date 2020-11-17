@@ -3,11 +3,10 @@ package main.java.commands.administation;
 import main.java.DiscordBot;
 import main.java.commands.ServerCommand;
 import main.java.files.impl.ChannelDatabaseSQLite;
-import main.java.files.impl.GetMemberFromMessageFind;
+import main.java.files.GetMemberFromMessage;
 import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
-import main.java.files.interfaces.GetMemberFromMessage;
-import main.java.files.interfaces.TimeMillis;
+import main.java.files.TimeMillis;
 import main.java.files.interfaces.UserRecordsDatabase;
 import main.java.temp.UnMuteBanCheck;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -24,7 +23,6 @@ import java.util.stream.Collectors;
 
 public class TempBanCommand implements ServerCommand {
 
-    private GetMemberFromMessage getMemberFromMessage = new GetMemberFromMessageFind();
     private UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
     private ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
@@ -32,7 +30,7 @@ public class TempBanCommand implements ServerCommand {
     public void performCommand(Member member, TextChannel channel, Message message) {
 
         if (!member.hasPermission(Permission.BAN_MEMBERS)) {
-            channel.sendMessage("Du hast nicht die Berechtigung diesen Command zu nutzen :(").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("Du hast nicht die Berechtigung diesen Command zu nutzen :(").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 
@@ -40,14 +38,18 @@ public class TempBanCommand implements ServerCommand {
         String[] messageSplit = message.getContentRaw().split("\\s+");
         long endTime = System.currentTimeMillis() + getTimeMillis(member, channel, messageSplit[2]);
         String reason = Arrays.stream(messageSplit, 3, messageSplit.length).collect(Collectors.joining(" "));
-        Member banMember = this.getMemberFromMessage.firstMentionedMember(message);
+        Member banMember = GetMemberFromMessage.firstMentionedMember(message);
 
         banMember(message, banMember, reason, endTime);
 
-        this.userRecordsDatabase.addRecord(banMember.getIdLong(), System.currentTimeMillis(), endTime, "tempban", channel.getGuild().getIdLong(),
-                reason, "active");
-        
-        
+        try {
+            this.userRecordsDatabase.addRecord(banMember.getIdLong(), System.currentTimeMillis(), endTime, "tempban", channel.getGuild().getIdLong(),
+                    reason, "active");
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+
+
         if(endTime - System.currentTimeMillis() < DiscordBot.INSTANCE.getMuteTimerPeriod()) {
         	UnMuteBanCheck m = new UnMuteBanCheck();
         	m.run();
@@ -88,7 +90,7 @@ public class TempBanCommand implements ServerCommand {
 
     private void sendMessageTimeFormat(Member member, TextChannel channel) {
         channel.sendMessage(member.getAsMention() + " Die Zeitangabe wurde falsch formatiert. ```<time> = <Anzahl><Einheit> \n \n " +
-                "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
     }
 
     private void banMember(Message message, Member banMember, String reason, long endtime) {
@@ -98,7 +100,9 @@ public class TempBanCommand implements ServerCommand {
             Role highestBotRole = message.getGuild().getSelfMember().getRoles().get(0);
 
             if (!banMember.getRoles().isEmpty() && !highestBotRole.canInteract(banMember.getRoles().get(0))) {
-                message.getChannel().sendMessage("Der Bot kann " + banMember.getAsMention() + " nicht bannen, da seine Rollen zu niedrig sind.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                message.getChannel().sendMessage("Der Bot kann " + banMember.getAsMention() +
+                        " nicht bannen, da seine Rollen zu niedrig sind.")
+                        .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 return;
             }
 
@@ -112,18 +116,21 @@ public class TempBanCommand implements ServerCommand {
 
                 pn.setTitle("Du wurdest auf " + message.getGuild().getName() + " temporär gebannt. \n Server-ID: *" + message.getGuild().getId() + "*");
                 pn.setDescription("**Entbannungsdatum:** " + endDateString +
-                        "\n \n **Begründung:** " + reason + "\n \n Wenn du Einspruch einlegen möchtest, dann tritt bitte unserem Bot-Dev-Server bei damit der Bot weiterhin deine Nachrichten lesen kann. "
-                        + "\n https://discord.gg/KumdM4e \n \n Stelle anschließend deinen Antrag auf Entbannung indem du hier ```%unban``` schreibst. \n \n Wir haben keinen Einfluss darauf ob der Server einen Entbannungsantrag akzeptiert/annimt.");
+                        "\n \n **Begründung:** " + reason + "\n \n Wenn du Einspruch einlegen möchtest, " +
+                        "dann tritt bitte unserem Bot-Dev-Server bei damit der Bot weiterhin deine Nachrichten lesen kann. "
+                        + "\n https://discord.gg/KumdM4e \n \n Stelle anschließend deinen Antrag auf Entbannung indem du " +
+                        "hier ```%unban``` schreibst. \n \n Wir haben keinen Einfluss darauf ob der Server einen Entbannungsantrag akzeptiert/annimt.");
                 pn.setImage(message.getGuild().getBannerUrl());
                 pn.setTimestamp(OffsetDateTime.now());
                 pn.setColor(0xff000);
 
-                PrivateChannel ch = banMember.getUser().openPrivateChannel().complete();
-                ch.sendMessage(pn.build()).complete();
-                System.out.println("PN sent to " + banMember.getUser().getName() + " (" + banMember.getUser().getId() + ")");
+                banMember.getUser().openPrivateChannel().queue(p -> {
+                    p.sendMessage(pn.build()).queue();
+                    System.out.println("PN sent to " + banMember.getUser().getName() + " (" + banMember.getUser().getId() + ")");
+                });
 
             } catch (IllegalStateException | ErrorResponseException e) {
-                message.getChannel().sendMessage("Es konnte keine PN an den Nutzer gesendet werden.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                message.getChannel().sendMessage("Es konnte keine PN an den Nutzer gesendet werden.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             } catch (IllegalMonitorStateException e) {
                 System.err.println("Cought Exception: IllegalMonitorStateException BanCommand.java (banMemberPN)");
             }

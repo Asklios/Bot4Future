@@ -1,4 +1,4 @@
-package main.java.commands.administation;
+package main.java.commands.administation.poll;
 
 import main.java.DiscordBot;
 import main.java.commands.ServerCommand;
@@ -28,7 +28,7 @@ public class GetPollCommand implements ServerCommand {
 
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {
-
+/*
         if (!member.hasPermission(Permission.MESSAGE_MANAGE)) {
             return;
         }
@@ -44,7 +44,7 @@ public class GetPollCommand implements ServerCommand {
         try {
             guild.getTextChannelById(textChannelId).retrieveMessageById(messageIdString).complete();
         } catch (IllegalArgumentException | InsufficientPermissionException e) {
-            channel.sendMessage("Die Nachricht konnte nicht gefunden werden oder der Bot hat keine Berechtigung sie zu lesen").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("Die Nachricht konnte nicht gefunden werden oder der Bot hat keine Berechtigung sie zu lesen").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
         messageID = Long.parseLong(messageIdString);
@@ -62,7 +62,7 @@ public class GetPollCommand implements ServerCommand {
             valueString = set.getString("value").split("⫠");
         } catch (SQLException e) {
             //gelöscht
-            channel.sendMessage("Diese Abstimmung existiert nicht(mehr).").complete().delete().queueAfter(5,TimeUnit.SECONDS);
+            channel.sendMessage("Diese Abstimmung existiert nicht(mehr).").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 
@@ -131,6 +131,6 @@ public class GetPollCommand implements ServerCommand {
             }
             a += k;
         }
-        ImageIO.write(img, "PNG", new File(path, ""));
+        ImageIO.write(img, "PNG", new File(path, ""));*/
     }
 }

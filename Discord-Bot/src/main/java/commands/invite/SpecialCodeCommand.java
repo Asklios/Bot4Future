@@ -25,7 +25,7 @@ public class SpecialCodeCommand implements ServerCommand {
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {
         if (!member.hasPermission(channel, Permission.ADMINISTRATOR)) {
-            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             return;
         }
 
@@ -33,14 +33,14 @@ public class SpecialCodeCommand implements ServerCommand {
         String[] messageSplit = message.getContentDisplay().split("\\s+");
 
         if (messageSplit.length != 2) {
-            channel.sendMessage("Falsche Formatierung! `%specialcode <code>`").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage("Falsche Formatierung! `%specialcode <code>`").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 
         try {
             String code = (messageSplit[1]);
             changeSpecialInviteCode(code, member.getGuild());
-            channel.sendMessage("SpecialInviteCode wurde auf \"" + code + "\" gesetzt").complete().delete().queueAfter(10, TimeUnit.SECONDS); // Bestätigung wird geschickt aber nach angegebener Zeit gelöscht
+            channel.sendMessage("SpecialInviteCode wurde auf \"" + code + "\" gesetzt").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS)); // Bestätigung wird geschickt aber nach angegebener Zeit gelöscht
 
         } catch (NumberFormatException e) {
             System.err.println("Cought Exception: NumberFormatException (SpecialCodeCommand.java - performCommand)");

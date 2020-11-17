@@ -17,6 +17,13 @@ public class RoleSortCommand implements ServerCommand {
     public void performCommand(Member member, TextChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.ADMINISTRATOR)) {
+            channel.sendMessage("Du benötigst die Berechtigung Administrator um diesen Command zu nutzen. :(")
+                    .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
+            return;
+        }
+        if (message.getMentionedRoles().size() < 2) {
+            channel.sendMessage("Es muss eine start und eine end Rolle angegeben werden. `%sortroles @startrole @endrole`")
+                    .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
             return;
         }
 
@@ -32,7 +39,7 @@ public class RoleSortCommand implements ServerCommand {
 
         if (endRoleIndex - startRoleIndex <= 1) {
             channel.sendMessage("Die `@StartRolle` muss höher als die `@EndRolle` sein. Zwischen ihnen müssen sich min. 2 Rollen befinden.")
-                    .complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                    .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 
@@ -56,7 +63,7 @@ public class RoleSortCommand implements ServerCommand {
         }
 
         channel.sendMessage("Die Rollen wurden sortiert.")
-                .complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
 
     }
 }

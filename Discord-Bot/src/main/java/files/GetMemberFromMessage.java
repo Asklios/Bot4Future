@@ -1,6 +1,5 @@
-package main.java.files.impl;
+package main.java.files;
 
-import main.java.files.interfaces.GetMemberFromMessage;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -8,10 +7,9 @@ import net.dv8tion.jda.api.entities.Message;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GetMemberFromMessageFind implements GetMemberFromMessage {
+public class GetMemberFromMessage {
 
-    @Override
-    public net.dv8tion.jda.api.entities.Member firstMentionedMember(Message message) {
+    public static Member firstMentionedMember(Message message) {
 
         Guild guild = message.getGuild();
         String[] messageSplit = message.getContentDisplay().split("\\s+");
@@ -26,7 +24,7 @@ public class GetMemberFromMessageFind implements GetMemberFromMessage {
         } catch (IndexOutOfBoundsException e) {
             //sucht id wenn kein User erwähnt wird
             try {
-                mention = guild.getMemberById(messageSplit[1]);
+                mention = guild.retrieveMemberById(messageSplit[1]).complete();
             } catch (NullPointerException | NumberFormatException f) {
                 return null;
             }
@@ -34,8 +32,7 @@ public class GetMemberFromMessageFind implements GetMemberFromMessage {
         return mention;
     }
 
-    @Override
-    public List<Member> allMemberIds(String searchString, Message message) {
+    public static List<Member> allMemberIds(String searchString, Message message) {
 
         Guild guild = message.getGuild();
         String[] messageSplit = searchString.split("\\s+");
@@ -43,7 +40,7 @@ public class GetMemberFromMessageFind implements GetMemberFromMessage {
 
         for (String s : messageSplit) {
             try {
-                mentions.add(guild.getMemberById(s));
+                mentions.add(guild.retrieveMemberById(s).complete());
             } catch (IllegalArgumentException e) {
                 //split ist keine Id
             }
@@ -51,8 +48,7 @@ public class GetMemberFromMessageFind implements GetMemberFromMessage {
         return mentions;
     }
 
-    @Override
-    public List<Member> allMemberMentionsAndIds(String searchStringRaw, Message message) {
+    public static List<Member> allMemberMentionsAndIds(String searchStringRaw, Message message) {
 
         Guild guild = message.getGuild();
         String[] messageSplit = searchStringRaw.split("\\s+");
@@ -60,12 +56,12 @@ public class GetMemberFromMessageFind implements GetMemberFromMessage {
 
         for (String s : messageSplit) {
             try {
-                mentions.add(guild.getMemberById(s));
+                mentions.add(guild.retrieveMemberById(s).complete());
             } catch (IllegalArgumentException e) {
                 try {
                     String mention = s.replaceAll("<", "").replaceAll("@", "")
                             .replaceAll("!", "").replaceAll(">", "");
-                    mentions.add(guild.getMemberById(mention));
+                    mentions.add(guild.retrieveMemberById(mention).complete());
                 } catch (IllegalArgumentException f) {
                     //split String ist keine Id
                 }

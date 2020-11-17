@@ -4,10 +4,8 @@ import main.java.DiscordBot;
 import main.java.commands.ServerCommand;
 import main.java.files.LiteSQL;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.exceptions.ContextException;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
@@ -29,11 +27,11 @@ public class DbClearCommand implements ServerCommand {
 
 
         if (!Arrays.asList(DiscordBot.INSTANCE.getDefIds()).contains(member.getId())) {
-            channel.sendMessage(member.getAsMention() + " Dieser Command ist nur für die Botentwickler*innen vorgesehen.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+            channel.sendMessage(member.getAsMention() + " Dieser Command ist nur für die Botentwickler*innen vorgesehen.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             return;
         }
 
-        channel.sendTyping().complete();
+        channel.sendTyping().queue();
 
         findIdsReactroles(member, channel);
         deleteLinesById("reactroles");
@@ -45,7 +43,7 @@ public class DbClearCommand implements ServerCommand {
         lineIDs.clear();
         System.out.println("cleared: votereactions");
 
-        channel.sendMessage(member.getAsMention() + " Die Datenbank wurde bereinigt.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+        channel.sendMessage(member.getAsMention() + " Die Datenbank wurde bereinigt.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
     }
 
     private void findIdsReactroles(Member member, TextChannel channel) {
@@ -61,17 +59,22 @@ public class DbClearCommand implements ServerCommand {
                 long messageID = set.getLong("messageid");
                 String emote = set.getString("emote");
 
+                Guild guild = jda.getGuildById(guildID);
+
                 try {
-                    List<User> reactionUsers = jda.getGuildById(guildID).getTextChannelById(channelID).retrieveReactionUsersById(messageID, emote).complete();
+                    guild.getTextChannelById(channelID).retrieveReactionUsersById(messageID,emote).complete();
+                }
+                catch (NullPointerException | ErrorResponseException e) {saveId(id); continue;}
+
+                try {
+                    List<User> reactionUsers = guild.getTextChannelById(channelID).retrieveReactionUsersById(messageID, emote).complete();
 
                     if (!reactionUsers.contains(self)) { //Eintrag wird gelöscht wenn der Bot nicht mit dem Emote reagiert hat
-
                         saveId(id);
-
                     }
                 } catch (InsufficientPermissionException e) {
-                    channel.sendMessage(member.getAsMention() + " Der Bot hat auf einen channel keinen Zugriff.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
-                } catch (IllegalArgumentException e) { //Eintrag wird auch gelöscht wenn Emote oder Message nicht existiert
+                    channel.sendMessage(member.getAsMention() + " Der Bot hat auf einen Channel keinen Zugriff.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+                } catch (IllegalArgumentException | ErrorResponseException e) { //Eintrag wird auch gelöscht wenn Emote oder Message nicht existiert
                     saveId(id);
                 }
             }
@@ -91,6 +94,8 @@ public class DbClearCommand implements ServerCommand {
                 long channelID = set.getLong("channelid");
                 long messageID = set.getLong("messageid");
 
+                if (jda.getGuildById(id) == null) saveId(id);
+
                 try {
                     jda.getGuildById(guildID).getTextChannelById(channelID).retrieveMessageById(messageID).complete();
                     new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, (e) -> saveId(id))
@@ -98,7 +103,7 @@ public class DbClearCommand implements ServerCommand {
                             .handle(ErrorResponse.MISSING_ACCESS, (e) -> saveId(id));
                 }
                 catch (InsufficientPermissionException e) {
-                    channel.sendMessage(member.getAsMention() + " Der Bot hat auf einen channel keinen Zugriff.").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                    channel.sendMessage(member.getAsMention() + " Der Bot hat auf einen channel keinen Zugriff.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 }
                 catch (ErrorResponseException e) {
                     saveId(id);

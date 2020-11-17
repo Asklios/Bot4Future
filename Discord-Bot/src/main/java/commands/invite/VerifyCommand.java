@@ -24,7 +24,7 @@ public class VerifyCommand implements ServerCommand {
 
         try {
             if (specialRole == null) {
-                channel.sendMessage("Die aktuelle Special-Code-Rolle ist nicht festgelegt. ```%specialcoderole @role```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("Die aktuelle Special-Code-Rolle ist nicht festgelegt. ```%specialcoderole @role```").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 return;
             }
 
@@ -33,8 +33,11 @@ public class VerifyCommand implements ServerCommand {
                 if (highestBotRole.canInteract(verifiableRole)) {
                     giveVerifiableRole(member, channel, message, verifiableRole);
                 } else {
-                    channel.sendMessage("Diese Rolle kann nicht verwendet werden, da sie höher als die Bot-Rolle ist.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                    channel.sendMessage("Diese Rolle kann nicht verwendet werden, da sie höher als die Bot-Rolle ist.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 }
+            }
+            else {
+                channel.sendMessage("Du benötigst die Rolle " + specialRole.getName() + " um diesen Command zu nutzen.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             }
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.err.println("Cought Exception: NumberFormatException (VerifyCommand.java - performCommand)");
@@ -44,7 +47,7 @@ public class VerifyCommand implements ServerCommand {
     private void giveVerifiableRole(Member member, TextChannel channel, Message message, Role verifiableRole) {
         try {
             if (verifiableRole == null) {
-                channel.sendMessage("Die aktuelle VerifiableRole ist nicht festgelegt.\n```%verifiablerole @role```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("Die aktuelle VerifiableRole ist nicht festgelegt.\n```%verifiablerole @role```").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 return;
             }
 
@@ -57,9 +60,9 @@ public class VerifyCommand implements ServerCommand {
                 if (!hasRole(m, verifiableRole)) {
                     guild.addRoleToMember(m.getIdLong(), verifiableRole).queue();
                     this.inviteDatabase.saveVerified(member, m);
-                    channel.sendMessage(m.getAsMention() + " hat die Rolle " + verifiableRole.getAsMention() + " erhalten.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                    channel.sendMessage(m.getAsMention() + " hat die Rolle " + verifiableRole.getName() + " erhalten.").queue(me -> me.delete().queueAfter(10,TimeUnit.SECONDS));
                 } else {
-                    channel.sendMessage(m.getAsMention() + " hat die Rolle " + verifiableRole.getAsMention() + " schon.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                    channel.sendMessage(m.getAsMention() + " hat die Rolle " + verifiableRole.getName() + " schon.").queue(me -> me.delete().queueAfter(10,TimeUnit.SECONDS));
                 }
             }
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {

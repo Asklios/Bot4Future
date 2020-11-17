@@ -111,7 +111,11 @@ public class AutoListener {
             Random rand = new Random();
             rand.setSeed(index);
             int r = rand.nextInt(ntdHashMap.size());
-            channel.sendMessage(ntdHashMap.get((long) r)).queue();
+            try {
+                channel.sendMessage(ntdHashMap.get((long) r)).queue();
+            } catch (IllegalArgumentException e) {
+                channel.sendMessage("Hatschii.... puh, was sagtest du?").queue();
+            }
         }
     }
 

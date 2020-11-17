@@ -49,25 +49,25 @@ public class ReactCommand implements ServerCommand {
                                 return;
                             }
                         } else {
-                            channel.sendMessage("Falsche Formatierung").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                            channel.sendMessage("Falsche Formatierung").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                             return;
                         }
                     }
 
                 } catch (NumberFormatException e) {
 
-                    channel.sendMessage("ungültige Formatierung").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                    channel.sendMessage("ungültige Formatierung").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                     System.err.println("Cought exception: NumberFormatException (ReactCommand.java)");
                 }
 
             } else {
-                channel.sendMessage("Falsche Formatierung").complete().delete().queueAfter(5, TimeUnit.SECONDS);
+                channel.sendMessage("Falsche Formatierung").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 EmbedBuilder builder = new EmbedBuilder();
                 builder.setDescription("%react #channel <MessageID> :emote: (:emote2:) (:emote3:) (...)");
-                channel.sendMessage(builder.build()).complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage(builder.build()).queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             }
         } else {
-            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
         }
     }
 }

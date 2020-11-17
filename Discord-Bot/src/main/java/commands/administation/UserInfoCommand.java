@@ -12,6 +12,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class UserInfoCommand implements ServerCommand {
 
@@ -21,7 +22,7 @@ public class UserInfoCommand implements ServerCommand {
     public void performCommand(Member member, TextChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.KICK_MEMBERS)) {
-            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             return;
         }
 
@@ -39,36 +40,38 @@ public class UserInfoCommand implements ServerCommand {
 
         if (messageSplit.length > 1 && !message.getMentionedMembers().isEmpty()) {
 
-            if (member.getGuild().getMemberById(mention.getId()) != null) {
+            if (mention != null) {
                 onInfo(member, mention, channel);
             } else {
-                channel.sendMessage(member.getAsMention() + " - " + mention.getAsMention() + " konnte nicht gefunden werden.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                System.out.println(mention.getId());
+                channel.sendMessage(member.getAsMention() + " - " + mention.getAsMention() + " konnte nicht gefunden werden.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             }
 
         }
         else if (messageSplit.length > 1) {
             Member idMention;
             try {
-                idMention = guild.getMemberById(messageSplit[1]);
+                idMention = guild.retrieveMemberById(messageSplit[1]).complete();
             } catch (NullPointerException | NumberFormatException e) {
-                channel.sendMessage(member.getAsMention() + " - Der User \"" + messageSplit[1] + "\" konnte nicht gefunden werden.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage(member.getAsMention() + " - Der User \"" + messageSplit[1] + "\" konnte nicht gefunden werden.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
                 return;
             }
 
             if (idMention == null) {
-                channel.sendMessage("Falsche Formatierung: `%userinfo @user`").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage("Falsche Formatierung: `%userinfo @user` (ID konnte nicht gelesen werden)")
+                        .queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
                 return;
             }
 
-            if (member.getGuild().getMemberById(idMention.getIdLong()) != null) {
+            if (member.getGuild().retrieveMemberById(idMention.getIdLong()).complete() != null) {
                 onInfo(member, idMention, channel);
             } else {
-                channel.sendMessage(member.getAsMention() + " - " + mention.getAsMention() + " konnte nicht gefunden werden.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+                channel.sendMessage(member.getAsMention() + " - \"" + messageSplit[1] + "\" konnte nicht gefunden werden.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             }
 
         }
         else {
-            channel.sendMessage("Falsche Formatierung: `%userinfo @user`").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+            channel.sendMessage("Falsche Formatierung: `%userinfo @user`").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
         }
     }
 
@@ -83,6 +86,8 @@ public class UserInfoCommand implements ServerCommand {
 
         String formatUserJoined = userjoined.format(dateFormat);
         String formatUserCreated = usercreated.format(dateFormat);
+
+        String userPermissions = user.getPermissions().stream().map(s -> new StringBuffer(s.getName())).collect(Collectors.joining("; "));
 
         //.db request
         Map<String,Integer> records = null;
@@ -119,7 +124,7 @@ public class UserInfoCommand implements ServerCommand {
 
         //Ausgabe der UserInfo Nachricht
         EmbedBuilder builder = new EmbedBuilder();
-        builder.setFooter("Requested by " + requester.getGuild().getMemberById(requester.getIdLong()).getEffectiveName());
+        builder.setFooter("Requested by " + requester.getGuild().retrieveMemberById(requester.getIdLong()).complete().getEffectiveName());
         if (user.getColor() != null)
             builder.setColor(user.getColor());
         else
@@ -135,6 +140,8 @@ public class UserInfoCommand implements ServerCommand {
         strBuilder.append("\n");
         strBuilder.append("**TimeJoined:** " + formatUserJoined + "\n");
         strBuilder.append("**TimeCreated:** " + formatUserCreated + "\n");
+        strBuilder.append("**Permissions:** " + userPermissions + "\n");
+        strBuilder.append("\n");
         strBuilder.append("Anzahl der Verwarnungen: " + activeWarnings + "\n");
         strBuilder.append("Anzahl aktiver Mutes: " + activeMutes + "\n");
         strBuilder.append("Anzahl aktiver Bans: " + activeBans + "\n \n");
@@ -151,7 +158,7 @@ public class UserInfoCommand implements ServerCommand {
 
         builder.setDescription(strBuilder);
 
-        channel.sendMessage(builder.build()).complete().delete().queueAfter(60, TimeUnit.SECONDS);
+        channel.sendMessage(builder.build()).queue(m -> m.delete().queueAfter(60,TimeUnit.SECONDS));
 
     }
 }

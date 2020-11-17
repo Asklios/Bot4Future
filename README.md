@@ -12,6 +12,6 @@ You will also need to update the devIDs to use several dev-commands.
 
 ## Bot commands
 ```
-%help - information about data collection
-%adminhelp - message with all the commands
+%help - gives you information about data collection
+%adminhelp - sends a private-message with all the commands
 ```

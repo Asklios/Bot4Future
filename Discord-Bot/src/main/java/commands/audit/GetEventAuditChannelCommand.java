@@ -26,18 +26,18 @@ public class GetEventAuditChannelCommand implements ServerCommand {
 				long eventAuditChannelId = GuildDataXmlReadWrite.readEventAuditChannelId(member.getGuild().getIdLong());
 				if(eventAuditChannelId != 0) {
 					System.out.println(eventAuditChannelId);
-					channel.sendMessage("<#" + eventAuditChannelId + "> ist der aktuelle Event-Audit-Channel.").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+					channel.sendMessage("<#" + eventAuditChannelId + "> ist der aktuelle Event-Audit-Channel.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
 				}
 				else {
 					
-					channel.sendMessage("Der Event-Auditchannel ist noch nicht festgelegt.\n```%eventaudit #channel```").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+					channel.sendMessage("Der Event-Auditchannel ist noch nicht festgelegt.\n```%eventaudit #channel```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
 				}
 				
 			} catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
 				System.err.println("Cought Exception: NumberFormatException (GetEventAuditChannelCommand.java - performCommand)");
 			}
 		} else {
-			channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").complete().delete().queueAfter(10, TimeUnit.SECONDS);
+			channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
 		}
 	}*/
 }
