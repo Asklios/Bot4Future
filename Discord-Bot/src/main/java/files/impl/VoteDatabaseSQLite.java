@@ -90,4 +90,9 @@ public class VoteDatabaseSQLite implements VoteDatabase {
             return false;
         }
     }
+
+    @Override
+    public void removeGuildData(long guildId) {
+        LiteSQL.onUpdate("DELETE FROM votereactions WHERE guildid = " + guildId);
+    }
 }

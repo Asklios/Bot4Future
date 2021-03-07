@@ -1,10 +1,10 @@
 package main.java;
 
 import main.java.files.impl.ChannelDatabaseSQLite;
-import main.java.files.impl.GuildDatabaseSQLite;
+import main.java.files.impl.RoleDatabaseSQLite;
 import main.java.files.impl.InviteDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
-import main.java.files.interfaces.GuildDatabase;
+import main.java.files.interfaces.RoleDatabase;
 import main.java.files.interfaces.InviteDatabase;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
@@ -20,7 +20,7 @@ public class InviteManager {
     Long guildID;
     String specialInviteCode;
     int inviteCount;
-    GuildDatabase guildDatabase = new GuildDatabaseSQLite();
+    RoleDatabase roleDatabase = new RoleDatabaseSQLite();
     InviteDatabase inviteDatabase = new InviteDatabaseSQLite();
     ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
@@ -37,10 +37,10 @@ public class InviteManager {
     private void saveInviteCount() {
 
         List<Invite> invites = guild.retrieveInvites().complete();
-        for (int i = 0; i < invites.size(); i++) {
+        for (Invite invite : invites) {
 
-            if (invites.get(i).getCode().equals(specialInviteCode)) {
-                inviteCount = invites.get(i).getUses();
+            if (invite.getCode().equals(specialInviteCode)) {
+                inviteCount = invite.getUses();
             }
         }
     }
@@ -48,37 +48,39 @@ public class InviteManager {
     public void checkNewMember(Member member) {
         try {
             List<Invite> invites = guild.retrieveInvites().complete();
-            for (int i = 0; i < invites.size(); i++) {
-                System.out.println(invites.get(i).getCode() + " - " + specialInviteCode);
-                if (invites.get(i).getCode().equals(specialInviteCode)) {
-                    if (inviteCount < invites.get(i).getUses()) {
-                        Role role = this.guildDatabase.getSpecialRole(member.getGuild());
-                        try {
-                            if (role != null) {
-                                member.getGuild().addRoleToMember(member.getIdLong(), role).queue();
-                                System.out.println(role.getName() + " was given to " + member.getId());
-                            } else {
-                                System.out.println("memberid = " + (member.getGuild().getIdLong()));
-                            }
-                        } catch (HierarchyException e) {
-                            TextChannel auditChannel = this.channelDatabase.getAuditChannel(member.getGuild());
-                            //auditChannel.sendMessage("member.getAsMention()");
-                            if (auditChannel == null) return;
-                            EmbedBuilder builder = new EmbedBuilder();
-                            builder.setTimestamp(OffsetDateTime.now());
-                            builder.setColor(0xff0000); // FFF_grün
-                            builder.setThumbnail(member.getGuild().getSelfMember().getUser().getAvatarUrl() == null ? member.getGuild().getSelfMember().getUser().getDefaultAvatarUrl() : member.getGuild().getSelfMember().getUser().getAvatarUrl()); // wenn AvatarUrl = null ist wird der DefaultAvatar vewendet
-                            builder.addField("Name Nutzer*in / ID: ", member.getAsMention() + " / " + member.getId(), false);
-                            builder.addField("SpecialRole / ID: ", role.getAsMention() + " / " + role.getId(), false);
-                            builder.addField("Exeption: ", "Die SpecialRole konnte nicht an " + member.getAsMention() + " vergeben werden, da " + role.getAsMention() + " über der höchsten BotRolle steht.", false);
-                            builder.setTitle(":no_pedestrians: HierarchyException:");
+            for (Invite invite : invites) {
+                System.out.println(invite.getCode() + " - " + specialInviteCode);
 
-                            auditChannel.sendMessage(builder.build()).queue();
+                if (!invite.getCode().equals(specialInviteCode)) return;
+
+                if (inviteCount < invite.getUses()) {
+                    Role role = this.roleDatabase.getSpecialRole(member.getGuild());
+                    try {
+                        if (role != null) {
+                            member.getGuild().addRoleToMember(member.getIdLong(), role).queue();
+                            System.out.println(role.getName() + " was given to " + member.getId());
+                        } else {
+                            System.out.println("memberid = " + (member.getGuild().getIdLong()));
                         }
-                        System.out.println(member.getUser().getName() + " used special code");
-                        inviteCount = invites.get(i).getUses();
-                        this.inviteDatabase.saveSpecialMember(member);
+                    } catch (HierarchyException e) {
+                        TextChannel auditChannel = this.channelDatabase.getAuditChannel(member.getGuild());
+                        //auditChannel.sendMessage("member.getAsMention()");
+                        if (auditChannel == null) return;
+                        EmbedBuilder builder = new EmbedBuilder();
+                        builder.setTimestamp(OffsetDateTime.now());
+                        builder.setColor(0xff0000); // FFF_grün
+                        builder.setThumbnail(member.getGuild().getSelfMember().getUser().getAvatarUrl() == null ? member.getGuild().getSelfMember().getUser().getDefaultAvatarUrl() : member.getGuild().getSelfMember().getUser().getAvatarUrl()); // wenn AvatarUrl = null ist wird der DefaultAvatar vewendet
+                        builder.addField("Name Nutzer*in / ID: ", member.getAsMention() + " / " + member.getId(), false);
+                        builder.addField("SpecialRole / ID: ", role.getAsMention() + " / " + role.getId(), false);
+                        builder.addField("Exeption: ", "Die SpecialRole konnte nicht an " + member.getAsMention()
+                                + " vergeben werden, da " + role.getAsMention() + " über der höchsten BotRolle steht.", false);
+                        builder.setTitle(":no_pedestrians: HierarchyException:");
+
+                        auditChannel.sendMessage(builder.build()).queue();
                     }
+                    System.out.println(member.getUser().getName() + " used special code");
+                    inviteCount = invite.getUses();
+                    this.inviteDatabase.saveSpecialMember(member);
                 }
             }
         } catch (InsufficientPermissionException e) {
@@ -92,9 +94,7 @@ public class InviteManager {
     }
 
     public void setSpecialInviteCode(String newCode) {
-
         specialInviteCode = newCode;
         saveInviteCount();
-
     }
 }

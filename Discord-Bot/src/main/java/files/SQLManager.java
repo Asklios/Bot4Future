@@ -1,7 +1,18 @@
 package main.java.files;
 
+/**
+ * Class for creating missing tables in the database on startup.
+ *
+ * @author Asklios
+ * @version 18.11.2020
+ */
+
 public class SQLManager {
 
+    /**
+     * Creates missing tables in database.
+     * Should be executed on startup.
+     */
     public static void onCreate() {
 
         LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS guildroles(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, guildid INTEGER, roleid INTEGER, code STRING, type STRING)");
@@ -12,6 +23,7 @@ public class SQLManager {
         LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS userrecords(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, userid INTEGER, date INTEGER, endtime INTEGER, type STRING, guildid INTEGER, reason STRING, note STRING)");
         LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS invitemanager(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,guildid INTEGER, specialuserid INTEGER, verifieduserid INTEGER)");
         LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS calldata(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, guildid INTEGER, userids STRING, starttime INTEGER, endtime INTEGER, name STRING, requester INTEGER, note STRING)");
+        LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS timedtasks(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, endtime INTEGER NOT NULL, type STRING NOT NULL, note STRING)");
 
     }
 }

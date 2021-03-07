@@ -25,16 +25,17 @@ public class AutoListener {
 
     public void autoListen(Member member, TextChannel channel, Message message) {
 
-        if (!member.getUser().equals(member.getJDA().getSelfUser())) {
-            String s = message.getContentRaw().replaceAll(" ", "\\$").replaceAll("\\?", "").replaceAll("\\.", "").replaceAll("\\!", "").toLowerCase();
-            if (s.length() > 3 && s.substring(0, 3).equals("ntd")) {
-                performNtd(s, channel);
-            }
-            s = this.autoResponse.get(s); // s = festgelegte Antwort
-            if (s != null) {
+        if (member.getUser().equals(member.getJDA().getSelfUser())) {
+            return;
+        }
+        String s = message.getContentRaw().replaceAll(" ", "\\$").replaceAll("\\?", "").replaceAll("\\.", "").replaceAll("\\!", "").toLowerCase();
+        if (s.length() > 3 && s.substring(0, 3).equals("ntd")) {
+            performNtd(s, channel);
+        }
+        s = this.autoResponse.get(s); // s = festgelegte Antwort
+        if (s != null) {
 
-                channel.sendMessage(s).queue();
-            }
+            channel.sendMessage(s).queue();
         }
     }
 
@@ -64,7 +65,7 @@ public class AutoListener {
             scanner.close();
         } catch (FileNotFoundException e) {
             String path = DiscordBot.INSTANCE.getAutoListenerFilePath();
-            System.err.println("Could not find autoResponseFile at" + path);
+            System.err.println("Could not find autoResponseFile at " + path);
             File newFile = new File(path);
 
             try {

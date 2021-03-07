@@ -1,13 +1,21 @@
 package main.java;
 
-import main.java.files.GetMemberFromMessage;
+import main.java.commands.privateMessage.PrivateCommandManager;
+import main.java.commands.server.CommandManager;
 import main.java.files.LiteSQL;
+import main.java.files.LiteSqlClear;
 import main.java.files.PropertiesReader;
 import main.java.files.SQLManager;
 import main.java.files.impl.*;
 import main.java.files.interfaces.*;
-import main.java.listener.*;
-import main.java.temp.UnMuteBanCheck;
+import main.java.helper.GetMemberFromMessage;
+import main.java.helper.TimedTasks;
+import main.java.helper.UserRecords;
+import main.java.helper.api.UpdateFromApi;
+import main.java.listener.AuditListener;
+import main.java.listener.AutoListener;
+import main.java.listener.CommandListener;
+import main.java.listener.ReactionListener;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -22,61 +30,60 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.Timer;
 import java.util.concurrent.CompletionException;
 
 public class DiscordBot {
 
     public static DiscordBot INSTANCE;
     public boolean shutdown = false;
-    //public ShardManager shardMan;
     public JDA jda;
     private final CommandManager cmdMan;
+    private final PrivateCommandManager privCmdMan;
     private Thread gameLoop;
     private final AutoListener autoListener;
     private String autoListenerFilePath;
-    private String dataFilePath;
     private String logFilePath;
     private String diagramFilePath;
+    private String botPbPath;
     private String pbFilterPath;
     private String pbPath;
     private String newPbPath;
     private String dbFilePath;
     private String botToken;
-    private List<GuildData> guildsData = new ArrayList<GuildData>();
+    private List<GuildData> guildsData = new ArrayList<>();
     private String[] defIds;
-    private Timer unMuteBanCheckTimer;
     private long muteBanTimerPeriod = 5 * 60 * 1000;
 	private VoteDatabase voteDatabase;
-    private GuildDatabase guildDatabase;
+    private RoleDatabase roleDatabase;
     private ChannelDatabase channelDatabase;
     private UserRecordsDatabase userRecordsDatabase;
     private GetMemberFromMessage getMemberFromMessage;
     private InviteDatabase inviteDatabase;
+    private TimedTasksDatabase timedTasksDatabase;
 
     long startUpTime = System.currentTimeMillis();
 
     public static void main(String[] args) {
         try {
             new DiscordBot();
-        } catch (LoginException | IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
     }
 
 
-    public DiscordBot() throws IllegalArgumentException, LoginException {
+    public DiscordBot() throws IllegalArgumentException {
         INSTANCE = this;
 
         try {
             PropertiesReader props = new PropertiesReader();
             botToken = props.getBotToken();
-            dataFilePath = props.getDataFilePath();
             autoListenerFilePath = props.getAutoResponsePath();
             dbFilePath = props.getDbFilePath();
             defIds = props.getDefIds();
             logFilePath = props.getLogFilePath();
             diagramFilePath = props.getDiagramFilePath();
+            botPbPath = props.getBotPbFilePath();
             pbFilterPath = props.getPbFilterPath();
             pbPath = props.getPbPath();
             newPbPath = props.getNewPbPath();
@@ -98,17 +105,18 @@ public class DiscordBot {
         builder.setStatus(OnlineStatus.ONLINE); // Anzeige Bot Erreichbarkeit
 
         this.cmdMan = new CommandManager();
+        this.privCmdMan = new PrivateCommandManager();
         this.autoListener = new AutoListener();
         this.getMemberFromMessage = new GetMemberFromMessage();
         this.voteDatabase = new VoteDatabaseSQLite();
-        this.guildDatabase = new GuildDatabaseSQLite();
+        this.roleDatabase = new RoleDatabaseSQLite();
         this.channelDatabase = new ChannelDatabaseSQLite();
         this.userRecordsDatabase = new UserRecordsDatabaseSQLite();
         this.inviteDatabase = new InviteDatabaseSQLite();
+        this.timedTasksDatabase = new TimedTasksDatabaseSQLite();
 
         builder.addEventListeners(new CommandListener());
         builder.addEventListeners(new AuditListener());
-        builder.addEventListeners(new EventAuditListener());
         builder.addEventListeners(new ReactionListener(voteDatabase));
 
         try {
@@ -120,11 +128,23 @@ public class DiscordBot {
         System.out.println("Bot Status: online");
 
         shutdown();
-        
-        //Start timer for TempMute and TempBan
-        unMuteBanCheckTimer = new Timer();
-        unMuteBanCheckTimer.schedule(new UnMuteBanCheck(), 1000, muteBanTimerPeriod);
-        
+
+        new UserRecords().updateUserRecordsFromDatabase();
+        System.out.println("loaded userRecords");
+
+        //start timedTasks - depends on UserRecords
+        TimedTasks.startTimedTasks();
+        timedTasksDatabase.updateAllTasksFromDb();
+        timedTasksDatabase.removeAllEntriesByType("APIUPDATE");
+        timedTasksDatabase.removeAllEntriesByType("DBCLEAR");
+
+        LiteSqlClear.timedClearDatabase();
+        System.out.println("started TimedTasks");
+
+        //schedules api updates - depends on TimedTasks
+        new UpdateFromApi().completeUpdate();
+        System.out.println("API integrated");
+
         runLoop();
     }
 
@@ -159,7 +179,6 @@ public class DiscordBot {
             jda.shutdown();
             System.out.println("Bot Status: offline");
         }
-
         if (gameLoop != null) {
             gameLoop.interrupt();
         }
@@ -216,7 +235,7 @@ public class DiscordBot {
         }
     }
 
-    //XML und.properties
+    //update .properties
     public void updateGuilds(List<Guild> guilds) {
 
         for (Guild guild : guilds) {
@@ -229,16 +248,20 @@ public class DiscordBot {
             }
             if (!existingID) {
                 GuildData newGuild = new GuildData(guild.getIdLong());
-                newGuild.setSpecialInviteCode(guildDatabase.getSpecialCode(guild));
+                newGuild.setSpecialInviteCode(roleDatabase.getSpecialCode(guild));
                 guildsData.add(newGuild);
             }
-            this.guildDatabase.startUpEntries(guild);
+            this.roleDatabase.startUpEntries(guild);
             this.channelDatabase.startUpEntries(guild);
         }
     }
 
     public CommandManager getCmdMan() {
         return cmdMan;
+    }
+
+    public PrivateCommandManager getPrivCmdMan() {
+        return privCmdMan;
     }
 
     public AutoListener getAutoListener() {
@@ -248,46 +271,20 @@ public class DiscordBot {
     public String getAutoListenerFilePath() {
         return autoListenerFilePath;
     }
-
-    public String getDataFilePath() {
-        return dataFilePath;
-    }
-
     public String getDbFilePath() {
         return dbFilePath;
     }
-
     public String getLogFilePath() {
         return logFilePath;
     }
-
     public String getDiagramFilePath() {return diagramFilePath;}
-
+    public String getBotPbPath() {return botPbPath;}
     public String getPbFilterPath() {return pbFilterPath;}
     public String getPbPath() {return pbPath;}
     public String getNewPbPath() {return newPbPath;}
 
     public List<GuildData> getGuildsData() {
         return guildsData;
-    }
-
-    public void setSpecialRoleID(long guildID, long roleID) {
-
-        for (int i = 0; i < guildsData.size(); i++) {
-
-            if (guildsData.get(i).getID() == guildID) {
-                guildsData.get(i).setSpecialRoleID(roleID);
-            }
-        }
-    }
-
-    public long getSpecialRoleID(long guildID) {
-        for (int i = 0; i < guildsData.size(); i++) {
-            if (guildsData.get(i).getID() == guildID) {
-                return guildsData.get(i).getSpecialRoleID();
-            }
-        }
-        return 0;
     }
 
     public String[] getDefIds() {
@@ -298,5 +295,3 @@ public class DiscordBot {
 		return muteBanTimerPeriod;
 	}
 }
-
-// Umlautkorrektur: üben, ärgern, öffentlich, groß
