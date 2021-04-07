@@ -6,14 +6,14 @@ import java.util.Properties;
 public class PropertiesReader {
 
     private String botToken = "yourBotToken";
-    private String autoResponsePath = "autoresponse.txt";
-    private String logFilePath = "log.txt";
-    private String diagramFilePath = "diagram.png";
-    private String botPbFilePath = "botpb.png";
-    private String pbFilterPath = "pbfilter.png";
-    private String pbPath = "pb.png";
-    private String newPbPath = "newPb.png";
-    private String dbFilePath = "database.db";
+    private String autoResponsePath = "data/autoresponse.txt";
+    private String logFilePath = "data/log.txt";
+    private String diagramFilePath = "data/diagram.png";
+    private String botPbFilePath = "data/botpb.png";
+    private String pbFilterPath = "data/pbfilter.png";
+    private String pbPath = "data/pb.png";
+    private String newPbPath = "data/newPb.png";
+    private String dbFilePath = "data/database.db";
     private String[] defIds;
     private String defIdsString = "id1,id2,id3,...";
 
@@ -95,8 +95,6 @@ public class PropertiesReader {
 
     private void createNewPropertiesFile() {
         try (OutputStream output = new FileOutputStream("config.properties")) {
-            botToken = "yourBotToken";
-            autoResponsePath = "autoresponse.txt";
             Properties props = new Properties();
             props.setProperty("botToken", botToken);
             props.setProperty("autoResponsePath", autoResponsePath);

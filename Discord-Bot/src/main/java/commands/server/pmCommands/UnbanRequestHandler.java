@@ -4,7 +4,6 @@ import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.impl.UnbanHandlerDatabaseSQLite;
 import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.UnbanHandlerDatabase;
-import main.java.helper.UserRecords;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.PrivateChannel;
@@ -60,7 +59,8 @@ public class UnbanRequestHandler {
                         return;
                     }
                     //check if user already committed a request on the serverId
-                    if (new UserRecords().isUnbanRequest(guild.getIdLong(), userId)) {
+                    //if (new UserRecords().isUnbanRequest(guild.getIdLong(), userId)) {
+                    if (userRecordsDatabase.isUnbanRequest(guild.getIdLong(), userId)) {
                         channel.sendMessage("Du hast auf diesen Server bereits einen Antrag gestellt.").queue();
                         users.remove(userId);
                         return;

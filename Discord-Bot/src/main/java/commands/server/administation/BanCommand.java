@@ -89,8 +89,13 @@ public class BanCommand implements ServerCommand {
                 pn.setColor(0xff000);
 
                 banMember.getUser().openPrivateChannel().queue(p -> {
-                    p.sendMessage(pn.build()).queue();
-                    System.out.println("PN sent to " + banMember.getUser().getName() + " (" + banMember.getUser().getId() + ")");
+                    try {
+                        p.sendMessage(pn.build()).queue();
+                        System.out.println("PM sent to " + banMember.getUser().getName() + " (" + banMember.getUser().getId() + ")");
+                    } catch (ErrorResponseException e) {
+                        System.out.println("PM to " + banMember.getUser().getName() + " (" + banMember.getUser().getId() +
+                                ") was not send. PMs are not allowed by this user.");
+                    }
                 });
 
             } catch (IllegalStateException | ErrorResponseException e) {

@@ -2,7 +2,9 @@ package main.java.helper;
 
 import main.java.files.LiteSqlClear;
 import main.java.files.impl.TimedTasksDatabaseSQLite;
+import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.TimedTasksDatabase;
+import main.java.files.interfaces.UserRecordsDatabase;
 import main.java.helper.api.UpdateFromApi;
 
 import java.util.*;
@@ -16,6 +18,7 @@ import java.util.*;
 public class TimedTasks {
 
     private final TimedTasksDatabase timedTasksDatabase = new TimedTasksDatabaseSQLite();
+    private final UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
 
     /**
      * HashMap of all scheduled tasks.
@@ -178,14 +181,14 @@ public class TimedTasks {
      */
     public void removeOldTasks() {
         timedTasksByType(TimedTask.TimedTaskType.UNBAN).forEach(t -> {
-            UserRecord userRecord = new UserRecords().userRecordById(Long.parseLong(t.getNote()));
-            if (userRecord == null) removeTimedTask(t);
-            else if (userRecord.getNote().equals("lifted")) removeTimedTask(t);
+            String note = userRecordsDatabase.recordNoteById(Long.parseLong(t.getNote()));
+            if (note == null) removeTimedTask(t);
+            else if (note.equals("lifted")) removeTimedTask(t);
         });
         timedTasksByType(TimedTask.TimedTaskType.UNMUTE).forEach(t -> {
-            UserRecord userRecord = new UserRecords().userRecordById(Long.parseLong(t.getNote()));
-            if (userRecord == null) removeTimedTask(t);
-            else if (userRecord.getNote().equals("lifted")) removeTimedTask(t);
+            String note = userRecordsDatabase.recordNoteById(Long.parseLong(t.getNote()));
+            if (note == null) removeTimedTask(t);
+            else if (note.equals("lifted")) removeTimedTask(t);
         });
     }
 }

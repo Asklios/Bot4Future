@@ -10,7 +10,6 @@ import main.java.files.impl.*;
 import main.java.files.interfaces.*;
 import main.java.helper.GetMemberFromMessage;
 import main.java.helper.TimedTasks;
-import main.java.helper.UserRecords;
 import main.java.helper.api.UpdateFromApi;
 import main.java.listener.AuditListener;
 import main.java.listener.AutoListener;
@@ -101,8 +100,8 @@ public class DiscordBot {
         builder.setToken(botToken);
 
         // Bot activity
-        builder.setActivity(Activity.playing("hello world")); // Anzeige was "spielt" der Bot
-        builder.setStatus(OnlineStatus.ONLINE); // Anzeige Bot Erreichbarkeit
+        builder.setActivity(Activity.playing("hello world"));
+        builder.setStatus(OnlineStatus.ONLINE);
 
         this.cmdMan = new CommandManager();
         this.privCmdMan = new PrivateCommandManager();
@@ -129,7 +128,6 @@ public class DiscordBot {
 
         shutdown();
 
-        new UserRecords().updateUserRecordsFromDatabase();
         System.out.println("loaded userRecords");
 
         //start timedTasks - depends on UserRecords
@@ -167,7 +165,7 @@ public class DiscordBot {
                     }
                 }
             } catch (IOException e) {
-                System.err.println("Cought IOException: FFF_Discord_Bot.java - shutdown");
+                System.err.println("Caught IOException: FFF_Discord_Bot.java - shutdown");
             }
         }).start();
     }

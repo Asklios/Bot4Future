@@ -3,12 +3,10 @@ package main.java.commands.server.administation;
 import main.java.commands.server.ServerCommand;
 import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.UserRecordsDatabase;
-import main.java.helper.UserRecords;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 
-import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -17,7 +15,7 @@ import java.util.stream.Collectors;
 
 public class UserInfoCommand implements ServerCommand {
 
-    private UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
+    private final UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
 
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {
@@ -102,7 +100,7 @@ public class UserInfoCommand implements ServerCommand {
         int totalBans;
         int totalMutes;
 
-        records = new UserRecords().recordNumbers(user.getIdLong());
+        records = userRecordsDatabase.recordNumbers(user.getIdLong());
 
         if (records == null){
             activeBans = 0;

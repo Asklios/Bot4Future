@@ -1,7 +1,9 @@
 package main.java.helper;
 
 import main.java.files.impl.RoleDatabaseSQLite;
+import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.RoleDatabase;
+import main.java.files.interfaces.UserRecordsDatabase;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
@@ -23,21 +25,12 @@ public class MuteObserver {
      * If so, the mute role is added.
      */
     public static void guildMemberJoin(GuildMemberJoinEvent event) {
+        UserRecordsDatabaseSQLite userRecordsDatabase = new UserRecordsDatabaseSQLite();
         RoleDatabase roleDatabase = new RoleDatabaseSQLite();
         Guild guild = event.getGuild();
         long userId = event.getUser().getIdLong();
-        List<UserRecord> userRecords = new UserRecords().userRecordByTypeGuildUser(guild.getIdLong(),
-                UserRecord.RecordType.MUTE, userId);
-        if (userRecords.isEmpty()) return;
 
-        boolean[] wasMuted = new boolean[1];
-
-        userRecords.forEach(u -> {
-            if (u.getNote().equals("liftet")) return;
-            wasMuted[0] = true;
-        });
-
-        if (wasMuted[0]) {
+        if (userRecordsDatabase.wasMuted(guild.getIdLong(), userId)) {
             Role muteRole = roleDatabase.getMuteRole(event.getGuild());
             guild.addRoleToMember(event.getMember(), muteRole).queue();
         }
@@ -49,12 +42,13 @@ public class MuteObserver {
      */
     public static void onGuildMemberUpdate(GuildMemberUpdateEvent event) {
         RoleDatabase roleDatabase = new RoleDatabaseSQLite();
+        UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
         Guild guild = event.getGuild();
         long userId = event.getUser().getIdLong();
 
-        List<UserRecord> userRecords = new UserRecords().userRecordByTypeGuildUser(guild.getIdLong(),
-                UserRecord.RecordType.MUTE, userId);
-        if (userRecords.isEmpty()) return;
+        List<Long> recordIds = userRecordsDatabase.unliftedMutesByUserIdAndGuildId(userId, guild.getIdLong());
+
+        if (recordIds.isEmpty()) return;
 
         Role muterole = roleDatabase.getMuteRole(event.getGuild());
         if (guild.retrieveMemberById(userId).complete().getRoles().contains(muterole)) {
@@ -63,14 +57,12 @@ public class MuteObserver {
 
         List<TimedTask> timedTasks = new ArrayList<>();
 
-        userRecords.forEach(u -> {
-            if (u.getNote().equals("liftet")) return;
-
+        recordIds.forEach(id -> {
             try {
                 TimedTasks.tasks.forEach((aLong, timedTask) -> {
                     if (timedTask.getType() != TimedTask.TimedTaskType.UNMUTE) return;
                     try {
-                        if (!(timedTask.getNote().equals(u.getId() + ""))) return;
+                        if (!(timedTask.getNote().equals(id + ""))) return;
                         timedTasks.add(timedTask);
                     } catch (NullPointerException e) {
                         e.printStackTrace();

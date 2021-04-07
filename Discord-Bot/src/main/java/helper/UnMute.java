@@ -10,6 +10,7 @@ import main.java.files.interfaces.UserRecordsDatabase;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -23,7 +24,7 @@ public class UnMute {
 
     public void liftMute(TimedTask timedTask) {
         long userRecordId = Long.parseLong(timedTask.getNote());
-        UserRecord userRecord = new UserRecords().userRecordById(userRecordId);
+        UserRecord userRecord = userRecordsDatabase.recordById(userRecordId);
 
         //if there is no userRecord with the provided id
         if (userRecord == null) return;
@@ -35,23 +36,29 @@ public class UnMute {
         JDA jda = DiscordBot.INSTANCE.jda;
         Guild guild = jda.getGuildById(guildId);
         assert guild != null;
-        Member member = guild.retrieveMemberById(userId).complete();
+        Member[] member = new Member[1];
+        try {
+            member[0] = guild.retrieveMemberById(userId).complete();
+        } catch (ErrorResponseException e) {
+            //unknown member
+            return;
+        }
 
-        if (member == null) return;
+        if (member[0] == null) return;
 
         Role muteRole = roleDatabase.getMuteRole(guild);
 
         EmbedBuilder b = new EmbedBuilder();
         b.setColor(0x1DA64A);
-        b.setThumbnail(member.getUser().getEffectiveAvatarUrl());
-        b.addField("Name: ", member.getAsMention(), true);
+        b.setThumbnail(member[0].getUser().getEffectiveAvatarUrl());
+        b.addField("Name: ", member[0].getAsMention(), true);
         b.addField("ID: ", userId + "", true);
         b.addField(":alarm_clock: gemutet seit: ", TimeMillis.dateFromMillis(userRecord.getDate()) + "", false);
         b.addField(":page_facing_up: Mute Begründung: ", userRecord.getReason(), false);
         b.setTimestamp(OffsetDateTime.now());
 
-        if (member.getRoles().contains(muteRole)) {
-            guild.removeRoleFromMember(member, muteRole).queue();
+        if (member[0].getRoles().contains(muteRole)) {
+            guild.removeRoleFromMember(member[0], muteRole).queue();
 
             b.setTitle(":speaker: Nutzer*in entmutet");
             b.setFooter("by " + guild.getSelfMember().getEffectiveName(), guild.getSelfMember().getUser().getEffectiveAvatarUrl());
@@ -67,14 +74,13 @@ public class UnMute {
             memberRoles.add(guild.getRoleById(Long.parseLong(s)));
         }
 
-        memberRoles.forEach(r -> guild.addRoleToMember(member, r).queue());
+        memberRoles.forEach(r -> guild.addRoleToMember(member[0], r).queue());
 
         TextChannel audit = channelDatabase.getAuditChannel(guild);
         if (audit == null) return;
 
         audit.sendMessage(b.build()).queue();
 
-        new UserRecords().setNoteLiftedById(userRecordId);
         userRecordsDatabase.setNoteLiftedById(userRecordId);
     }
 }

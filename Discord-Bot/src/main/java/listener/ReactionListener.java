@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class ReactionListener extends ListenerAdapter {
@@ -124,7 +125,7 @@ public class ReactionListener extends ListenerAdapter {
             return;
         }
 
-        if (event.getUser().isBot()) {
+        if (Objects.requireNonNull(event.getUser()).isBot()) {
             return;
         }
 

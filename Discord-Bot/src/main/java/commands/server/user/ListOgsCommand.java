@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,10 +49,14 @@ public class ListOgsCommand implements ServerCommand {
             while (b.length() < 5000) {
                 if (i >= colums.length) break;
                 List<String> l = colums[i];
-                b.addField("", l.stream().collect(Collectors.joining(", ")), true);
+                b.addField("", String.join(", ", l), true);
                 i++;
             }
-            channel.sendMessage(b.build()).queue(m -> m.delete().queueAfter(5, TimeUnit.MINUTES));
+            try {
+                channel.sendMessage(b.build()).queue(m -> m.delete().queueAfter(5, TimeUnit.MINUTES));
+            } catch (ErrorResponseException e) {
+                //message was deleted
+            }
             b.clearFields();
         }
     }

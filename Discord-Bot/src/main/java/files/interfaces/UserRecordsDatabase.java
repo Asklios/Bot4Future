@@ -3,6 +3,8 @@ package main.java.files.interfaces;
 import main.java.helper.UserRecord;
 
 import java.sql.ResultSet;
+import java.util.List;
+import java.util.Map;
 
 public interface UserRecordsDatabase {
 
@@ -17,4 +19,16 @@ public interface UserRecordsDatabase {
     void removeGuildData(long guildId);
 
     ResultSet AllUserRecords();
+
+    Map<String, Integer> recordNumbers(long userId);
+
+    boolean isUnbanRequest(long guildId, long userId);
+
+    boolean wasMuted(long guildId, long userId);
+
+    List<Long> unliftedMutesByUserIdAndGuildId(long userId, long guildId);
+
+    String recordNoteById(long id);
+
+    UserRecord recordById(long id);
 }

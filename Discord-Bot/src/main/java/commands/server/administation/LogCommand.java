@@ -7,6 +7,7 @@ import main.java.files.interfaces.ChannelDatabase;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 import java.io.File;
@@ -160,6 +161,8 @@ public class LogCommand implements ServerCommand {
                 e.printStackTrace();
             } catch (InsufficientPermissionException e) {
                 channel.sendMessage("Dem Bot fehlt die Berechtigung das LogFile zu senden. ```Benötigt Berechtigungen: message_read, message_write, message_attach_files```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
+            } catch (ErrorResponseException e) {
+                //message deleted
             }
         } else {
             channel.sendMessage("Es ist keine #audit Channel festgelegt in welchen das Log geschickt werden könnte.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
@@ -167,6 +170,5 @@ public class LogCommand implements ServerCommand {
 
         // .txt wird gelöscht
         file.delete();
-
     }
 }

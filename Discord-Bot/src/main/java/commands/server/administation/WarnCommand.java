@@ -40,7 +40,7 @@ public class WarnCommand implements ServerCommand {
         } catch (IndexOutOfBoundsException e) {
             try {
                 targetMember = guild.retrieveMemberById(messageSplit[1]).complete();
-            } catch (NumberFormatException f) {
+            } catch (NumberFormatException | ArrayIndexOutOfBoundsException f) {
                 channel.sendMessage("Es wurde kein User erwähnt. `%warn @user <reason>`").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 return;
             }

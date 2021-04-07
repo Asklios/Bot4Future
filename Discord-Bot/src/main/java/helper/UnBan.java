@@ -22,7 +22,8 @@ public class UnBan {
     public void liftBan(TimedTask timedTask) {
 
         long userRecordId = Long.parseLong(timedTask.getNote());
-        UserRecord userRecord = new UserRecords().userRecordById(userRecordId);
+        //UserRecord userRecord = new UserRecords().userRecordById(userRecordId);
+        UserRecord userRecord = userRecordsDatabase.recordById(userRecordId);
 
         //if there is no userRecord with the provided id
         if (userRecord == null) return;
