@@ -1,6 +1,8 @@
 package main.java.listener;
 
 import main.java.DiscordBot;
+import main.java.activitylog.CryptoMessageHandler;
+import main.java.activitylog.EventAudit;
 import main.java.commands.server.invite.SpecialCodeCommand;
 import main.java.commands.server.pmCommands.UnbanRequestHandler;
 import main.java.helper.MuteObserver;
@@ -10,6 +12,7 @@ import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberUpdateEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.exceptions.ContextException;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -54,6 +57,10 @@ public class CommandListener extends ListenerAdapter {
         // wenn die Nachricht aus einem Text-Channel von einem Server stammt
         if (event.isFromType(ChannelType.TEXT)) {
             TextChannel channel = event.getTextChannel();
+
+            new CryptoMessageHandler().saveNewMessage(messageString, event.getGuild().getIdLong(),
+                    event.getChannel().getIdLong(), event.getMessage().getIdLong(),
+                    Objects.requireNonNull(event.getMember()).getIdLong());
 
             if (messageString.startsWith("%")) { // Festlegung des Präfix
                 if (args.length > 0) {

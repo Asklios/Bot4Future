@@ -6,8 +6,7 @@ import main.java.commands.server.administation.*;
 import main.java.commands.server.administation.presence.PresenceCommand;
 import main.java.commands.server.administation.presence.RemoveCallDataCommand;
 import main.java.commands.server.administation.presence.RequestCallDatabase;
-import main.java.commands.server.audit.AuditChannelCommand;
-import main.java.commands.server.audit.GetAuditChannelCommand;
+import main.java.commands.server.audit.*;
 import main.java.commands.server.developer.*;
 import main.java.commands.server.developer.KillCommand;
 import main.java.commands.server.invite.*;
@@ -67,8 +66,13 @@ public class CommandManager {
         this.commands.put("newmuterole", new NewMuteRoleCommand());
         this.commands.put("audit", new AuditChannelCommand());
         this.commands.put("getaudit", new GetAuditChannelCommand());
+        this.commands.put("eventaudit", new EventAuditChannelCommand());
+        this.commands.put("geteventaudit", new GetEventAuditChannelCommand());
+        this.commands.put("auditignore", new EventAuditIgnoredChannelsCommand());
         this.commands.put("pmchannel", new PmChannelCommand());
         this.commands.put("getpmchannel", new GetPmChannelCommand());
+        this.commands.put("selfrole", new AddSelfRoleCommand());
+        this.commands.put("rmselfrole", new RemoveSelfRoleCommand());
         /*this.commands.put("poll", new PollCommand());
         this.commands.put("getpoll", new GetPollCommand());
         this.commands.put("closepoll", new ClosePollCommand());*/
@@ -78,6 +82,7 @@ public class CommandManager {
         this.commands.put("pb", new ProfilePictureGeneratorCommand());
         this.commands.put("og", new OgInfoCommand());
         this.commands.put("ogs", new ListOgsCommand());
+        this.commands.put("iam", new IAmCommand());
 
         // bot info
         this.commands.put("help", new HelpCommand());

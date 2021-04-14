@@ -1,5 +1,8 @@
 package main.java;
 
+import main.java.activitylog.ActivitySQLManager;
+import main.java.activitylog.EventAudit;
+import main.java.activitylog.LiteSQLActivity;
 import main.java.commands.privateMessage.PrivateCommandManager;
 import main.java.commands.server.CommandManager;
 import main.java.files.LiteSQL;
@@ -11,16 +14,14 @@ import main.java.files.interfaces.*;
 import main.java.helper.GetMemberFromMessage;
 import main.java.helper.TimedTasks;
 import main.java.helper.api.UpdateFromApi;
-import main.java.listener.AuditListener;
-import main.java.listener.AutoListener;
-import main.java.listener.CommandListener;
-import main.java.listener.ReactionListener;
+import main.java.listener.*;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
 import javax.security.auth.login.LoginException;
 import java.io.BufferedReader;
@@ -59,6 +60,7 @@ public class DiscordBot {
     private GetMemberFromMessage getMemberFromMessage;
     private InviteDatabase inviteDatabase;
     private TimedTasksDatabase timedTasksDatabase;
+    private SelfRoles selfRoles;
 
     long startUpTime = System.currentTimeMillis();
 
@@ -93,9 +95,14 @@ public class DiscordBot {
         LiteSQL.connect();
         SQLManager.onCreate();
 
+        LiteSQLActivity.connect();
+        ActivitySQLManager.onCreate();
+        new EventAudit().updateIgnoredChannels();
+
         JDABuilder builder = JDABuilder.createDefault(botToken);
         builder.enableIntents(GatewayIntent.GUILD_PRESENCES);
         builder.enableIntents(GatewayIntent.GUILD_MEMBERS);
+        builder.setMemberCachePolicy(MemberCachePolicy.ALL);
         
         builder.setToken(botToken);
 
@@ -113,8 +120,10 @@ public class DiscordBot {
         this.userRecordsDatabase = new UserRecordsDatabaseSQLite();
         this.inviteDatabase = new InviteDatabaseSQLite();
         this.timedTasksDatabase = new TimedTasksDatabaseSQLite();
+        this.selfRoles = new SelfRolesSQLite();
 
         builder.addEventListeners(new CommandListener());
+        builder.addEventListeners(new EventAuditListener());
         builder.addEventListeners(new AuditListener());
         builder.addEventListeners(new ReactionListener(voteDatabase));
 
@@ -129,6 +138,8 @@ public class DiscordBot {
         shutdown();
 
         System.out.println("loaded userRecords");
+
+        selfRoles.loadSelfRoles();
 
         //start timedTasks - depends on UserRecords
         TimedTasks.startTimedTasks();

@@ -24,6 +24,6 @@ public class SQLManager {
         LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS invitemanager(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,guildid INTEGER, specialuserid INTEGER, verifieduserid INTEGER)");
         LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS calldata(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, guildid INTEGER, userids STRING, starttime INTEGER, endtime INTEGER, name STRING, requester INTEGER, note STRING)");
         LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS timedtasks(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, endtime INTEGER NOT NULL, type STRING NOT NULL, note STRING)");
-
+        LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS selfroles(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, guildid INTEGER, role STRING, roleid INTEGER)");
     }
 }

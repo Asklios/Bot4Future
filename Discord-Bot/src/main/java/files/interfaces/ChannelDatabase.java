@@ -30,6 +30,18 @@ public interface ChannelDatabase {
     TextChannel getAuditChannel (Guild guild);
 
     /**
+     * Saves the TextChannel for event-audit-messages.
+     * @param textChannel the specified event-audit-channel.
+     */
+    void saveEventAuditChannel (TextChannel textChannel) throws NullPointerException;
+    /**
+     * Returns the saved TextChannel for event-audit-messages.
+     * @param guild the requesting guild.
+     * @return The event-audit TextChannel or null if it is not yet defined.
+     */
+    TextChannel getEventAuditChannel (Guild guild);
+
+    /**
      * Saves the TextChannel for Messages from the pmSystem.
      * @param textChannel the specified pm-channel.
      */
