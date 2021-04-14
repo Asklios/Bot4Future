@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>Bot4Future</groupId>
     <artifactId>Bot4Future</artifactId>
-    <version>v5.2</version>
+    <version>v5.3</version>
 
     <properties>
         <project.java.version>11</project.java.version>
@@ -23,6 +23,11 @@
                     <target>${project.java.version}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M5</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -80,6 +85,11 @@
             <artifactId>lombok</artifactId>
             <version>1.18.20</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>3.0.0-M5</version>
         </dependency>
     </dependencies>
 </project>
