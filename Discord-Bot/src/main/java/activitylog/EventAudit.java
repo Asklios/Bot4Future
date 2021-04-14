@@ -55,7 +55,9 @@ public class EventAudit {
                 long guildId = result.getLong("guildid");
                 String channelIds = result.getString("channelids");
                 List<Long> ignoredIds = new ArrayList<>();
-                Arrays.stream(channelIds.split(",")).mapToLong(Long::parseLong).forEach(ignoredIds::add);
+                if (channelIds != null) {
+                    Arrays.stream(channelIds.split(",")).mapToLong(Long::parseLong).forEach(ignoredIds::add);
+                }
                 ignoredChannels.put(guildId, ignoredIds);
             }
         } catch (SQLException e) {

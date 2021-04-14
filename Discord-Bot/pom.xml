@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>Bot4Future</groupId>
     <artifactId>Bot4Future</artifactId>
-    <version>v5.3</version>
+    <version>v5.3.4</version>
 
     <properties>
         <project.java.version>11</project.java.version>

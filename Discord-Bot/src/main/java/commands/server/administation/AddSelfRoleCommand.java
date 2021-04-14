@@ -29,6 +29,18 @@ public class AddSelfRoleCommand implements ServerCommand {
 
         //%selfrole <roleName>
         String[] messageSplit = message.getContentDisplay().split("\\s+");
+        Guild guild = channel.getGuild();
+
+        if (!message.getMentionedRoles().isEmpty()) {
+            List<Role> roles = message.getMentionedRoles();
+            roles.forEach(r -> {
+                selfRoles.addSelfRole(guild.getIdLong(), r.getName(), r.getIdLong());
+                channel.sendMessage("`" + r.getName() + "` wurde zu den selbst gebbaren Rollen hinzugefügt.")
+                        .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
+                sendAuditMessage(r, member);
+            });
+            return;
+        }
 
         String searchString = "";
         for (int i = 1; i < messageSplit.length; i++) {
@@ -44,8 +56,6 @@ public class AddSelfRoleCommand implements ServerCommand {
                 break;
             }
         }
-
-        Guild guild = channel.getGuild();
 
         if (role != null) {
             selfRoles.addSelfRole(guild.getIdLong(), role.getName(), role.getIdLong());
