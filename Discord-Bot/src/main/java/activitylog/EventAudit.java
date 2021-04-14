@@ -2,13 +2,11 @@ package main.java.activitylog;
 
 import lombok.Getter;
 import lombok.Setter;
+import main.java.files.LiteSQL;
 import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
@@ -30,6 +28,22 @@ public class EventAudit {
 
     @Getter @Setter
     private static HashMap<Long, List<Long>> ignoredChannels = new HashMap<>();
+
+    public void ignoredChannelsStartUpEntries(Guild guild) {
+        long guildId = guild.getIdLong();
+
+        ResultSet result = LiteSQLActivity.onQuery("SELECT * FROM ignoredchannels WHERE guildid = " + guildId);
+
+        try {
+            assert result != null;
+            if (result.next()) {
+                return;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        LiteSQLActivity.onUpdate("INSERT INTO ignoredchannels(guildid) VALUES(" + guildId + ")");
+    }
 
     public void updateIgnoredChannels() {
         PreparedStatement prepStmt = LiteSQLActivity.prepStmt("SELECT * FROM ignoredchannels");
@@ -53,8 +67,12 @@ public class EventAudit {
 
         long guildId = event.getGuild().getIdLong();
         long channelId = event.getChannel().getIdLong();
-        if (ignoredChannels.get(guildId).contains(channelId)) { //TODO update message in database
-            return;
+        try {
+            if (ignoredChannels.get(guildId).contains(channelId)) { //TODO update message in database
+                return;
+            }
+        } catch (NullPointerException e) {
+            //
         }
 
         String decryptText = new CryptoMessageHandler().readEncryptedMessage(event.getGuild().getIdLong(),
@@ -94,8 +112,12 @@ public class EventAudit {
 
         long guildId = event.getGuild().getIdLong();
         long channelId = event.getChannel().getIdLong();
-        if (ignoredChannels.get(guildId).contains(channelId)) {
-            return;
+        try {
+            if (ignoredChannels.get(guildId).contains(channelId)) {
+                return;
+            }
+        } catch (NullPointerException e) {
+            //
         }
 
         String decryptText = new CryptoMessageHandler().readEncryptedMessageWithId(event.getGuild().getIdLong(),

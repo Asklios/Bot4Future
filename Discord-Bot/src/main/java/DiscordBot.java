@@ -262,6 +262,7 @@ public class DiscordBot {
             }
             this.roleDatabase.startUpEntries(guild);
             this.channelDatabase.startUpEntries(guild);
+            new EventAudit().ignoredChannelsStartUpEntries(guild);
         }
     }
 
