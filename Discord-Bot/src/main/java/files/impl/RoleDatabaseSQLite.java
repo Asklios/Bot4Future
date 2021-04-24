@@ -178,7 +178,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
     public void setVerifyRole(Guild guild, Role role) throws NullPointerException {
         long guildId = guild.getIdLong();
         long roleId = role.getIdLong();
-        String type = "specialrole";
+        String type = "verifiablerole";
 
         LiteSQL.onUpdate("UPDATE guildroles SET roleid = " + roleId + " WHERE guildid = " + guildId + " AND type = '" + type + "'");
     }
@@ -191,7 +191,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
     @Override
     public void setVerifyRole(Guild guild, long roleId) throws NullPointerException {
         long guildId = guild.getIdLong();
-        String type = "specialrole";
+        String type = "verifiablerole";
 
         LiteSQL.onUpdate("UPDATE guildroles SET roleid = " + roleId + " WHERE guildid = " + guildId + " AND type = '" + type + "'");
     }

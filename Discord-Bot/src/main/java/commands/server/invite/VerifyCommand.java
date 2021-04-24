@@ -28,6 +28,11 @@ public class VerifyCommand implements ServerCommand {
                 return;
             }
 
+            if (verifiableRole == null) {
+                channel.sendMessage("Die aktuelle Verifiable-Rolle ist nicht festgelegt. ```%verifiable @role```").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+                return;
+            }
+
             if (hasRole(member, specialRole)) {
 
                 if (highestBotRole.canInteract(verifiableRole)) {
