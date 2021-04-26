@@ -34,7 +34,7 @@ public class BumpRoleCommand implements ServerCommand {
             if (!message.getMentionedRoles().get(0).isManaged() && highestBotRole.canInteract(message.getMentionedRoles().get(0))) {
 
                 this.roleDatabase.setBumpRole(channel.getGuild(), message.getMentionedRoles().get(0));
-                channel.sendMessage("BumpRole wurde auf " + message.getMentionedRoles().get(0).getAsMention() + " gesetzt").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
+                channel.sendMessage("BumpRole wurde auf `" + message.getMentionedRoles().get(0).getName() + " (" + message.getMentionedRoles().get(0).getId() + ")` gesetzt.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
 
             } else if (!highestBotRole.canInteract(message.getMentionedRoles().get(0))) {
                 channel.sendMessage("Diese Rolle kann nicht verwendet werden, da sie höher als die Bot-Rolle ist.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
