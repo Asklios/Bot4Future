@@ -104,4 +104,18 @@ public interface RoleDatabase {
      * @return true if successful, otherwise false.
      */
     boolean removeEntriesByGuildId(long guildId);
+
+    /**
+     * Returns the role for ping when disboard bump is available.
+     * @param guild The Guild of the role
+     * @return the role
+     */
+    Role getBumpRole(Guild guild);
+
+    /**
+     * Sets the role for ping when disboard bump is available.
+     * @param guild the guild
+     * @param role the bump role
+     */
+    void setBumpRole(Guild guild, Role role);
 }

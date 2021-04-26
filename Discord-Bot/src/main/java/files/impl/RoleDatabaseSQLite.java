@@ -316,4 +316,31 @@ public class RoleDatabaseSQLite implements RoleDatabase {
         startUpEntries(guildId);
         return true;
     }
+
+    @Override
+    public Role getBumpRole(Guild guild) {
+        long guildid = guild.getIdLong();
+
+        ResultSet result = LiteSQL.onQuery("SELECT roleid FROM guildroles WHERE guildid = " + guildid + " AND type = 'bumprole'");
+        if (result == null) return null;
+
+        try {
+            if (result.next()) {
+                long muteRoleId = result.getLong("roleid");
+
+                return guild.getRoleById(muteRoleId);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public void setBumpRole(Guild guild, Role role) {
+        long guildId = guild.getIdLong();
+        String type = "bumprole";
+
+        LiteSQL.onUpdate("UPDATE guildroles SET roleid = " + role.getId() + " WHERE guildid = " + guildId + " AND type = '" + type + "'");
+    }
 }

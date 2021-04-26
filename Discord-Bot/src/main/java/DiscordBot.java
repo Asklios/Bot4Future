@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class DiscordBot {
 
@@ -61,6 +63,8 @@ public class DiscordBot {
     private InviteDatabase inviteDatabase;
     private TimedTasksDatabase timedTasksDatabase;
     private SelfRoles selfRoles;
+
+    public static ScheduledExecutorService POOL = Executors.newScheduledThreadPool(5);
 
     long startUpTime = System.currentTimeMillis();
 
@@ -126,6 +130,7 @@ public class DiscordBot {
         builder.addEventListeners(new EventAuditListener());
         builder.addEventListeners(new AuditListener());
         builder.addEventListeners(new ReactionListener(voteDatabase));
+        builder.addEventListeners(new BumpListener());
 
         try {
             jda = builder.build();

@@ -53,7 +53,7 @@ public class InviteManager {
                 if (!invite.getCode().equals(specialInviteCode)) return;
 
                 if (inviteCount < invite.getUses()) {
-                    Role role = this.roleDatabase.getVerifyRole(member.getGuild());
+                    Role role = this.roleDatabase.getSpecialRole(member.getGuild());
                     try {
                         if (role != null) {
                             member.getGuild().addRoleToMember(member.getIdLong(), role).queue();
