@@ -32,7 +32,7 @@ public class GetBumpRoleCommand implements ServerCommand {
             return;
         }
 
-        channel.sendMessage("Die aktuelle verifiablerole ist " + bumpRole.getName() + " (" + bumpRole.getId() + ")")
+        channel.sendMessage("Die aktuelle verifiablerole ist `" + bumpRole.getName() + " (" + bumpRole.getId() + ")`")
                 .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
     }
 }
