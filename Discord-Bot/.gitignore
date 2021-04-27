@@ -81,3 +81,8 @@ local.properties
 .idea
 *.iml
 /diagram.png
+/data/activity.db
+/data/autoresponse.txt
+/config.properties
+/data/database.db
+/data/pbfilter.png

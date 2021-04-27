@@ -1,12 +1,12 @@
 package main.java.commands.server;
 
-import main.java.commands.server.DevelopmentTestCommand;
-import main.java.commands.server.ServerCommand;
 import main.java.commands.server.administation.*;
 import main.java.commands.server.administation.presence.PresenceCommand;
 import main.java.commands.server.administation.presence.RemoveCallDataCommand;
 import main.java.commands.server.administation.presence.RequestCallDatabase;
 import main.java.commands.server.audit.*;
+import main.java.commands.server.bump.BumpRoleCommand;
+import main.java.commands.server.bump.GetBumpRoleCommand;
 import main.java.commands.server.developer.*;
 import main.java.commands.server.developer.KillCommand;
 import main.java.commands.server.invite.*;
@@ -34,6 +34,8 @@ public class CommandManager {
         this.commands.put("verify", new VerifyCommand());
         this.commands.put("verifiablerole", new VerifiableRoleCommand());
         this.commands.put("getverifiablerole", new GetVerifiableRoleCommand());
+        this.commands.put("getbumprole", new GetBumpRoleCommand());
+        this.commands.put("bumprole", new BumpRoleCommand());
 
         //functions
         this.commands.put("createrole", new RoleCreation());

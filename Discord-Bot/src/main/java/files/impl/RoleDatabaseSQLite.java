@@ -178,7 +178,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
     public void setVerifyRole(Guild guild, Role role) throws NullPointerException {
         long guildId = guild.getIdLong();
         long roleId = role.getIdLong();
-        String type = "specialrole";
+        String type = "verifiablerole";
 
         LiteSQL.onUpdate("UPDATE guildroles SET roleid = " + roleId + " WHERE guildid = " + guildId + " AND type = '" + type + "'");
     }
@@ -191,7 +191,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
     @Override
     public void setVerifyRole(Guild guild, long roleId) throws NullPointerException {
         long guildId = guild.getIdLong();
-        String type = "specialrole";
+        String type = "verifiablerole";
 
         LiteSQL.onUpdate("UPDATE guildroles SET roleid = " + roleId + " WHERE guildid = " + guildId + " AND type = '" + type + "'");
     }
@@ -315,5 +315,32 @@ public class RoleDatabaseSQLite implements RoleDatabase {
         LiteSQL.onUpdate("DELETE FROM guildroles WHERE guildid = " + guildId);
         startUpEntries(guildId);
         return true;
+    }
+
+    @Override
+    public Role getBumpRole(Guild guild) {
+        long guildid = guild.getIdLong();
+
+        ResultSet result = LiteSQL.onQuery("SELECT roleid FROM guildroles WHERE guildid = " + guildid + " AND type = 'bumprole'");
+        if (result == null) return null;
+
+        try {
+            if (result.next()) {
+                long muteRoleId = result.getLong("roleid");
+
+                return guild.getRoleById(muteRoleId);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public void setBumpRole(Guild guild, Role role) {
+        long guildId = guild.getIdLong();
+        String type = "bumprole";
+
+        LiteSQL.onUpdate("UPDATE guildroles SET roleid = " + role.getId() + " WHERE guildid = " + guildId + " AND type = '" + type + "'");
     }
 }

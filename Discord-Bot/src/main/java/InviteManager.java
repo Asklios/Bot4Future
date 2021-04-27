@@ -1,11 +1,11 @@
 package main.java;
 
 import main.java.files.impl.ChannelDatabaseSQLite;
-import main.java.files.impl.RoleDatabaseSQLite;
 import main.java.files.impl.InviteDatabaseSQLite;
+import main.java.files.impl.RoleDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
-import main.java.files.interfaces.RoleDatabase;
 import main.java.files.interfaces.InviteDatabase;
+import main.java.files.interfaces.RoleDatabase;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
@@ -47,8 +47,7 @@ public class InviteManager {
 
     public void checkNewMember(Member member) {
         try {
-            List<Invite> invites = guild.retrieveInvites().complete();
-            for (Invite invite : invites) {
+            guild.retrieveInvites().queue(invites -> invites.forEach(invite -> {
                 System.out.println(invite.getCode() + " - " + specialInviteCode);
 
                 if (!invite.getCode().equals(specialInviteCode)) return;
@@ -82,7 +81,7 @@ public class InviteManager {
                     inviteCount = invite.getUses();
                     this.inviteDatabase.saveSpecialMember(member);
                 }
-            }
+            }));
         } catch (InsufficientPermissionException e) {
             //System.err.println("InsufficientPermissionException: bot needs MANAGE_SERVER Permission!");
             //throws Exeption but executes try path afterward????

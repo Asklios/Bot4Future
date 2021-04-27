@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 public class ProfilePictureGeneratorCommand implements ServerCommand {
 
@@ -36,11 +37,15 @@ public class ProfilePictureGeneratorCommand implements ServerCommand {
         if (url == null) {return;}
         BufferedImage c = null;
         try {
-            c = ImageIO.read(url);
+            c = resizeImage(ImageIO.read(url), 128);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+        if(c == null){
+            channel.sendMessage("Ein interner Fehler ist aufgetreten!").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
+            return;
+        }
 
         ImageIcon pb = new ImageIcon(c);
         Image profilePic = new BufferedImage(128, 128,
@@ -77,5 +82,13 @@ public class ProfilePictureGeneratorCommand implements ServerCommand {
         c.flush();
         combined.flush();
         filterPic.flush();
+    }
+
+    static BufferedImage resizeImage(BufferedImage originalImage, int targetSize) throws IOException {
+        BufferedImage resizedImage = new BufferedImage(targetSize, targetSize, BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics2D = resizedImage.createGraphics();
+        graphics2D.drawImage(originalImage, 0, 0, targetSize, targetSize, null);
+        graphics2D.dispose();
+        return resizedImage;
     }
 }
