@@ -23,35 +23,21 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     /**
      * Checks if there are lines for this guild in the table and adds them if not.
+     *
      * @param guild that should be checked.
      */
     @Override
     public void startUpEntries(Guild guild) throws NullPointerException {
-        long guildId = guild.getIdLong();
-
-        ResultSet result = LiteSQL.onQuery("SELECT * FROM guildroles WHERE guildid = " + guildId);
-
-        try {
-            assert result != null;
-            if (result.next()) {
-                return;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", 'mute')");
-        LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", 'specialrole')");
-        LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", 'verifiablerole')");
-        LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", 'specialcode')");
+        startUpEntries(guild.getIdLong());
     }
 
     /**
      * Checks if there are lines for this guild in the table and adds them if not.
+     *
      * @param guildId the id from the guild that should be checked.
      */
     @Override
     public void startUpEntries(long guildId) throws NullPointerException {
-
         ResultSet result = LiteSQL.onQuery("SELECT * FROM guildroles WHERE guildid = " + guildId);
 
         try {
@@ -66,15 +52,17 @@ public class RoleDatabaseSQLite implements RoleDatabase {
         LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", 'specialrole')");
         LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", 'verifiablerole')");
         LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", 'specialcode')");
+        LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", 'bumprole')");
     }
 
     /**
      * Sets the mute role for the provided guild to a new value.
+     *
      * @param guild the guild.
-     * @param role the new mute role.
+     * @param role  the new mute role.
      */
     @Override
-    public void setMuteRole(Guild guild, Role role) throws NullPointerException{
+    public void setMuteRole(Guild guild, Role role) throws NullPointerException {
         long guildId = guild.getIdLong();
         long roleId = role.getIdLong();
         String type = "mute";
@@ -84,11 +72,12 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     /**
      * Sets the mute role for the provided guild to a new value.
-     * @param guild the guild.
+     *
+     * @param guild  the guild.
      * @param roleId the id of the new mute role.
      */
     @Override
-    public void setMuteRole(Guild guild, long roleId) throws NullPointerException{
+    public void setMuteRole(Guild guild, long roleId) throws NullPointerException {
         long guildId = guild.getIdLong();
         String type = "mute";
 
@@ -97,6 +86,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     /**
      * Returns the current mute role from the provided guild.
+     *
      * @param guild the guild.
      * @return The saved mute role. Can be null.
      */
@@ -120,8 +110,9 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     /**
      * Sets the special role for the provided guild to a new value.
+     *
      * @param guild the guild.
-     * @param role the new specialRole.
+     * @param role  the new specialRole.
      */
     @Override
     public void setSpecialRole(Guild guild, Role role) throws NullPointerException {
@@ -134,7 +125,8 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     /**
      * Sets the special role for the provided guild to a new value.
-     * @param guild the guild.
+     *
+     * @param guild  the guild.
      * @param roleId the id of the new specialRole.
      */
     @Override
@@ -147,6 +139,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     /**
      * Returns the current special role from the provided guild.
+     *
      * @param guild the guild.
      * @return The saved specialRole.
      */
@@ -171,8 +164,9 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     /**
      * Sets the verifiable role for the provided guild to a new value.
+     *
      * @param guild the guild.
-     * @param role the new verifiableRole.
+     * @param role  the new verifiableRole.
      */
     @Override
     public void setVerifyRole(Guild guild, Role role) throws NullPointerException {
@@ -185,7 +179,8 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     /**
      * Sets the verifiable role for the provided guild to a new value.
-     * @param guild the guild.
+     *
+     * @param guild  the guild.
      * @param roleId the id of the new verifiableRole.
      */
     @Override
@@ -198,6 +193,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     /**
      * Returns the current verifiable role from the provided guild.
+     *
      * @param guild the guild.
      * @return The saved specialRole.
      */
@@ -222,8 +218,9 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     /**
      * Sets the special invite code for the provided guild to a new value.
+     *
      * @param guild the guild.
-     * @param code the invite-code.
+     * @param code  the invite-code.
      */
     @Override
     public void setSpecialCode(Guild guild, String code) throws NullPointerException {
@@ -234,6 +231,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     /**
      * Returns the current special invite-code from the provided guild.
+     *
      * @param guild the guild.
      * @return The saved invite-code.
      */
@@ -256,6 +254,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     /**
      * Removes all entries where the guild was left.
+     *
      * @return true if successful, otherwise false.
      */
     @Override
@@ -293,6 +292,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     /**
      * Removes all entries that are connected to the provided guild.
+     *
      * @param guild The guild whose entries should be deleted.
      * @return true if successful, otherwise false.
      */
@@ -307,6 +307,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     /**
      * Removes all entries that are connected to the provided guild.
+     *
      * @param guildId The id of the guild whose entries should be deleted.
      * @return true if successful, otherwise false.
      */
