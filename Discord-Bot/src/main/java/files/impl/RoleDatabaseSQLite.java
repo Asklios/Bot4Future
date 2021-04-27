@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,6 +21,14 @@ import java.util.Map;
  * @version 03.12.2020
  */
 public class RoleDatabaseSQLite implements RoleDatabase {
+
+    private static String[] roleTypes = new String[]{
+            "mute",
+            "specialrole",
+            "specialcode",
+            "verifiablerole",
+            "bumprole"
+    };
 
     /**
      * Checks if there are lines for this guild in the table and adds them if not.
@@ -39,20 +48,18 @@ public class RoleDatabaseSQLite implements RoleDatabase {
     @Override
     public void startUpEntries(long guildId) throws NullPointerException {
         ResultSet result = LiteSQL.onQuery("SELECT * FROM guildroles WHERE guildid = " + guildId);
-
+        List<String> exsitingTypes = new ArrayList<>();
         try {
             assert result != null;
             if (result.next()) {
-                return;
+                exsitingTypes.add(result.getString("type"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", 'mute')");
-        LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", 'specialrole')");
-        LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", 'verifiablerole')");
-        LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", 'specialcode')");
-        LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", 'bumprole')");
+        for(String type : roleTypes){
+            if(!exsitingTypes.contains(type)) LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", '" + type + "')");
+        }
     }
 
     /**
