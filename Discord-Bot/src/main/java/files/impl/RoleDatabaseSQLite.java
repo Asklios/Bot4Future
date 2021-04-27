@@ -48,7 +48,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
     @Override
     public void startUpEntries(long guildId) throws NullPointerException {
         ResultSet result = LiteSQL.onQuery("SELECT * FROM guildroles WHERE guildid = " + guildId);
-        List<String> exsitingTypes = new ArrayList<>();
+        List<String> existingTypes = new ArrayList<>();
         try {
             assert result != null;
             if (result.next()) {
