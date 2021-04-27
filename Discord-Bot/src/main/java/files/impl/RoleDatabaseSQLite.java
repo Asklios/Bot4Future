@@ -52,7 +52,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
         try {
             assert result != null;
             if (result.next()) {
-                exsitingTypes.add(result.getString("type"));
+                existingTypes.add(result.getString("type"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
