@@ -58,7 +58,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
             e.printStackTrace();
         }
         for(String type : roleTypes){
-            if(!exsitingTypes.contains(type)) LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", '" + type + "')");
+            if(!existingTypes.contains(type)) LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", '" + type + "')");
         }
     }
 
