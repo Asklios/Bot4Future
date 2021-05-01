@@ -33,7 +33,9 @@ public class TimedTasksDatabaseSQLite implements TimedTasksDatabase {
             prepStmt.setLong(1, endTime);
             prepStmt.setString(2, type);
             prepStmt.setString(3, note);
-            return prepStmt.executeUpdate();
+            int result = prepStmt.executeUpdate();
+            LiteSQL.closePreparedStatement(prepStmt);
+            return result;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -53,7 +55,9 @@ public class TimedTasksDatabaseSQLite implements TimedTasksDatabase {
         try {
             prepStmt.setLong(1, endTime);
             prepStmt.setString(2, type);
-            return prepStmt.executeUpdate();
+            int res = prepStmt.executeUpdate();
+            LiteSQL.closePreparedStatement(prepStmt);
+            return res;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -94,7 +98,9 @@ public class TimedTasksDatabaseSQLite implements TimedTasksDatabase {
         PreparedStatement prepStmt = LiteSQL.prepStmt("DELETE FROM timedtasks WHERE type = ?");
         try {
             prepStmt.setString(1, type);
-            return prepStmt.executeUpdate();
+            int res = prepStmt.executeUpdate();
+            LiteSQL.closePreparedStatement(prepStmt);
+            return res;
         } catch (SQLException e) {
             return 0;
         }
@@ -139,6 +145,7 @@ public class TimedTasksDatabaseSQLite implements TimedTasksDatabase {
             prepStmt.setLong(1, endTime);
             prepStmt.setString(2, type);
             prepStmt.executeUpdate();
+            LiteSQL.closePreparedStatement(prepStmt);
         } catch (SQLException e) {
             e.printStackTrace();
         }

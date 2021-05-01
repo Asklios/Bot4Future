@@ -21,6 +21,7 @@ public class SelfRolesSQLite implements SelfRoles {
         try {
             assert prepStmt != null;
             result = prepStmt.executeQuery();
+            LiteSQL.closePreparedStatement(prepStmt);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -58,6 +59,7 @@ public class SelfRolesSQLite implements SelfRoles {
             prepStmt.setString(2, role.toLowerCase());
             prepStmt.setLong(3, roleId);
             prepStmt.executeUpdate();
+            LiteSQL.closePreparedStatement(prepStmt);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -77,6 +79,7 @@ public class SelfRolesSQLite implements SelfRoles {
             prepStmt.setLong(1, guildId);
             prepStmt.setLong(2, roleId);
             prepStmt.executeUpdate();
+            LiteSQL.closePreparedStatement(prepStmt);
         } catch (SQLException e) {
             e.printStackTrace();
         }
