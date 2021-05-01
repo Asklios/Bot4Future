@@ -1,8 +1,11 @@
 package main.java.activitylog;
 
+import org.apache.commons.dbcp2.BasicDataSource;
+
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
+import java.util.Collection;
 
 /**
  * Class for connecting and using the activity-database.
@@ -12,14 +15,13 @@ import java.sql.*;
  */
 public class LiteSQLActivity {
 
-    private static Connection conn;
-    private static Statement stmt;
+    private static BasicDataSource POOL;
 
     /**
      * Connects to the database.
      */
     public static void connect() {
-        conn = null;
+        POOL = null;
 
         try {
 
@@ -30,19 +32,22 @@ public class LiteSQLActivity {
             }
 
             String url = "jdbc:sqlite:" + file.getPath(); //jdbc = Java Database Connectivity
-            conn = DriverManager.getConnection(url);
+            POOL = new BasicDataSource();
+            POOL.setUrl(url);
 
             System.out.println("Verbindung zur Datenbank hergestellt.");
-
-            stmt = conn.createStatement();
-        } catch (SQLException | IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public static void vacuum() {
         try {
+            Connection con = POOL.getConnection();
+            Statement stmt = con.createStatement();
             stmt.execute("VACUUM");
+            stmt.close();
+            con.close();
             System.out.println("Database VACUUM");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -54,8 +59,8 @@ public class LiteSQLActivity {
      */
     public static void disconnect() {
         try {
-            if (conn != null) {
-                conn.close();
+            if (POOL != null) {
+                POOL.close();
                 System.out.println("Verbindung zur Datenbank getrennt.");
             }
         } catch (SQLException e) {
@@ -71,7 +76,11 @@ public class LiteSQLActivity {
     public static boolean onUpdate(String sql) {
 
         try {
+            Connection connection = POOL.getConnection();
+            Statement stmt = connection.createStatement();
             stmt.execute(sql);
+            stmt.close();
+            connection.close();
             return true;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -86,7 +95,12 @@ public class LiteSQLActivity {
      */
     public static ResultSet onQuery(String sql) {
         try {
-            return stmt.executeQuery(sql);
+            Connection connection = POOL.getConnection();
+            Statement stmt = connection.createStatement();
+            ResultSet resultSet = stmt.executeQuery(sql);
+            stmt.close();
+            connection.close();
+            return resultSet;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -100,7 +114,8 @@ public class LiteSQLActivity {
      */
     public static PreparedStatement prepStmt(String sql) {
         try {
-            return conn.prepareStatement(sql);
+            Connection connection = POOL.getConnection();
+            return connection.prepareStatement(sql);
         } catch (SQLException e) {
             e.printStackTrace();
             return null;

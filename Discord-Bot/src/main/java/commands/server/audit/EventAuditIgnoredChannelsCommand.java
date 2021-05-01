@@ -3,6 +3,7 @@ package main.java.commands.server.audit;
 import main.java.activitylog.EventAudit;
 import main.java.activitylog.LiteSQLActivity;
 import main.java.commands.server.ServerCommand;
+import main.java.files.LiteSQL;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 
@@ -37,6 +38,7 @@ public class EventAuditIgnoredChannelsCommand implements ServerCommand {
             prepStmt.setLong(1, guildId);
             prepStmt.setString(2, channelIds);
             prepStmt.executeUpdate();
+            LiteSQL.closePreparedStatement(prepStmt);
         } catch (SQLException e) {
             e.printStackTrace();
         }
