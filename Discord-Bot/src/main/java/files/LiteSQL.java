@@ -135,4 +135,24 @@ public class LiteSQL {
             exception.printStackTrace();
         }
     }
+
+    public static void closeStatement(Statement statement){
+        try {
+            Connection con = statement.getConnection();
+            statement.close();
+            con.close();
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    public static Statement createStatement(){
+        try {
+            Connection connection = POOL.getConnection();
+            return connection.createStatement();
+        } catch (SQLException e){
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

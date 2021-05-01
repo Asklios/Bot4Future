@@ -121,4 +121,14 @@ public class LiteSQLActivity {
             return null;
         }
     }
+
+    public static Statement createStatement(){
+        try {
+            Connection connection = POOL.getConnection();
+            return connection.createStatement();
+        } catch (SQLException e){
+            e.printStackTrace();
+            return null;
+        }
+    }
 }
