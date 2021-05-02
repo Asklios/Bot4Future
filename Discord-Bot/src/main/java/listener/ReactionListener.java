@@ -1,5 +1,6 @@
 package main.java.listener;
 
+import main.java.DiscordBot;
 import main.java.files.LiteSQL;
 import main.java.files.interfaces.VoteDatabase;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -35,6 +36,9 @@ public class ReactionListener extends ListenerAdapter {
             return;
         }
 
+        if(event.isFromGuild()){
+       DiscordBot.INSTANCE.pollManager.handleReactionEvent(event);
+        }
         Guild guild = event.getGuild();
         long guildID = event.getGuild().getIdLong();
         long channelID = event.getChannel().getIdLong();
