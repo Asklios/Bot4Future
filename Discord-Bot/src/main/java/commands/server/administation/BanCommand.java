@@ -7,6 +7,7 @@ import main.java.files.interfaces.ChannelDatabase;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.exceptions.ContextException;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.time.OffsetDateTime;
@@ -39,7 +40,8 @@ public class BanCommand implements ServerCommand {
                 for (Member m : members) {
                     try {
                         if (m.getIdLong() == (message.getAuthor().getIdLong())) {
-                            channel.sendMessage(message.getAuthor().getAsMention() + " Du willst dich selbst bannen? Wirklich?" +
+                            channel.sendMessage(message.getAuthor().getAsMention() +
+                                    " Du willst dich selbst bannen? Wirklich?" +
                                     " Ich mein wenn du das wünschst ließe sich das natürlich einrichten, "
                                     + "aber dann musst du jemand andern bitten das für mich zu übernehmen. " +
                                     "Ich mach das nicht, ich mein, beim nächten Mal bin ich dann dran... ")
@@ -70,7 +72,8 @@ public class BanCommand implements ServerCommand {
             Role highestBotRole = message.getGuild().getSelfMember().getRoles().get(0);
 
             if (!banMember.getRoles().isEmpty() && !highestBotRole.canInteract(banMember.getRoles().get(0))) {
-                message.getChannel().sendMessage("Der Bot kann " + banMember.getAsMention() + " nicht bannen, da seine Rollen zu niedrig sind.")
+                message.getChannel().sendMessage("Der Bot kann " + banMember.getAsMention() +
+                        " nicht bannen, da seine Rollen zu niedrig sind.")
                         .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 return;
             }
@@ -79,24 +82,30 @@ public class BanCommand implements ServerCommand {
                 // Nutzer wird per PN informiert
                 EmbedBuilder pn = new EmbedBuilder();
 
-                pn.setTitle("Du wurdest auf " + message.getGuild().getName() + " gebannt. \n Server-ID: *" + message.getGuild().getId() + "*");
+                pn.setTitle("Du wurdest auf " + message.getGuild().getName() + " gebannt. \n Server-ID: *" +
+                        message.getGuild().getId() + "*");
 
-                pn.setDescription("**Begründung:** " + reason + "\n \n Wenn du Einspruch einlegen möchtest, dann tritt bitte unserem Bot-Dev-Server bei damit der Bot weiterhin deine Nachrichten lesen kann. "
-                        + "\n https://discord.gg/KumdM4e \n \n Stelle anschließend deinen Antrag auf Entbannung indem du hier ```%unban``` schreibst. \n \n Wir haben keinen Einfluss darauf ob der Server einen Entbannungsantrag akzeptiert/annimt.");
+                pn.setDescription("**Begründung:** " + reason + "\n \n " +
+                        "Wenn du Einspruch einlegen möchtest, dann tritt bitte unserem Bot-Dev-Server bei, " +
+                        "damit der Bot weiterhin deine Nachrichten lesen kann. " +
+                        "\n https://discord.gg/KumdM4e \n \n " +
+                        "Stelle anschließend deinen Antrag auf Entbannung indem du hier ```%unban``` schreibst. \n \n " +
+                        "Wir haben keinen Einfluss darauf ob der Server einen Entbannungsantrag akzeptiert/annimt.");
 
                 pn.setImage(message.getGuild().getBannerUrl());
                 pn.setTimestamp(OffsetDateTime.now());
                 pn.setColor(0xff000);
 
-                banMember.getUser().openPrivateChannel().queue(p -> {
-                    try {
+                try {
+                    banMember.getUser().openPrivateChannel().queue(p -> {
                         p.sendMessage(pn.build()).queue();
-                        System.out.println("PM sent to " + banMember.getUser().getName() + " (" + banMember.getUser().getId() + ")");
-                    } catch (ErrorResponseException e) {
-                        System.out.println("PM to " + banMember.getUser().getName() + " (" + banMember.getUser().getId() +
-                                ") was not send. PMs are not allowed by this user.");
-                    }
-                });
+                        System.out.println("PM sent to " + banMember.getUser().getName() +
+                                " (" + banMember.getUser().getId() + ")");
+                    });
+                } catch (ErrorResponseException e) {
+                    System.out.println("PM to " + banMember.getUser().getName() + " (" + banMember.getUser().getId() +
+                            ") was not send. PMs are not allowed by this user.");
+                }
 
             } catch (IllegalStateException | ErrorResponseException e) {
                 message.getChannel().sendMessage("Es konnte keine PN an den Nutzer gesendet werden.")
@@ -128,7 +137,7 @@ public class BanCommand implements ServerCommand {
         //builder.setFooter(bannedBy);
         builder.setTimestamp(OffsetDateTime.now());
         builder.setColor(0xff0000); // rot
-        builder.setThumbnail(targetUser.getAvatarUrl() == null ? targetUser.getDefaultAvatarUrl() : targetUser.getAvatarUrl()); // wenn AvatarUrl = null ist wird der DefaultAvatar vewendet
+        builder.setThumbnail(targetUser.getAvatarUrl() == null ? targetUser.getDefaultAvatarUrl() : targetUser.getAvatarUrl());
         builder.setFooter("by " + commandUser.getName() + " using Bot4Future");
         builder.addField("Name: ", targetUser.getAsMention(), false);
         builder.addField("ID: ", targetUser.getId(), false);

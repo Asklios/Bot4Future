@@ -60,7 +60,6 @@ public class UserRecordsDatabaseSQLite implements UserRecordsDatabase {
             prepStmt.setString(5, reason);
             prepStmt.setString(6, note);
             result = prepStmt.executeQuery();
-            LiteSQL.closePreparedStatement(prepStmt);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -69,6 +68,7 @@ public class UserRecordsDatabaseSQLite implements UserRecordsDatabase {
         try {
             assert result != null;
             id = result.getLong("id");
+            LiteSQL.closePreparedStatement(prepStmt);
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -48,6 +48,9 @@ public class EventAudit {
     public void updateIgnoredChannels() {
         try {
             ResultSet result = LiteSQLActivity.onQuery("SELECT * FROM ignoredchannels");
+            if (result == null) {
+                return;
+            }
             while (result.next()) {
                 long guildId = result.getLong("guildid");
                 String channelIds = result.getString("channelids");
@@ -63,6 +66,10 @@ public class EventAudit {
     }
 
     public void messageUpdateAudit(MessageUpdateEvent event) {
+
+        if (!event.isFromType(ChannelType.TEXT)) {
+            return;
+        }
 
         long guildId = event.getGuild().getIdLong();
         long channelId = event.getChannel().getIdLong();
@@ -108,6 +115,10 @@ public class EventAudit {
     }
 
     public void messageDeleteAudit(MessageDeleteEvent event) {
+
+        if (!event.isFromType(ChannelType.TEXT)) {
+            return;
+        }
 
         long guildId = event.getGuild().getIdLong();
         long channelId = event.getChannel().getIdLong();
