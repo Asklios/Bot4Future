@@ -55,7 +55,7 @@ public class DiscordBot {
     private List<GuildData> guildsData = new ArrayList<>();
     private String[] defIds;
     private long muteBanTimerPeriod = 5 * 60 * 1000;
-	private VoteDatabase voteDatabase;
+    private VoteDatabase voteDatabase;
     private RoleDatabase roleDatabase;
     private ChannelDatabase channelDatabase;
     private UserRecordsDatabase userRecordsDatabase;
@@ -97,17 +97,22 @@ public class DiscordBot {
         }
 
         LiteSQL.connect();
-        SQLManager.onCreate();
-
         LiteSQLActivity.connect();
-        ActivitySQLManager.onCreate();
+        if (!SQLManager.onCreate() || !ActivitySQLManager.onCreate()) {
+            System.out.println("-------------------- ERROR --------------------");
+            System.out.println(" Datenbank konnte nicht initialisiert werden!");
+            System.out.println(" Stoppe Bot...");
+            System.out.println("-----------------------------------------------");
+            System.exit(-1);
+        }
+
         new EventAudit().updateIgnoredChannels();
 
         JDABuilder builder = JDABuilder.createDefault(botToken);
         builder.enableIntents(GatewayIntent.GUILD_PRESENCES);
         builder.enableIntents(GatewayIntent.GUILD_MEMBERS);
         builder.setMemberCachePolicy(MemberCachePolicy.ALL);
-        
+
         builder.setToken(botToken);
 
         // Bot activity
@@ -286,17 +291,34 @@ public class DiscordBot {
     public String getAutoListenerFilePath() {
         return autoListenerFilePath;
     }
+
     public String getDbFilePath() {
         return dbFilePath;
     }
+
     public String getLogFilePath() {
         return logFilePath;
     }
-    public String getDiagramFilePath() {return diagramFilePath;}
-    public String getBotPbPath() {return botPbPath;}
-    public String getPbFilterPath() {return pbFilterPath;}
-    public String getPbPath() {return pbPath;}
-    public String getNewPbPath() {return newPbPath;}
+
+    public String getDiagramFilePath() {
+        return diagramFilePath;
+    }
+
+    public String getBotPbPath() {
+        return botPbPath;
+    }
+
+    public String getPbFilterPath() {
+        return pbFilterPath;
+    }
+
+    public String getPbPath() {
+        return pbPath;
+    }
+
+    public String getNewPbPath() {
+        return newPbPath;
+    }
 
     public List<GuildData> getGuildsData() {
         return guildsData;
@@ -307,6 +329,6 @@ public class DiscordBot {
     }
 
     public long getMuteTimerPeriod() {
-		return muteBanTimerPeriod;
-	}
+        return muteBanTimerPeriod;
+    }
 }

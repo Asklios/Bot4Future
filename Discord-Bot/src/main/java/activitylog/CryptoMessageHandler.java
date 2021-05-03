@@ -1,5 +1,7 @@
 package main.java.activitylog;
 
+import main.java.files.LiteSQL;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -56,6 +58,7 @@ public class CryptoMessageHandler {
             prepStmt.setLong(1, messageId);
             prepStmt.setBytes(2, encrypted);
             prepStmt.executeUpdate();
+            LiteSQL.closePreparedStatement(prepStmt);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -73,6 +76,7 @@ public class CryptoMessageHandler {
             prepStmt.setBytes(1, encrypted);
             prepStmt.setLong(2, messageId);
             prepStmt.executeUpdate();
+            LiteSQL.closePreparedStatement(prepStmt);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -89,6 +93,7 @@ public class CryptoMessageHandler {
             assert prepStmt != null;
             prepStmt.setLong(1, messageId);
             ResultSet result = prepStmt.executeQuery();
+            LiteSQL.closePreparedStatement(prepStmt);
 
             if (result.next()) {
                 return result.getBytes("encrypted");

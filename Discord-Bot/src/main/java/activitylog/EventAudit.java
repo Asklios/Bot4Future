@@ -46,11 +46,8 @@ public class EventAudit {
     }
 
     public void updateIgnoredChannels() {
-        PreparedStatement prepStmt = LiteSQLActivity.prepStmt("SELECT * FROM ignoredchannels");
         try {
-            assert prepStmt != null;
-            ResultSet result = prepStmt.executeQuery();
-
+            ResultSet result = LiteSQLActivity.onQuery("SELECT * FROM ignoredchannels");
             while (result.next()) {
                 long guildId = result.getLong("guildid");
                 String channelIds = result.getString("channelids");

@@ -1,5 +1,10 @@
 package main.java.activitylog;
 
+import main.java.files.LiteSQL;
+
+import java.sql.SQLException;
+import java.sql.Statement;
+
 /**
  * Class for creating missing tables in the activity-database on startup.
  *
@@ -8,10 +13,21 @@ package main.java.activitylog;
  */
 public class ActivitySQLManager {
 
-    public static void onCreate() {
-        LiteSQLActivity.onUpdate("CREATE TABLE IF NOT EXISTS messages(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
-                "messageid INTEGER, encrypted BLOB)");
-        LiteSQLActivity.onUpdate("CREATE TABLE IF NOT EXISTS ignoredchannels(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
-                "guildid INTEGER, channelids INTEGER)");
+    public static boolean onCreate() {
+        Statement stmt = LiteSQLActivity.createStatement();
+        if(stmt == null) return false;
+        try {
+            stmt.addBatch("CREATE TABLE IF NOT EXISTS messages(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+                    "messageid INTEGER, encrypted BLOB)");
+            stmt.addBatch("CREATE TABLE IF NOT EXISTS ignoredchannels(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+                    "guildid INTEGER, channelids INTEGER)");
+            stmt.executeBatch();
+            LiteSQL.closeStatement(stmt);
+            return true;
+        } catch (SQLException e){
+            e.printStackTrace();
+            return false;
+        }
+
     }
 }

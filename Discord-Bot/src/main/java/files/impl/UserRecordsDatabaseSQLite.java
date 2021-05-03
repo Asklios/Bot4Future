@@ -28,6 +28,7 @@ public class UserRecordsDatabaseSQLite implements UserRecordsDatabase {
                 prepStmt.setString(6, reason);
                 prepStmt.setString(7, note);
                 prepStmt.executeUpdate();
+                LiteSQL.closePreparedStatement(prepStmt);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -43,6 +44,7 @@ public class UserRecordsDatabaseSQLite implements UserRecordsDatabase {
                 prepStmt.setString(5, reason);
                 prepStmt.setString(6, note);
                 prepStmt.executeUpdate();
+                LiteSQL.closePreparedStatement(prepStmt);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -58,6 +60,7 @@ public class UserRecordsDatabaseSQLite implements UserRecordsDatabase {
             prepStmt.setString(5, reason);
             prepStmt.setString(6, note);
             result = prepStmt.executeQuery();
+            LiteSQL.closePreparedStatement(prepStmt);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -92,6 +95,7 @@ public class UserRecordsDatabaseSQLite implements UserRecordsDatabase {
             prepStmt.setString(1, note);
             prepStmt.setLong(2, id);
             prepStmt.executeUpdate();
+            LiteSQL.closePreparedStatement(prepStmt);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -129,6 +133,7 @@ public class UserRecordsDatabaseSQLite implements UserRecordsDatabase {
             assert prepStmt != null;
             prepStmt.setLong(1, userId);
             ResultSet result = prepStmt.executeQuery();
+            LiteSQL.closePreparedStatement(prepStmt);
             while(result.next()) {
                 String type = result.getString("type");
                 String note = result.getString("note");
@@ -172,7 +177,7 @@ public class UserRecordsDatabaseSQLite implements UserRecordsDatabase {
             prepStmt.setLong(1, userId);
             prepStmt.setLong(2,guildId);
             ResultSet result = prepStmt.executeQuery();
-
+            LiteSQL.closePreparedStatement(prepStmt);
             if (result.next()) return true;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -193,6 +198,7 @@ public class UserRecordsDatabaseSQLite implements UserRecordsDatabase {
             prepStmt.setLong(1, userId);
             prepStmt.setLong(2, guildId);
             result = prepStmt.executeQuery();
+            LiteSQL.closePreparedStatement(prepStmt);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -226,7 +232,7 @@ public class UserRecordsDatabaseSQLite implements UserRecordsDatabase {
             prepStmt.setLong(2, guildId);
             prepStmt.setString(3, "lifted");
             ResultSet result = prepStmt.executeQuery();
-
+            LiteSQL.closePreparedStatement(prepStmt);
             while(result.next()) {
                 ids.add(result.getLong("id"));
             }
@@ -267,6 +273,7 @@ public class UserRecordsDatabaseSQLite implements UserRecordsDatabase {
             assert prepStmt != null;
             prepStmt.setLong(1, id);
             ResultSet result = prepStmt.executeQuery();
+            LiteSQL.closePreparedStatement(prepStmt);
 
             if (!result.next()) return null;
 

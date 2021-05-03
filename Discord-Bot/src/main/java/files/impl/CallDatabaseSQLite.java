@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -41,6 +42,7 @@ public class CallDatabaseSQLite implements CallDatabase {
             if (!result.next()) {
                 free = true;
             }
+            LiteSQL.closePreparedStatement(pstmt);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -68,7 +70,7 @@ public class CallDatabaseSQLite implements CallDatabase {
             pstmt.setString(5, name);
             pstmt.setLong(6, requester);
             pstmt.executeUpdate();
-
+            LiteSQL.closePreparedStatement(pstmt);
             ResultSet result = LiteSQL.onQuery("SELECT id FROM calldata WHERE guildid = " + guild.getIdLong() + " AND starttime = " + startTime);
             return result.getLong("id");
         } catch (SQLException | NullPointerException e) {
@@ -108,6 +110,8 @@ public class CallDatabaseSQLite implements CallDatabase {
                 prepStmt.setString(1, search);
                 prepStmt.setLong(2, channel.getGuild().getIdLong());
                 result = prepStmt.executeQuery();
+                LiteSQL.closePreparedStatement(prepStmt);
+
 
             } catch (SQLException f) {
                 e.printStackTrace();

@@ -1,10 +1,12 @@
 package main.java.files;
 
 import main.java.DiscordBot;
+import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
+import java.util.Collection;
 
 /**
  * Class for connecting and using the database.
@@ -15,15 +17,13 @@ import java.sql.*;
 
 public class LiteSQL {
 
-    private static Connection conn;
-    private static Statement stmt;
+    private static BasicDataSource POOL;
 
     /**
      * Connects to the database.
      */
     public static void connect() {
-        conn = null;
-
+        POOL = null;
         try {
 
             File file = new File(DiscordBot.INSTANCE.getDbFilePath());
@@ -33,19 +33,25 @@ public class LiteSQL {
             }
 
             String url = "jdbc:sqlite:" + file.getPath(); //jdbc = Java Database Connectivity
-            conn = DriverManager.getConnection(url);
+            //conn = DriverManager.getConnection(url);
 
+            POOL = new BasicDataSource();
+            POOL.setUrl(url);
             System.out.println("Verbindung zur Datenbank hergestellt.");
 
-            stmt = conn.createStatement();
-        } catch (SQLException | IOException e) {
+            //stmt = conn.createStatement();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public static void vacuum() {
         try {
+            Connection con = POOL.getConnection();
+            Statement stmt = con.createStatement();
             stmt.execute("VACUUM");
+            stmt.close();
+            con.close();
             System.out.println("Database VACUUM");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -57,8 +63,8 @@ public class LiteSQL {
      */
     public static void disconnect() {
         try {
-            if (conn != null) {
-                conn.close();
+            if (POOL != null) {
+                POOL.close();
                 System.out.println("Verbindung zur Datenbank getrennt.");
             }
         } catch (SQLException e) {
@@ -74,7 +80,11 @@ public class LiteSQL {
     public static boolean onUpdate(String sql) {
 
         try {
+            Connection con = POOL.getConnection();
+            Statement stmt = con.createStatement();
             stmt.execute(sql);
+            stmt.close();
+            con.close();
             return true;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -89,7 +99,12 @@ public class LiteSQL {
      */
     public static ResultSet onQuery(String sql) {
         try {
-            return stmt.executeQuery(sql);
+            Connection con = POOL.getConnection();
+            Statement stmt = con.createStatement();
+            ResultSet result = stmt.executeQuery(sql);
+            stmt.close();
+            con.close();
+            return result;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -103,8 +118,39 @@ public class LiteSQL {
      */
     public static PreparedStatement prepStmt(String sql) {
         try {
-            return conn.prepareStatement(sql);
+            Connection connection = POOL.getConnection();
+            return connection.prepareStatement(sql);
         } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static void closePreparedStatement(PreparedStatement statement){
+        try {
+            Connection con = statement.getConnection();
+            statement.close();
+            con.close();
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    public static void closeStatement(Statement statement){
+        try {
+            Connection con = statement.getConnection();
+            statement.close();
+            con.close();
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    public static Statement createStatement(){
+        try {
+            Connection connection = POOL.getConnection();
+            return connection.createStatement();
+        } catch (SQLException e){
             e.printStackTrace();
             return null;
         }
