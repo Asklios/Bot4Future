@@ -57,6 +57,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        LiteSQL.closeResultSet(result);
         for(String type : roleTypes){
             if(!existingTypes.contains(type)) LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", '" + type + "')");
         }
@@ -107,11 +108,13 @@ public class RoleDatabaseSQLite implements RoleDatabase {
         try {
             if (result.next()) {
                 long muteRoleId = result.getLong("roleid");
+                LiteSQL.closeResultSet(result);
                 return guild.getRoleById(muteRoleId);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        LiteSQL.closeResultSet(result);
         return null;
     }
 
@@ -161,11 +164,13 @@ public class RoleDatabaseSQLite implements RoleDatabase {
             if (result.next()) {
                 long muteRoleId = result.getLong("roleid");
 
+                LiteSQL.closeResultSet(result);
                 return guild.getRoleById(muteRoleId);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        LiteSQL.closeResultSet(result);
         return null;
     }
 
@@ -214,12 +219,13 @@ public class RoleDatabaseSQLite implements RoleDatabase {
         try {
             if (result.next()) {
                 long muteRoleId = result.getLong("roleid");
-
+                LiteSQL.closeResultSet(result);
                 return guild.getRoleById(muteRoleId);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        LiteSQL.closeResultSet(result);
         return null;
     }
 
@@ -251,11 +257,14 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
         try {
             if (result.next()) {
-                return result.getString("code");
+                String code = result.getString("code");
+                LiteSQL.closeResultSet(result);
+                return code;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        LiteSQL.closeResultSet(result);
         return null;
     }
 
@@ -284,6 +293,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            LiteSQL.closeResultSet(result);
             return false;
         }
 
@@ -294,6 +304,7 @@ public class RoleDatabaseSQLite implements RoleDatabase {
         });
 
         removeIds.forEach(id -> LiteSQL.onUpdate("DELETE FROM guildroles WHERE id = " + id));
+        LiteSQL.closeResultSet(result);
         return true;
     }
 
@@ -335,12 +346,13 @@ public class RoleDatabaseSQLite implements RoleDatabase {
         try {
             if (result.next()) {
                 long muteRoleId = result.getLong("roleid");
-
+                LiteSQL.closeResultSet(result);
                 return guild.getRoleById(muteRoleId);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        LiteSQL.closeResultSet(result);
         return null;
     }
 

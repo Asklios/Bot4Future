@@ -27,7 +27,7 @@ public class VoteDatabaseSQLite implements VoteDatabase {
 
         for (int i = 0; i < values.length; i++) {
             if (emoteString[i].equals(emote)) {
-                values[i] = values[i] +1;
+                values[i] = values[i] + 1;
             }
         }
 
@@ -38,7 +38,7 @@ public class VoteDatabaseSQLite implements VoteDatabase {
         LiteSQL.onUpdate("UPDATE votereactions SET value = '" + newValue + "', users = '" + users + "' WHERE guildid = " +
                 guildID + " AND channelid = " + channelID + " AND messageid = " + messageID);
 
-
+        LiteSQL.closeResultSet(resultPoll);
     }
 
     @Override
@@ -55,14 +55,14 @@ public class VoteDatabaseSQLite implements VoteDatabase {
 
         for (int i = 0; i < values.length; i++) {
             if (emoteString[i].equals(emote)) {
-                values[i] = Math.max(values[i] -1, 0);
+                values[i] = Math.max(values[i] - 1, 0);
             }
         }
 
         String newValue = Arrays.stream(values).map(Object::toString).collect(Collectors.joining("⫠"));
 
-        users = users.replace("⫠" + userID,"");
-
+        users = users.replace("⫠" + userID, "");
+        LiteSQL.closeResultSet(result);
         LiteSQL.onUpdate("UPDATE votereactions SET value = '" + newValue + "', users = '" + users + "' WHERE guildid = " +
                 guildID + " AND channelid = " + channelID + " AND messageid = " + messageID);
     }
@@ -71,7 +71,7 @@ public class VoteDatabaseSQLite implements VoteDatabase {
     public synchronized boolean hasVoted(long guildID, long channelID, long messageID, long userID) {
         try {
             return LiteSQL.onQuery("SELECT * FROM votereactions WHERE guildid = " +
-                    guildID + " AND channelid = " + channelID + " AND messageid = " + messageID + " AND users LIKE '%" + userID + "%'").next() ;
+                    guildID + " AND channelid = " + channelID + " AND messageid = " + messageID + " AND users LIKE '%" + userID + "%'").next();
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -83,7 +83,11 @@ public class VoteDatabaseSQLite implements VoteDatabase {
         try {
             ResultSet result = LiteSQL.onQuery("SELECT * FROM votereactions WHERE guildid = " +
                     guildID + " AND channelid = " + channelID + " AND messageid = " + messageID + " AND emotes LIKE '%" + emote + "%'");
-            if (result.next()) return true;
+            if (result.next()) {
+                LiteSQL.closeResultSet(result);
+                return true;
+            }
+            LiteSQL.closeResultSet(result);
             return false;
         } catch (SQLException e) {
             e.printStackTrace();

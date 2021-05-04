@@ -252,11 +252,13 @@ public class UserRecordsDatabaseSQLite implements UserRecordsDatabase {
         try {
             assert result != null;
             if (result.next()) {
+                LiteSQL.closeResultSet(result);
                 return result.getString("note");
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        LiteSQL.closeResultSet(result);
         return null;
     }
 

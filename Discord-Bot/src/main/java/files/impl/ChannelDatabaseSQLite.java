@@ -38,7 +38,7 @@ public class ChannelDatabaseSQLite implements ChannelDatabase {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
+        LiteSQL.closeResultSet(result);
         if (!types.contains("audit")) LiteSQL.onUpdate("INSERT INTO guildchannels(guildid, type) VALUES(" + guildid + ", 'audit')");
         if (!types.contains("eventaudit")) LiteSQL.onUpdate("INSERT INTO guildchannels(guildid, type) VALUES(" + guildid + ", 'eventaudit')");
         if (!types.contains("pnchannel")) LiteSQL.onUpdate("INSERT INTO guildchannels(guildid, type) VALUES(" + guildid + ", 'pnchannel')");
@@ -70,11 +70,13 @@ public class ChannelDatabaseSQLite implements ChannelDatabase {
         try {
             if (result.next()) {
                 long channelId = result.getLong("channelid");
+                LiteSQL.closeResultSet(result);
                 return guild.getTextChannelById(channelId);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        LiteSQL.closeResultSet(result);
         return null;
     }
 
@@ -104,11 +106,13 @@ public class ChannelDatabaseSQLite implements ChannelDatabase {
         try {
             if (result.next()) {
                 long channelId = result.getLong("channelid");
+                LiteSQL.closeResultSet(result);
                 return guild.getTextChannelById(channelId);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        LiteSQL.closeResultSet(result);
         return null;
     }
 
@@ -138,11 +142,13 @@ public class ChannelDatabaseSQLite implements ChannelDatabase {
         try {
             if (result.next()) {
                 long channelId = result.getLong("channelid");
+                LiteSQL.closeResultSet(result);
                 return guild.getTextChannelById(channelId);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        LiteSQL.closeResultSet(result);
         return null;
     }
 

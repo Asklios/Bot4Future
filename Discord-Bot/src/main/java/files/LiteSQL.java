@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.*;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class for connecting and using the database.
@@ -18,6 +20,7 @@ import java.util.Collection;
 public class LiteSQL {
 
     private static BasicDataSource POOL;
+    private static Map<ResultSet, Statement> statements = new HashMap<>();
 
     /**
      * Connects to the database.
@@ -102,8 +105,7 @@ public class LiteSQL {
             Connection con = POOL.getConnection();
             Statement stmt = con.createStatement();
             ResultSet result = stmt.executeQuery(sql);
-            stmt.close();
-            con.close();
+            statements.put(result, stmt);
             return result;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -143,6 +145,12 @@ public class LiteSQL {
             con.close();
         } catch (SQLException exception) {
             exception.printStackTrace();
+        }
+    }
+
+    public static void closeResultSet(ResultSet set){
+        if(statements.containsKey(set)){
+            closeStatement(statements.get(set));
         }
     }
 

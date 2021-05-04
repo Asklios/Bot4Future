@@ -72,7 +72,9 @@ public class CallDatabaseSQLite implements CallDatabase {
             pstmt.executeUpdate();
             LiteSQL.closePreparedStatement(pstmt);
             ResultSet result = LiteSQL.onQuery("SELECT id FROM calldata WHERE guildid = " + guild.getIdLong() + " AND starttime = " + startTime);
-            return result.getLong("id");
+            long ret = result.getLong("id");
+            LiteSQL.closeResultSet(result);
+            return ret;
         } catch (SQLException | NullPointerException e) {
             e.printStackTrace();
         }
@@ -149,6 +151,7 @@ public class CallDatabaseSQLite implements CallDatabase {
         } catch (SQLException | NullPointerException e) {
             e.printStackTrace();
         }
+        LiteSQL.closeResultSet(result);
         return users;
     }
 
@@ -174,6 +177,7 @@ public class CallDatabaseSQLite implements CallDatabase {
             e.printStackTrace();
         }
 
+        LiteSQL.closeResultSet(result);
         if (ids.isEmpty()) return false;
 
         for (long i : ids) LiteSQL.onUpdate("DELETE FROM calldata WHERE id = " + i);
