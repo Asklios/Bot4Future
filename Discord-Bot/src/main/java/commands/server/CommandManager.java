@@ -1,6 +1,8 @@
 package main.java.commands.server;
 
+import main.java.DiscordBot;
 import main.java.commands.server.administation.*;
+import main.java.commands.server.administation.poll.CreatePollCommand;
 import main.java.commands.server.administation.presence.PresenceCommand;
 import main.java.commands.server.administation.presence.RemoveCallDataCommand;
 import main.java.commands.server.administation.presence.RequestCallDatabase;
@@ -97,6 +99,12 @@ public class CommandManager {
         this.commands.put("dbclear", new DbClearCommand());
         this.commands.put("getguilds", new GetGuildsCommand());
         this.commands.put("devtest", new DevelopmentTestCommand());
+
+        //PollCommands
+        this.commands.put("poll", new CreatePollCommand());
+        this.commands.put("polllist", (member, channel, message) -> {
+            channel.sendMessage(DiscordBot.INSTANCE.pollManager.database.getPolls().size() + "").queue();
+        });
     }
 
     public boolean perform(String command, Member m, TextChannel channel, Message message) {
