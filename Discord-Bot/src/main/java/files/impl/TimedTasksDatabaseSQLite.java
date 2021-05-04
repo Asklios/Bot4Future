@@ -130,6 +130,7 @@ public class TimedTasksDatabaseSQLite implements TimedTasksDatabase {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        LiteSQL.closeResultSet(result);
     }
 
     /**

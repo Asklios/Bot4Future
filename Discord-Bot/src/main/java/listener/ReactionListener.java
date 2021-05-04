@@ -64,6 +64,8 @@ public class ReactionListener extends ListenerAdapter {
             event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht vergeben, da sie höher als die Bot-Rolle ist.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
         } catch (IllegalArgumentException e) {
             event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht vergeben, da sie nicht mehr existiert.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+        } finally {
+            LiteSQL.closeResultSet(setRR);
         }
 
         //self reactions
@@ -85,6 +87,8 @@ public class ReactionListener extends ListenerAdapter {
                 e.printStackTrace();
             } catch (ErrorResponseException e) {
                 //Ban ist unbekannt
+            } finally {
+                LiteSQL.closeResultSet(setSelf);
             }
 
         } else if (emote.equals("❌")) {//leave banned
@@ -158,6 +162,8 @@ public class ReactionListener extends ListenerAdapter {
             event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht entziehen, da sie höher als die Bot-Rolle ist.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
         } catch (IllegalArgumentException e) {
             // Reaktion von einer gelöschten Rolle wird entfernt
+        } finally {
+            LiteSQL.closeResultSet(set);
         }
 
         reactPollRemove(event, guild, guildID, channelID, messageID, emote);

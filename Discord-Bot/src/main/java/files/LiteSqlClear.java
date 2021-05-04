@@ -98,6 +98,7 @@ public class LiteSqlClear {
         } catch (SQLException | NullPointerException e) {
             e.printStackTrace();
         }
+        LiteSQL.closeResultSet(set);
     }
 
     private void findIdsVotereactions() {
@@ -134,6 +135,7 @@ public class LiteSqlClear {
         catch (SQLException e) {
             e.printStackTrace();
         }
+        LiteSQL.closeResultSet(set);
     }
 
     private void saveId(int id) {
