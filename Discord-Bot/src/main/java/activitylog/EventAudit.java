@@ -38,9 +38,6 @@ public class EventAudit {
 
             assert result != null;
             if (result.next()) {
-                result.close();
-                stmt.close();
-                connection.close();
                 return;
             }
             result.close();
@@ -75,6 +72,10 @@ public class EventAudit {
     }
 
     public void messageUpdateAudit(MessageUpdateEvent event) {
+
+        if (!event.isFromType(ChannelType.TEXT)) {
+            return;
+        }
 
         long guildId = event.getGuild().getIdLong();
         long channelId = event.getChannel().getIdLong();
@@ -120,6 +121,10 @@ public class EventAudit {
     }
 
     public void messageDeleteAudit(MessageDeleteEvent event) {
+
+        if (!event.isFromType(ChannelType.TEXT)) {
+            return;
+        }
 
         long guildId = event.getGuild().getIdLong();
         long channelId = event.getChannel().getIdLong();

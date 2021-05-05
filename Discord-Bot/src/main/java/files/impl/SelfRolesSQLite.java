@@ -4,7 +4,10 @@ import main.java.commands.server.user.IAmCommand;
 import main.java.files.LiteSQL;
 import main.java.files.interfaces.SelfRoles;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -35,8 +38,7 @@ public class SelfRolesSQLite implements SelfRoles {
 
                     if (serverRoles.containsKey(guildId)) {
                         serverRoles.get(guildId).put(role.toLowerCase(), roleId);
-                    }
-                    else {
+                    } else {
                         HashMap<String, Long> roleMap = new HashMap<>();
                         roleMap.put(role.toLowerCase(), roleId);
                         serverRoles.put(guildId, roleMap);
@@ -73,6 +75,10 @@ public class SelfRolesSQLite implements SelfRoles {
                 connection.close();
             } catch (SQLException e) {
                 e.printStackTrace();
+            }
+
+            if (IAmCommand.getServerSelfRoles() == null) {
+                loadSelfRoles();
             }
 
             HashMap<Long, HashMap<String, Long>> serverSelfRoles = IAmCommand.getServerSelfRoles();
