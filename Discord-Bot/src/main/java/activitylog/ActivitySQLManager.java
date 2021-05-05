@@ -2,6 +2,7 @@ package main.java.activitylog;
 
 import main.java.files.LiteSQL;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -22,7 +23,10 @@ public class ActivitySQLManager {
             stmt.addBatch("CREATE TABLE IF NOT EXISTS ignoredchannels(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
                     "guildid INTEGER, channelids INTEGER)");
             stmt.executeBatch();
-            LiteSQL.closeStatement(stmt);
+
+            Connection connection = stmt.getConnection();
+            stmt.close();
+            connection.close();
             return true;
         } catch (SQLException e){
             e.printStackTrace();

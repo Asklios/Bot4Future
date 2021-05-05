@@ -7,58 +7,63 @@ import main.java.util.Poll;
 import main.java.util.PollChoice;
 import org.joda.time.DateTime;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class PollDatabaseSQLite implements PollDatabase {
-    private List<Poll> polls = new ArrayList<>();
+    private final List<Poll> polls = new ArrayList<>();
 
     @Override
     public void loadAllPolls() throws SQLException {
-        ResultSet rs = LiteSQL.onQuery("SELECT tbl_name FROM sqlite_master WHERE type = 'table'");
+        try {
+            Connection connection = LiteSQL.POOL.getConnection();
+            Statement stmt1 = connection.createStatement();
 
-        System.out.println(rs.getString("tbl_name"));
+            ResultSet resultSet = stmt1.executeQuery("SELECT * FROM polls;");
 
-        System.out.println("hi");
-        ResultSet resultSet = LiteSQL.onQuery("SELECT * FROM polls;");
-        if (resultSet == null) {
-            System.out.println("--- ERROR: UMFRAGEN KONNTEN NICHT GELADEN WERDEN! ---");
-            return;
-        }
-        System.out.println(resultSet.getFetchSize());
-        while (resultSet.next()) {
-            System.out.println("Poll");
-            PollImpl poll = new PollImpl();
-            poll.name = resultSet.getString("name");
-            poll.description = resultSet.getString("description");
-            poll.closeTime = resultSet.getLong("endtime");
-            poll.closeDisplay = DiscordBot.FORMATTER.print(new DateTime(poll.closeTime));
-            poll.userId = resultSet.getString("ownerid");
-            poll.guildId = resultSet.getString("guildid");
-            poll.msgId = resultSet.getString("msgid");
-            poll.votesPerUser = resultSet.getInt("votesperuser");
-
-            resultSet.close();
-            ResultSet choiceResult = LiteSQL.onQuery("SELECT * FROM pollchoices WHERE pollguildid=" + poll.guildId + " AND pollmsgid=" + poll.msgId);
-            while (choiceResult.next()) {
-                PollChoiceImpl choice = new PollChoiceImpl();
-                choice.text = choiceResult.getString("value");
-                choice.choiceId = choiceResult.getInt("choiceid");
-                ResultSet voteResult = LiteSQL.onQuery("SELECT * FROM pollvotes WHERE pollguildid=" + poll.guildId + " AND pollmsgid=" + poll.msgId + " AND choiceid=" + choice.choiceId);
-                while (voteResult.next()) {
-                    choice.votes.add(voteResult.getString("userid"));
-                }
-                voteResult.close();
-                poll.choices.add(choice);
+            if (resultSet == null) {
+                System.out.println("--- ERROR: UMFRAGEN KONNTEN NICHT GELADEN WERDEN! ---");
+                return;
             }
-            choiceResult.close();
-            Collections.sort(poll.choices);
-            polls.add(poll);
+
+            while (resultSet.next()) {
+                PollImpl poll = new PollImpl();
+                poll.name = resultSet.getString("name");
+                System.out.println(poll.name);
+                poll.description = resultSet.getString("description");
+                poll.closeTime = resultSet.getLong("endtime");
+                poll.closeDisplay = DiscordBot.FORMATTER.print(new DateTime(poll.closeTime));
+                poll.userId = resultSet.getString("ownerid");
+                poll.guildId = resultSet.getString("guildid");
+                poll.msgId = resultSet.getString("msgid");
+                poll.votesPerUser = resultSet.getInt("votesperuser");
+                Statement stmt2 = connection.createStatement();
+                ResultSet choiceResult = stmt2.executeQuery("SELECT * FROM pollchoices WHERE pollguildid=" + poll.guildId + " AND pollmsgid=" + poll.msgId);
+                while (choiceResult.next()) {
+                    PollChoiceImpl choice = new PollChoiceImpl();
+                    choice.text = choiceResult.getString("value");
+                    choice.choiceId = choiceResult.getInt("choiceid");
+                    Statement stmt3 = connection.createStatement();
+                    ResultSet voteResult = stmt3.executeQuery("SELECT * FROM pollvotes WHERE pollguildid=" + poll.guildId + " AND pollmsgid=" + poll.msgId + " AND choiceid=" + choice.choiceId);
+                    while (voteResult.next()) {
+                        choice.votes.add(voteResult.getString("userid"));
+                    }
+                    stmt3.close();
+                    voteResult.close();
+                    poll.choices.add(choice);
+                }
+                choiceResult.close();
+                stmt2.close();
+                Collections.sort(poll.choices);
+                polls.add(poll);
+            }
+            resultSet.close();
+            stmt1.close();
+            connection.close();
+        } catch (Exception exception) {
+            exception.printStackTrace();
         }
     }
 
@@ -82,7 +87,8 @@ public class PollDatabaseSQLite implements PollDatabase {
 
     @Override
     public void savePoll(Poll poll) throws SQLException {
-        PreparedStatement stmt = LiteSQL.prepStmt("INSERT INTO polls (guildid, msgid, name, description, votesperuser, endtime, ownerid, closed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        Connection connection = LiteSQL.POOL.getConnection();
+        PreparedStatement stmt = connection.prepareStatement("INSERT INTO polls (guildid, msgid, name, description, votesperuser, endtime, ownerid, closed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         stmt.setString(1, poll.getGuildId());
         stmt.setString(2, poll.getMessageId());
         stmt.setString(3, poll.getName());
@@ -92,15 +98,27 @@ public class PollDatabaseSQLite implements PollDatabase {
         stmt.setString(7, poll.getPollOwner());
         stmt.setInt(8, 0);
 
-        System.out.println(stmt.executeUpdate());
-        LiteSQL.closePreparedStatement(stmt);
+        PreparedStatement stmt2 = connection.prepareStatement("INSERT INTO pollchoices (pollguildid, pollmsgid, choiceid, value) VALUES (?, ?, ?, ?)");
+        for (PollChoice c : poll.getChoices()) {
+            stmt2.setString(1, poll.getGuildId());
+            stmt2.setString(2, poll.getMessageId());
+            stmt2.setInt(3, c.getChoiceId());
+            stmt2.setString(4, c.getText());
+            stmt2.executeUpdate();
+        }
+
+        stmt2.close();
+        stmt.executeUpdate();
+        stmt.close();
+        connection.close();
         polls.add(poll);
     }
 
     @Override
     public void saveVotes() throws SQLException {
         LiteSQL.onUpdate("DELETE FROM pollvotes");
-        Statement stmt = LiteSQL.createStatement();
+        Connection connection = LiteSQL.POOL.getConnection();
+        Statement stmt = connection.createStatement();
         polls.forEach(p -> {
             p.getChoices().forEach(choice -> {
                 choice.getVotes().forEach(user -> {
@@ -113,7 +131,8 @@ public class PollDatabaseSQLite implements PollDatabase {
             });
         });
         stmt.executeBatch();
-        LiteSQL.closeStatement(stmt);
+        stmt.close();
+        connection.close();
     }
 
 

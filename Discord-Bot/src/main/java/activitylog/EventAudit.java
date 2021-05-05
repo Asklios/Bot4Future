@@ -16,9 +16,7 @@ import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.OffsetDateTime;
 import java.util.*;
 
@@ -32,13 +30,22 @@ public class EventAudit {
     public void ignoredChannelsStartUpEntries(Guild guild) {
         long guildId = guild.getIdLong();
 
-        ResultSet result = LiteSQLActivity.onQuery("SELECT * FROM ignoredchannels WHERE guildid = " + guildId);
 
         try {
+            Connection connection = LiteSQLActivity.POOL.getConnection();
+            Statement stmt = connection.createStatement();
+            ResultSet result = stmt.executeQuery("SELECT * FROM ignoredchannels WHERE guildid = " + guildId);
+
             assert result != null;
             if (result.next()) {
+                result.close();
+                stmt.close();
+                connection.close();
                 return;
             }
+            result.close();
+            stmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -47,7 +54,9 @@ public class EventAudit {
 
     public void updateIgnoredChannels() {
         try {
-            ResultSet result = LiteSQLActivity.onQuery("SELECT * FROM ignoredchannels");
+            Connection connection = LiteSQLActivity.POOL.getConnection();
+            Statement statement = connection.createStatement();
+            ResultSet result = statement.executeQuery("SELECT * FROM ignoredchannels");
             while (result.next()) {
                 long guildId = result.getLong("guildid");
                 String channelIds = result.getString("channelids");
@@ -57,6 +66,9 @@ public class EventAudit {
                 }
                 ignoredChannels.put(guildId, ignoredIds);
             }
+            result.close();
+            statement.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }

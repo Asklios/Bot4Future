@@ -14,32 +14,33 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
 import org.joda.time.DateTime;
 
-import java.awt.*;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class PollManager {
-    private Map<String, PollSetup> setups = new HashMap<>();
+    private final Map<String, PollSetup> setups = new HashMap<>();
 
-    private List<String> setDescription = new ArrayList<>();
-    private List<String> setName = new ArrayList<>();
-    private List<String> addChoice = new ArrayList<>();
-    private List<String> removeChoice = new ArrayList<>();
-    private List<String> setVotesPerUser = new ArrayList<>();
-    private List<String> setEndTime = new ArrayList<>();
+    private final List<String> setDescription = new ArrayList<>();
+    private final List<String> setName = new ArrayList<>();
+    private final List<String> addChoice = new ArrayList<>();
+    private final List<String> removeChoice = new ArrayList<>();
+    private final List<String> setVotesPerUser = new ArrayList<>();
+    private final List<String> setEndTime = new ArrayList<>();
 
     public final PollDatabase database = new PollDatabaseSQLite();
-    private ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
+    private final ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
     public void handleReactionEvent(GenericMessageReactionEvent event) {
         if (event.isFromGuild()) {
             database.getPolls().stream().filter(poll -> event.getGuild().getId().equals(poll.getGuildId())
                     && event.getMessageId().equals(poll.getMessageId()))
                     .findFirst().ifPresent(poll -> {
+                String emote = event.getReactionEmote().getEmoji();
+                if(Emojis.EMOJI_LETTERS.contains(emote)){
 
+                }
             });
         }
 
@@ -58,9 +59,7 @@ public class PollManager {
                         removeChoice.remove(uId);
                     } else if (setEndTime.contains(uId)) {
                         setEndTime.remove(uId);
-                    } else if (setVotesPerUser.contains(uId)) {
-                        setVotesPerUser.remove(uId);
-                    }
+                    } else setVotesPerUser.remove(uId);
                     setup.msg.editMessage(createSetupMessage(setup)).queue();
                 } else if (emote.equals(Emojis.EMOJI_LETTERS.get(0))) {
                     setName.add(event.getMember().getId());
@@ -118,9 +117,9 @@ public class PollManager {
                                 .setDescription("Gib den Zeitpunkt an, an dem die Umfrage geschlossen werden soll.\n" +
                                         "\n*Syntax:*\n" +
                                         "```\n" +
-                                        "d.M.y, h:m\n" +
-                                        "Beispiele: 12.10.21, 12:35\n" +
-                                        "           1.2.22, 1:1\n" +
+                                        "dd.MM.yyyy, hh:mm\n" +
+                                        "Beispiele: 12.10.2021, 12:35\n" +
+                                        "           1.02.2022, 1:01\n" +
                                         "```")
                                 .build()).queue();
                     });
@@ -224,7 +223,7 @@ public class PollManager {
             setup.msgId = msg.getId();
             setup.msg = msg;
             DiscordBot.POOL.schedule(() -> {
-                if (setups.values().contains(setup)) {
+                if (setups.containsValue(setup)) {
                     msg.editMessage(new EmbedBuilder().setTitle("Umfrage erstellen fehlgeschlagen!")
                             .setDescription("Du hast zu lange gebraucht!").build()).queue();
                     msg.clearReactions().queue();
@@ -317,7 +316,6 @@ public class PollManager {
     }
 
     private void createPoll(PollSetup data) throws SQLException {
-        setups.remove(data.userId);
         if (!isPollDataReady(data)) {
             DiscordBot.INSTANCE.jda.getTextChannelById(data.channelId).sendMessage(new EmbedBuilder()
                     .setTitle("Nicht genügend Informationen")
@@ -330,6 +328,8 @@ public class PollManager {
                     .build()).queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));
             return;
         }
+        setups.remove(data.userId);
+
         Message msg = data.msg;
         msg.clearReactions().complete();
         List<String> emojis = new ArrayList<>();

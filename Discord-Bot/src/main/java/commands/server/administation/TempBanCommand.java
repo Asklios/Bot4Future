@@ -18,8 +18,8 @@ import java.util.stream.Collectors;
 
 public class TempBanCommand implements ServerCommand {
 
-    private UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
-    private ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
+    private final UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
+    private final ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {

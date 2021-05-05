@@ -14,9 +14,12 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -66,8 +69,10 @@ public class LiteSqlClear {
         JDA jda = DiscordBot.INSTANCE.jda;
         SelfUser self = jda.getSelfUser();
 
-        ResultSet set = LiteSQL.onQuery("SELECT * FROM reactroles");
         try {
+            Connection connection = LiteSQL.POOL.getConnection();
+            Statement stmt = connection.createStatement();
+            ResultSet set = stmt.executeQuery("SELECT * FROM reactroles");
             while (set.next()) {
                 int id = set.getInt("id");
                 long guildID = set.getLong("guildid");
@@ -95,17 +100,22 @@ public class LiteSqlClear {
                     saveId(id);
                 }
             }
+            set.close();
+            stmt.close();
+            connection.close();
         } catch (SQLException | NullPointerException e) {
             e.printStackTrace();
         }
-        LiteSQL.closeResultSet(set);
     }
 
     private void findIdsVotereactions() {
-        JDA jda = DiscordBot.INSTANCE.jda;
-        ResultSet set = LiteSQL.onQuery("SELECT * FROM votereactions");
-
         try {
+            JDA jda = DiscordBot.INSTANCE.jda;
+
+            Connection connection = LiteSQL.POOL.getConnection();
+            Statement stmt = connection.createStatement();
+            ResultSet set = stmt.executeQuery("SELECT * FROM votereactions");
+
             while (set.next()) {
                 int id = set.getInt("id");
                 long guildID = set.getLong("guildid");
@@ -131,11 +141,13 @@ public class LiteSqlClear {
                     //
                 }
             }
+            set.close();
+            stmt.close();
+            connection.close();
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
-        LiteSQL.closeResultSet(set);
     }
 
     private void saveId(int id) {

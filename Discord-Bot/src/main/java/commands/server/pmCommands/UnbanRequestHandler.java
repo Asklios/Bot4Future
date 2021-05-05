@@ -19,7 +19,7 @@ import java.util.HashMap;
 
 public class UnbanRequestHandler {
 
-    private static HashMap<Long, UnbanRequest> users = new HashMap<>();
+    private static final HashMap<Long, UnbanRequest> users = new HashMap<>();
 
     public static void handle(MessageReceivedEvent event) {
         String message = event.getMessage().getContentDisplay();

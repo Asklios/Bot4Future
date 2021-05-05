@@ -19,8 +19,8 @@ import java.util.Map;
 
 public class LiteSQL {
 
-    private static BasicDataSource POOL;
-    private static Map<ResultSet, Statement> statements = new HashMap<>();
+    public static BasicDataSource POOL;
+    private static final Map<ResultSet, Statement> statements = new HashMap<>();
 
     /**
      * Connects to the database.
@@ -92,75 +92,6 @@ public class LiteSQL {
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
-        }
-    }
-
-    /**
-     * Requests the database with the provided sql statement.
-     * @param sql that should be executed. May result in a SQL injection.
-     * @return ResultSet resulting from the database request, null if a SQLException occurs.
-     */
-    public static ResultSet onQuery(String sql) {
-        try {
-            Connection con = POOL.getConnection();
-            Statement stmt = con.createStatement();
-            ResultSet result = stmt.executeQuery(sql);
-            statements.put(result, stmt);
-            return result;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    /**
-     * Provides a PreparedStatement that can be used to prevent a SQL injection.
-     * @param sql with ? instead of the values.
-     * @return PreparedStatement if successful, null if a SQLException occurs.
-     */
-    public static PreparedStatement prepStmt(String sql) {
-        try {
-            Connection connection = POOL.getConnection();
-            return connection.prepareStatement(sql);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public static void closePreparedStatement(PreparedStatement statement){
-        try {
-            Connection con = statement.getConnection();
-            statement.close();
-            con.close();
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
-    }
-
-    public static void closeStatement(Statement statement){
-        try {
-            Connection con = statement.getConnection();
-            statement.close();
-            con.close();
-        } catch (SQLException exception) {
-            exception.printStackTrace();
-        }
-    }
-
-    public static void closeResultSet(ResultSet set){
-        if(statements.containsKey(set)){
-            closeStatement(statements.get(set));
-        }
-    }
-
-    public static Statement createStatement(){
-        try {
-            Connection connection = POOL.getConnection();
-            return connection.createStatement();
-        } catch (SQLException e){
-            e.printStackTrace();
-            return null;
         }
     }
 }

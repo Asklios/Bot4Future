@@ -7,12 +7,11 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.Statement;
+import java.util.*;
 
 /**
  * Class for updating and requesting the guildroles table from the database.
@@ -22,7 +21,7 @@ import java.util.Map;
  */
 public class RoleDatabaseSQLite implements RoleDatabase {
 
-    private static String[] roleTypes = new String[]{
+    private static final String[] roleTypes = new String[]{
             "mute",
             "specialrole",
             "specialcode",
@@ -47,19 +46,27 @@ public class RoleDatabaseSQLite implements RoleDatabase {
      */
     @Override
     public void startUpEntries(long guildId) throws NullPointerException {
-        ResultSet result = LiteSQL.onQuery("SELECT * FROM guildroles WHERE guildid = " + guildId);
-        List<String> existingTypes = new ArrayList<>();
         try {
-            assert result != null;
-            if (result.next()) {
-                existingTypes.add(result.getString("type"));
+            Connection connection = LiteSQL.POOL.getConnection();
+            Statement stmt = connection.createStatement();
+            ResultSet result = stmt.executeQuery("SELECT * FROM guildroles WHERE guildid = " + guildId);
+            List<String> existingTypes = new ArrayList<>();
+            try {
+                assert result != null;
+                if (result.next()) {
+                    existingTypes.add(result.getString("type"));
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            result.close();
+            stmt.close();
+            connection.close();
+            for(String type : roleTypes){
+                if(!existingTypes.contains(type)) LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", '" + type + "')");
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        }
-        LiteSQL.closeResultSet(result);
-        for(String type : roleTypes){
-            if(!existingTypes.contains(type)) LiteSQL.onUpdate("INSERT INTO guildroles(guildid, type) VALUES(" + guildId + ", '" + type + "')");
         }
     }
 
@@ -102,19 +109,24 @@ public class RoleDatabaseSQLite implements RoleDatabase {
     public Role getMuteRole(Guild guild) {
         long guildid = guild.getIdLong();
 
-        ResultSet result = LiteSQL.onQuery("SELECT roleid FROM guildroles WHERE guildid = " + guildid + " AND type = 'mute'");
-        if (result == null) return null;
-
         try {
+            Connection connection = LiteSQL.POOL.getConnection();
+            Statement statement = connection.createStatement();
+            ResultSet result = statement.executeQuery("SELECT roleid FROM guildroles WHERE guildid = " + guildid + " AND type = 'mute'");
+
             if (result.next()) {
                 long muteRoleId = result.getLong("roleid");
-                LiteSQL.closeResultSet(result);
+               result.close();
+               statement.close();
+               connection.close();
                 return guild.getRoleById(muteRoleId);
             }
+            result.close();
+            statement.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        LiteSQL.closeResultSet(result);
         return null;
     }
 
@@ -157,20 +169,26 @@ public class RoleDatabaseSQLite implements RoleDatabase {
     public Role getSpecialRole(Guild guild) {
         long guildid = guild.getIdLong();
 
-        ResultSet result = LiteSQL.onQuery("SELECT roleid FROM guildroles WHERE guildid = " + guildid + " AND type = 'specialrole'");
-        if (result == null) return null;
 
         try {
+            Connection connection = LiteSQL.POOL.getConnection();
+            Statement statement = connection.createStatement();
+            ResultSet result = statement.executeQuery("SELECT roleid FROM guildroles WHERE guildid = " + guildid + " AND type = 'specialrole'");
+
             if (result.next()) {
                 long muteRoleId = result.getLong("roleid");
 
-                LiteSQL.closeResultSet(result);
+                result.close();
+                statement.close();
+                connection.close();
                 return guild.getRoleById(muteRoleId);
             }
+            result.close();
+            statement.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        LiteSQL.closeResultSet(result);
         return null;
     }
 
@@ -213,19 +231,23 @@ public class RoleDatabaseSQLite implements RoleDatabase {
     public Role getVerifyRole(Guild guild) {
         long guildid = guild.getIdLong();
 
-        ResultSet result = LiteSQL.onQuery("SELECT roleid FROM guildroles WHERE guildid = " + guildid + " AND type = 'verifiablerole'");
-        if (result == null) return null;
-
         try {
+            Connection connection = LiteSQL.POOL.getConnection();
+            Statement stmt = connection.createStatement();
+            ResultSet result = stmt.executeQuery("SELECT roleid FROM guildroles WHERE guildid = " + guildid + " AND type = 'verifiablerole'");
             if (result.next()) {
                 long muteRoleId = result.getLong("roleid");
-                LiteSQL.closeResultSet(result);
+                result.close();
+                stmt.close();
+                connection.close();
                 return guild.getRoleById(muteRoleId);
             }
+            result.close();
+            stmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        LiteSQL.closeResultSet(result);
         return null;
     }
 
@@ -252,19 +274,24 @@ public class RoleDatabaseSQLite implements RoleDatabase {
     public String getSpecialCode(Guild guild) {
         long guildid = guild.getIdLong();
 
-        ResultSet result = LiteSQL.onQuery("SELECT code FROM guildroles WHERE guildid = " + guildid + " AND type = 'specialcode'");
-        if (result == null) return null;
-
         try {
+            Connection connection = LiteSQL.POOL.getConnection();
+            Statement stmt = connection.createStatement();
+            ResultSet result = stmt.executeQuery("SELECT code FROM guildroles WHERE guildid = " + guildid + " AND type = 'specialcode'");
+
             if (result.next()) {
                 String code = result.getString("code");
-                LiteSQL.closeResultSet(result);
+                result.close();
+                stmt.close();
+                connection.close();
                 return code;
             }
+            result.close();
+            stmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        LiteSQL.closeResultSet(result);
         return null;
     }
 
@@ -275,37 +302,48 @@ public class RoleDatabaseSQLite implements RoleDatabase {
      */
     @Override
     public boolean removeUnusedEntries() {
-        JDA jda = DiscordBot.INSTANCE.jda;
-        ArrayList<Long> guildIds = new ArrayList<>();
-        jda.getGuilds().forEach(guild -> guildIds.add(guild.getIdLong()));
-
-        Map<Integer, Long> resultMap = new HashMap<>();
-        ResultSet result = LiteSQL.onQuery("SELECT id, guildid FROM guildroles");
-
-        if (result == null) return false;
-
         try {
-            while (result.next()) {
-                int id = result.getInt("id");
-                long guildId = result.getLong("guildid");
+            Connection connection = LiteSQL.POOL.getConnection();
+            Statement stmt = connection.createStatement();
+            JDA jda = DiscordBot.INSTANCE.jda;
+            ArrayList<Long> guildIds = new ArrayList<>();
+            jda.getGuilds().forEach(guild -> guildIds.add(guild.getIdLong()));
 
-                resultMap.put(id, guildId);
+            Map<Integer, Long> resultMap = new HashMap<>();
+            ResultSet result = stmt.executeQuery("SELECT id, guildid FROM guildroles");
+
+            if (result == null) return false;
+
+            try {
+                while (result.next()) {
+                    int id = result.getInt("id");
+                    long guildId = result.getLong("guildid");
+
+                    resultMap.put(id, guildId);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                result.close();
+                stmt.close();
+                connection.close();
+                return false;
             }
-        } catch (SQLException e) {
+            result.close();
+            stmt.close();
+            connection.close();
+            ArrayList<Integer> removeIds = new ArrayList<>();
+
+            resultMap.forEach((id, guildId) -> {
+                if (!guildIds.contains(guildId)) removeIds.add(id);
+            });
+
+            removeIds.forEach(id -> LiteSQL.onUpdate("DELETE FROM guildroles WHERE id = " + id));
+
+            return true;
+        } catch (SQLException e){
             e.printStackTrace();
-            LiteSQL.closeResultSet(result);
-            return false;
         }
-
-        ArrayList<Integer> removeIds = new ArrayList<>();
-
-        resultMap.forEach((id, guildId) -> {
-            if (!guildIds.contains(guildId)) removeIds.add(id);
-        });
-
-        removeIds.forEach(id -> LiteSQL.onUpdate("DELETE FROM guildroles WHERE id = " + id));
-        LiteSQL.closeResultSet(result);
-        return true;
+        return false;
     }
 
     /**
@@ -338,21 +376,32 @@ public class RoleDatabaseSQLite implements RoleDatabase {
 
     @Override
     public Role getBumpRole(Guild guild) {
-        long guildid = guild.getIdLong();
-
-        ResultSet result = LiteSQL.onQuery("SELECT roleid FROM guildroles WHERE guildid = " + guildid + " AND type = 'bumprole'");
-        if (result == null) return null;
-
         try {
-            if (result.next()) {
-                long muteRoleId = result.getLong("roleid");
-                LiteSQL.closeResultSet(result);
-                return guild.getRoleById(muteRoleId);
+            Connection connection = LiteSQL.POOL.getConnection();
+            Statement stmt = connection.createStatement();
+            long guildid = guild.getIdLong();
+
+            ResultSet result = stmt.executeQuery("SELECT roleid FROM guildroles WHERE guildid = " + guildid + " AND type = 'bumprole'");
+            if (result == null) return null;
+
+            try {
+                if (result.next()) {
+                    long muteRoleId = result.getLong("roleid");
+                    result.close();
+                    stmt.close();
+                    connection.close();
+                    return guild.getRoleById(muteRoleId);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
+            result.close();
+            stmt.close();
+            connection.close();
+            return null;
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        LiteSQL.closeResultSet(result);
         return null;
     }
 
