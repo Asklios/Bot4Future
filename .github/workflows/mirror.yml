@@ -1,0 +1,15 @@
+name: Gitlab Mirror
+
+on: [push, delete]
+
+jobs:
+  gitlab:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: pixta-dev/repository-mirroring-action@v1
+      with:
+        target_repo_url:
+          git@git.fridaysforfutu.re:messenger-ag/bot4future.git
+        ssh_private_key:
+          ${{ secrets.GITLAB_SSH_PRIVATE_KEY }}
