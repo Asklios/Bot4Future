@@ -201,6 +201,7 @@ public class DiscordBot {
 
     //Function to shutdown through code not the exit command
     public void shutdownCode() {
+        pollManager.saveVotes();
         shutdown = true;
         if (jda != null) {
             jda.shutdown();

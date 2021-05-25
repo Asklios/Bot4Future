@@ -16,8 +16,9 @@ public class PollDatabaseSQLite implements PollDatabase {
     private final List<Poll> polls = new ArrayList<>();
 
     @Override
-    public void loadAllPolls() throws SQLException {
+    public void loadAllPolls() {
         try {
+            polls.clear();
             Connection connection = LiteSQL.POOL.getConnection();
             Statement stmt1 = connection.createStatement();
 
@@ -31,7 +32,6 @@ public class PollDatabaseSQLite implements PollDatabase {
             while (resultSet.next()) {
                 PollImpl poll = new PollImpl();
                 poll.name = resultSet.getString("name");
-                System.out.println(poll.name);
                 poll.description = resultSet.getString("description");
                 poll.closeTime = resultSet.getLong("endtime");
                 poll.closeDisplay = DiscordBot.FORMATTER.print(new DateTime(poll.closeTime));
