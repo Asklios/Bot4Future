@@ -18,8 +18,6 @@ public interface UserRecordsDatabase {
 
     void removeGuildData(long guildId);
 
-    ResultSet AllUserRecords();
-
     Map<String, Integer> recordNumbers(long userId);
 
     boolean isUnbanRequest(long guildId, long userId);

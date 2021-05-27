@@ -3,6 +3,7 @@ package main.java.helper;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +83,8 @@ public class GetMemberFromMessage {
         for (String s : messageSplit) {
             try {
                 mentions.add(guild.retrieveMemberById(s).complete());
-            } catch (IllegalArgumentException e) {
+            }
+            catch (IllegalArgumentException e) {
                 try {
                     String mention = s.replaceAll("<", "").replaceAll("@", "")
                             .replaceAll("!", "").replaceAll(">", "");
@@ -90,6 +92,9 @@ public class GetMemberFromMessage {
                 } catch (IllegalArgumentException f) {
                     //split String ist keine Id
                 }
+            }
+            catch (ErrorResponseException e) {
+                //10007: Unknown Member TODO: Feedback for bot user
             }
         }
         return mentions;

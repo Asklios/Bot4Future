@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 public class NewMuteRoleCommand implements ServerCommand {
 
-    private RoleDatabase roleDatabase = new RoleDatabaseSQLite();
+    private final RoleDatabase roleDatabase = new RoleDatabaseSQLite();
 
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {

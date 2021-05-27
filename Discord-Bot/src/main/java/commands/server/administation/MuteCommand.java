@@ -20,9 +20,9 @@ import java.util.stream.Collectors;
 
 public class MuteCommand implements ServerCommand {
 
-    private RoleDatabase roleDatabase = new RoleDatabaseSQLite();
-    private UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
-    private ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
+    private final RoleDatabase roleDatabase = new RoleDatabaseSQLite();
+    private final UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
+    private final ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {

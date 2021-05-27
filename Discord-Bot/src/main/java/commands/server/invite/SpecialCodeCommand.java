@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 public class SpecialCodeCommand implements ServerCommand {
 
-    private static List<InviteManager> inviteManagers = new ArrayList<>();
+    private static final List<InviteManager> inviteManagers = new ArrayList<>();
     RoleDatabase roleDatabase = new RoleDatabaseSQLite();
 
     @Override

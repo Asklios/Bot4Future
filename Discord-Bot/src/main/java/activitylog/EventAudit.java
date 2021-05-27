@@ -16,9 +16,7 @@ import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.OffsetDateTime;
 import java.util.*;
 
@@ -32,13 +30,19 @@ public class EventAudit {
     public void ignoredChannelsStartUpEntries(Guild guild) {
         long guildId = guild.getIdLong();
 
-        ResultSet result = LiteSQLActivity.onQuery("SELECT * FROM ignoredchannels WHERE guildid = " + guildId);
 
         try {
+            Connection connection = LiteSQLActivity.POOL.getConnection();
+            Statement stmt = connection.createStatement();
+            ResultSet result = stmt.executeQuery("SELECT * FROM ignoredchannels WHERE guildid = " + guildId);
+
             assert result != null;
             if (result.next()) {
                 return;
             }
+            result.close();
+            stmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -46,11 +50,10 @@ public class EventAudit {
     }
 
     public void updateIgnoredChannels() {
-        PreparedStatement prepStmt = LiteSQLActivity.prepStmt("SELECT * FROM ignoredchannels");
         try {
-            assert prepStmt != null;
-            ResultSet result = prepStmt.executeQuery();
-
+            Connection connection = LiteSQLActivity.POOL.getConnection();
+            Statement statement = connection.createStatement();
+            ResultSet result = statement.executeQuery("SELECT * FROM ignoredchannels");
             while (result.next()) {
                 long guildId = result.getLong("guildid");
                 String channelIds = result.getString("channelids");
@@ -60,12 +63,19 @@ public class EventAudit {
                 }
                 ignoredChannels.put(guildId, ignoredIds);
             }
+            result.close();
+            statement.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     public void messageUpdateAudit(MessageUpdateEvent event) {
+
+        if (!event.isFromType(ChannelType.TEXT) || event.getMember().getUser().isBot()) {
+            return;
+        }
 
         long guildId = event.getGuild().getIdLong();
         long channelId = event.getChannel().getIdLong();
@@ -112,6 +122,10 @@ public class EventAudit {
 
     public void messageDeleteAudit(MessageDeleteEvent event) {
 
+        if (!event.isFromType(ChannelType.TEXT)) {
+            return;
+        }
+
         long guildId = event.getGuild().getIdLong();
         long channelId = event.getChannel().getIdLong();
         try {
@@ -119,7 +133,7 @@ public class EventAudit {
                 return;
             }
         } catch (NullPointerException e) {
-            //
+            e.printStackTrace();
         }
 
         String decryptText = new CryptoMessageHandler().readEncryptedMessageWithId(event.getGuild().getIdLong(),
