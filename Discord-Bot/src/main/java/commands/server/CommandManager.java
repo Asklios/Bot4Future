@@ -102,9 +102,6 @@ public class CommandManager {
 
         //PollCommands
         this.commands.put("poll", new CreatePollCommand());
-        this.commands.put("polllist", (member, channel, message) -> {
-            DiscordBot.INSTANCE.pollManager.database.getPolls().forEach(poll -> System.out.println(poll.getMessageId()));
-        });
     }
 
     public boolean perform(String command, Member m, TextChannel channel, Message message) {
