@@ -11,12 +11,12 @@ import java.util.List;
 public class Strikes {
 
     @Getter
-    private static HashMap<Long, Strike> strikes = new HashMap<>();
+    private static final HashMap<Long, Strike> strikes = new HashMap<>();
 
     //index HashMaps
-    private static HashMap<String, List<Long>> strikesByLocationName = new HashMap<>();
-    private static HashMap<String, List<Long>> strikesByLocalGroupName = new HashMap<>();
-    private static HashMap<Date, List<Long>> strikesByDate = new HashMap<>();
+    private static final HashMap<String, List<Long>> strikesByLocationName = new HashMap<>();
+    private static final HashMap<String, List<Long>> strikesByLocalGroupName = new HashMap<>();
+    private static final HashMap<Date, List<Long>> strikesByDate = new HashMap<>();
 
     /**
      * Deletes all saved Strikes.

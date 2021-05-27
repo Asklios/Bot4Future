@@ -2,7 +2,7 @@ package main.java.commands.server.pmCommands;
 
 public class UnbanRequest {
 
-    private long userID;
+    private final long userID;
     private long guildID;
     private String reason;
 

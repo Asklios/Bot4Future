@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>Bot4Future</groupId>
     <artifactId>Bot4Future</artifactId>
-    <version>v5.3.4</version>
+    <version>v6.0.0</version>
 
     <properties>
         <project.java.version>11</project.java.version>
@@ -90,6 +90,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-dbcp2</artifactId>
             <version>2.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.10.10</version>
         </dependency>
     </dependencies>
 </project>

@@ -1,5 +1,5 @@
 # Bot4Future
-by Asklios, Semmler
+by Asklios, Semmler, DrDeee
 
 ## What is this?
 Bot4Future is a Discord Bot providing several commands.

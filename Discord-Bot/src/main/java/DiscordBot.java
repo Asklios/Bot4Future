@@ -15,6 +15,7 @@ import main.java.helper.GetMemberFromMessage;
 import main.java.helper.TimedTasks;
 import main.java.helper.api.UpdateFromApi;
 import main.java.listener.*;
+import main.java.util.PollManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -22,11 +23,17 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import javax.security.auth.login.LoginException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -52,32 +59,36 @@ public class DiscordBot {
     private String newPbPath;
     private String dbFilePath;
     private String botToken;
-    private List<GuildData> guildsData = new ArrayList<>();
+    private final List<GuildData> guildsData = new ArrayList<>();
     private String[] defIds;
-    private long muteBanTimerPeriod = 5 * 60 * 1000;
-    private VoteDatabase voteDatabase;
-    private RoleDatabase roleDatabase;
-    private ChannelDatabase channelDatabase;
-    private UserRecordsDatabase userRecordsDatabase;
-    private GetMemberFromMessage getMemberFromMessage;
-    private InviteDatabase inviteDatabase;
-    private TimedTasksDatabase timedTasksDatabase;
-    private SelfRoles selfRoles;
+    private final long muteBanTimerPeriod = 5 * 60 * 1000;
+    private final VoteDatabase voteDatabase;
+    private final RoleDatabase roleDatabase;
+    private final ChannelDatabase channelDatabase;
+    private final UserRecordsDatabase userRecordsDatabase;
+    private final GetMemberFromMessage getMemberFromMessage;
+    private final InviteDatabase inviteDatabase;
+    private final TimedTasksDatabase timedTasksDatabase;
+    private final SelfRoles selfRoles;
 
-    public static ScheduledExecutorService POOL = Executors.newScheduledThreadPool(5);
+    public PollManager pollManager;
+
+    public static final ScheduledExecutorService POOL = Executors.newScheduledThreadPool(5);
+    public static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("d.MM.yy, k:mm");
+
 
     long startUpTime = System.currentTimeMillis();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
         try {
-            new DiscordBot();
+            new DiscordBot(args);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
     }
 
 
-    public DiscordBot() throws IllegalArgumentException {
+    public DiscordBot(String[] args) throws IllegalArgumentException, SQLException {
         INSTANCE = this;
 
         try {
@@ -106,12 +117,15 @@ public class DiscordBot {
             System.exit(-1);
         }
 
+        pollManager = new PollManager();
+        pollManager.database.loadAllPolls();
         new EventAudit().updateIgnoredChannels();
 
         JDABuilder builder = JDABuilder.createDefault(botToken);
         builder.enableIntents(GatewayIntent.GUILD_PRESENCES);
         builder.enableIntents(GatewayIntent.GUILD_MEMBERS);
         builder.setMemberCachePolicy(MemberCachePolicy.ALL);
+        builder.enableCache(CacheFlag.MEMBER_OVERRIDES);
 
         builder.setToken(botToken);
 
@@ -176,13 +190,32 @@ public class DiscordBot {
             try {
                 while ((line = reader.readLine()) != null) {
 
-                    if (line.equalsIgnoreCase("exit")) {
-
-                        jda.shutdown();
-
-                        System.exit(0);
-                    } else {
-                        System.out.println("Use 'exit' to shutdown.");
+                    switch (line) {
+                        case "exit":
+                            jda.shutdown();
+                            System.exit(0);
+                            break;
+                        case "deletepolls":
+                            jda.shutdown();
+                            try {
+                                System.out.println("Lösche Umfragen-Datenbank...");
+                                Connection connection = LiteSQL.POOL.getConnection();
+                                Statement stmt = connection.createStatement();
+                                stmt.addBatch("DROP TABLE polls;");
+                                stmt.addBatch("DROP TABLE pollvotes;");
+                                stmt.addBatch("DROP TABLE pollchoices;");
+                                stmt.executeBatch();
+                                stmt.close();
+                                connection.close();
+                                System.out.println("Umfragendatenbank vollständig gelöscht.");
+                                System.out.println("Stoppe Bot...");
+                            } catch (SQLException exception) {
+                                exception.printStackTrace();
+                            } finally {
+                                System.exit(0);
+                            }
+                        default:
+                            System.out.println("Use 'exit' to shutdown.");
                     }
                 }
             } catch (IOException e) {
@@ -193,6 +226,7 @@ public class DiscordBot {
 
     //Function to shutdown through code not the exit command
     public void shutdownCode() {
+        pollManager.saveVotes();
         shutdown = true;
         if (jda != null) {
             jda.shutdown();

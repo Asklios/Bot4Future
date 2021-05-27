@@ -1,5 +1,6 @@
 package main.java.listener;
 
+import main.java.DiscordBot;
 import main.java.files.LiteSQL;
 import main.java.files.interfaces.VoteDatabase;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -11,8 +12,10 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -26,7 +29,6 @@ public class ReactionListener extends ListenerAdapter {
 
     @Override
     public void onMessageReactionAdd(MessageReactionAddEvent event) {
-
         if (event.getChannelType() != ChannelType.TEXT) {
             return;
         }
@@ -35,6 +37,9 @@ public class ReactionListener extends ListenerAdapter {
             return;
         }
 
+        if (event.isFromGuild()) {
+            DiscordBot.INSTANCE.pollManager.handleReactionEvent(event);
+        }
         Guild guild = event.getGuild();
         long guildID = event.getGuild().getIdLong();
         long channelID = event.getChannel().getIdLong();
@@ -47,49 +52,57 @@ public class ReactionListener extends ListenerAdapter {
             //custom Emote
         }
 
-        //reactionroles
-        ResultSet setRR = LiteSQL.onQuery("SELECT roleid FROM reactroles WHERE guildid = " +
-                guildID + " AND channelid = " + channelID + " AND messageid = " + messageID + " And emote = '" + emote + "'");
-
         try {
+            Connection connection = LiteSQL.POOL.getConnection();
+            Statement stmt = connection.createStatement();
+
+            //reactionroles
+            ResultSet setRR = stmt.executeQuery("SELECT roleid FROM reactroles WHERE guildid = " +
+                    guildID + " AND channelid = " + channelID + " AND messageid = " + messageID + " And emote = '" + emote + "'");
+
             if (setRR.next()) {
                 long roleID = setRR.getLong("roleid");
 
                 guild.addRoleToMember(event.getMember(), guild.getRoleById(roleID)).queue();
                 guild.getTextChannelById(channelID).sendTyping();
             }
+            setRR.close();
+
+            //self reactions
+            if (emote.equals("✅")) {//unban
+
+                ResultSet setSelf = stmt.executeQuery("SELECT bannedid FROM unbanhandlerreactions WHERE guildid = " +
+                        guildID + " AND channelid = " + channelID + " AND messageid = " + messageID);
+
+                try {
+                    if (setSelf.next()) {
+                        long bannedID = setRR.getLong("bannedid");
+
+                        guild.unban(bannedID + "").queue();
+
+                        LiteSQL.onUpdate("DELETE FROM unbanhandlerreactions WHERE guildid = " +
+                                guildID + " AND channelid = " + channelID + " AND messageid = " + messageID);
+                    }
+                    setSelf.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                } catch (ErrorResponseException e) {
+                    //Ban ist unbekannt
+                } finally {
+                }
+            } else if (emote.equals("❌")) {//leave banned
+                LiteSQL.onUpdate("DELETE FROM unbanhandlerreactions WHERE guildid = " +
+                        guildID + " AND channelid = " + channelID + " AND messageid = " + messageID);
+            }
+
+            stmt.close();
+            connection.close();
         } catch (SQLException | NullPointerException e) {
             e.printStackTrace();
         } catch (HierarchyException e) {
-            event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht vergeben, da sie höher als die Bot-Rolle ist.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+            event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht vergeben, da sie höher als die Bot-Rolle ist.").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
         } catch (IllegalArgumentException e) {
-            event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht vergeben, da sie nicht mehr existiert.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
-        }
-
-        //self reactions
-        if (emote.equals("✅")) {//unban
-
-            ResultSet setSelf = LiteSQL.onQuery("SELECT bannedid FROM unbanhandlerreactions WHERE guildid = " +
-                    guildID + " AND channelid = " + channelID + " AND messageid = " + messageID);
-
-            try {
-                if (setSelf.next()) {
-                    long bannedID = setRR.getLong("bannedid");
-
-                    guild.unban(bannedID + "").queue();
-
-                    LiteSQL.onUpdate("DELETE FROM unbanhandlerreactions WHERE guildid = " +
-                            guildID + " AND channelid = " + channelID + " AND messageid = " + messageID);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            } catch (ErrorResponseException e) {
-                //Ban ist unbekannt
-            }
-
-        } else if (emote.equals("❌")) {//leave banned
-            LiteSQL.onUpdate("DELETE FROM unbanhandlerreactions WHERE guildid = " +
-                    guildID + " AND channelid = " + channelID + " AND messageid = " + messageID);
+            event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht vergeben, da sie nicht mehr existiert.").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
         }
 
         reactPollAdd(event, guild, guildID, channelID, messageID, emote);
@@ -129,6 +142,7 @@ public class ReactionListener extends ListenerAdapter {
             return;
         }
 
+        DiscordBot.INSTANCE.pollManager.handleReactionEvent(event);
         //reactionroles
         long guildID = event.getGuild().getIdLong();
         long channelID = event.getChannel().getIdLong();
@@ -142,20 +156,25 @@ public class ReactionListener extends ListenerAdapter {
         }
         Guild guild = event.getGuild();
 
-        ResultSet set = LiteSQL.onQuery("SELECT roleid FROM reactroles WHERE guildid = " +
-                guildID + " AND channelid = " + channelID + " AND messageid = " + messageID + " And emote = '" + emote + "'");
-
         try {
+            Connection connection = LiteSQL.POOL.getConnection();
+            Statement statement = connection.createStatement();
+            ResultSet set = statement.executeQuery("SELECT roleid FROM reactroles WHERE guildid = " +
+                    guildID + " AND channelid = " + channelID + " AND messageid = " + messageID + " And emote = '" + emote + "'");
+
             if (set.next()) {
                 long roleID = set.getLong("roleid");
 
                 guild.removeRoleFromMember(event.getMember(), guild.getRoleById(roleID)).queue();
                 guild.getTextChannelById(channelID).sendTyping();
             }
+            set.close();
+            statement.close();
+            connection.close();
         } catch (SQLException | NullPointerException e) {
             e.printStackTrace();
         } catch (HierarchyException e) {
-            event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht entziehen, da sie höher als die Bot-Rolle ist.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+            event.getGuild().getTextChannelById(channelID).sendMessage("Der Bot kann die Rolle nicht entziehen, da sie höher als die Bot-Rolle ist.").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
         } catch (IllegalArgumentException e) {
             // Reaktion von einer gelöschten Rolle wird entfernt
         }
@@ -164,7 +183,6 @@ public class ReactionListener extends ListenerAdapter {
     }
 
     private void reactPollRemove(MessageReactionRemoveEvent event, Guild guild, long guildID, long channelID, long messageID, String emote) {
-
         long reactions = event.retrieveMessage().complete().getReactions().stream()
                 .map(messageReaction -> messageReaction.retrieveUsers().stream().anyMatch(user -> user.getIdLong() == event.getUserIdLong()))
                 .filter(aBoolean -> aBoolean)

@@ -1,7 +1,6 @@
 package main.java.activitylog;
 
-import main.java.files.LiteSQL;
-
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,7 +25,7 @@ public class CryptoMessageHandler {
         updateDatabase(new Crypto().encryptText(userId + message, password), messageId);
     }
 
-    public String readEncryptedMessage(long guildId,long channelId, long messageId) {
+    public String readEncryptedMessage(long guildId, long channelId, long messageId) {
         String guildStr = "" + guildId;
         String channelStr = "" + channelId;
 
@@ -36,7 +35,7 @@ public class CryptoMessageHandler {
         return new Crypto().decryptText(cryptoText, password).substring(18);
     }
 
-    public String readEncryptedMessageWithId(long guildId,long channelId, long messageId) {
+    public String readEncryptedMessageWithId(long guildId, long channelId, long messageId) {
         String guildStr = "" + guildId;
         String channelStr = "" + channelId;
 
@@ -48,17 +47,21 @@ public class CryptoMessageHandler {
 
     /**
      * Saves an encrypted byte[] to the message table.
+     *
      * @param encrypted byte[] of the encrypted message.
      * @param messageId identifier in the table.
      */
     private void saveToDatabase(byte[] encrypted, long messageId) {
-        PreparedStatement prepStmt = LiteSQLActivity.prepStmt("INSERT INTO messages(messageid, encrypted) VALUES (?,?)");
         try {
+            Connection connection = LiteSQLActivity.POOL.getConnection();
+            PreparedStatement prepStmt = connection.prepareStatement("INSERT INTO messages(messageid, encrypted) VALUES (?,?)");
+
             assert prepStmt != null;
             prepStmt.setLong(1, messageId);
             prepStmt.setBytes(2, encrypted);
             prepStmt.executeUpdate();
-            LiteSQL.closePreparedStatement(prepStmt);
+            prepStmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -66,17 +69,21 @@ public class CryptoMessageHandler {
 
     /**
      * Updates an entry in the message table.
+     *
      * @param encrypted byte[] of the encrypted message.
      * @param messageId identifier in the table.
      */
     private void updateDatabase(byte[] encrypted, long messageId) {
-        PreparedStatement prepStmt = LiteSQLActivity.prepStmt("UPDATE messages SET encrypted = ? WHERE messageid = ?");
         try {
+            Connection connection = LiteSQLActivity.POOL.getConnection();
+            PreparedStatement prepStmt = connection.prepareStatement("UPDATE messages SET encrypted = ? WHERE messageid = ?");
+
             assert prepStmt != null;
             prepStmt.setBytes(1, encrypted);
             prepStmt.setLong(2, messageId);
             prepStmt.executeUpdate();
-            LiteSQL.closePreparedStatement(prepStmt);
+            prepStmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -84,20 +91,27 @@ public class CryptoMessageHandler {
 
     /**
      * Finds a message entry with the provided id
+     *
      * @param messageId identifier in the table.
      * @return first found byte[] if successfully, otherwise null.
      */
     private byte[] readFromDatabase(long messageId) {
-        PreparedStatement prepStmt = LiteSQLActivity.prepStmt("SELECT encrypted FROM messages WHERE messageid = ?");
         try {
+            Connection connection = LiteSQLActivity.POOL.getConnection();
+            PreparedStatement prepStmt = connection.prepareStatement("SELECT encrypted FROM messages WHERE messageid = ?");
+
             assert prepStmt != null;
             prepStmt.setLong(1, messageId);
             ResultSet result = prepStmt.executeQuery();
-            LiteSQL.closePreparedStatement(prepStmt);
 
             if (result.next()) {
-                return result.getBytes("encrypted");
+                byte[] ret = result.getBytes("encrypted");
+                prepStmt.close();
+                connection.close();
+                return ret;
             }
+            prepStmt.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }

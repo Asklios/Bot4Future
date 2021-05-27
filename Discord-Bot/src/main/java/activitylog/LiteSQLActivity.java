@@ -15,7 +15,7 @@ import java.util.Collection;
  */
 public class LiteSQLActivity {
 
-    private static BasicDataSource POOL;
+    public static BasicDataSource POOL;
 
     /**
      * Connects to the database.
@@ -85,40 +85,6 @@ public class LiteSQLActivity {
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
-        }
-    }
-
-    /**
-     * Requests the database with the provided sql statement.
-     * @param sql that should be executed. May result in a SQL injection.
-     * @return ResultSet resulting from the database request, null if a SQLException occurs.
-     */
-    public static ResultSet onQuery(String sql) {
-        try {
-            Connection connection = POOL.getConnection();
-            Statement stmt = connection.createStatement();
-            ResultSet resultSet = stmt.executeQuery(sql);
-            stmt.close();
-            connection.close();
-            return resultSet;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    /**
-     * Provides a PreparedStatement that can be used to prevent a SQL injection.
-     * @param sql with ? instead of the values.
-     * @return PreparedStatement if successful, null if a SQLException occurs.
-     */
-    public static PreparedStatement prepStmt(String sql) {
-        try {
-            Connection connection = POOL.getConnection();
-            return connection.prepareStatement(sql);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
         }
     }
 

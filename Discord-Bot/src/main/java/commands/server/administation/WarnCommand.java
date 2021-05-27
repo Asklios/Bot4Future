@@ -14,8 +14,8 @@ import java.util.concurrent.TimeUnit;
 
 public class WarnCommand implements ServerCommand {
 
-    private ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
-    private UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
+    private final ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
+    private final UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
 
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {
