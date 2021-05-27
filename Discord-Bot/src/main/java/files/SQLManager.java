@@ -33,7 +33,7 @@ public class SQLManager {
             stmt.addBatch("CREATE TABLE IF NOT EXISTS calldata(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, guildid INTEGER, userids STRING, starttime INTEGER, endtime INTEGER, name STRING, requester INTEGER, note STRING)");
             stmt.addBatch("CREATE TABLE IF NOT EXISTS timedtasks(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, endtime INTEGER NOT NULL, type STRING NOT NULL, note STRING)");
             stmt.addBatch("CREATE TABLE IF NOT EXISTS selfroles(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, guildid INTEGER, role STRING, roleid INTEGER)");
-            stmt.addBatch("CREATE TABLE IF NOT EXISTS polls(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, guildid INTEGER, msgid INTEGER, name STRING, description STRING, votesperuser INTEGER, endtime INTEGER, ownerid INTEGER, closed INTEGER)");
+            stmt.addBatch("CREATE TABLE IF NOT EXISTS polls(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, guildid INTEGER, msgid INTEGER, name STRING, description STRING, votesperuser INTEGER, endtime INTEGER, ownerid INTEGER, hidevotes INTEGER)");
             stmt.addBatch("CREATE TABLE IF NOT EXISTS pollchoices(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, pollguildid INTEGER, pollmsgid INTEGER, choiceid INTEGER, value STRING)");
             stmt.addBatch("CREATE TABLE IF NOT EXISTS pollvotes(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, pollguildid INTEGER, pollmsgid INTEGER, choiceid INTEGER, userid INTEGER)");
             stmt.executeBatch();

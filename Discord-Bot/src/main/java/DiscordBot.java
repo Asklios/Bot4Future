@@ -31,8 +31,12 @@ import javax.security.auth.login.LoginException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.*;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -77,14 +81,14 @@ public class DiscordBot {
 
     public static void main(String[] args) throws SQLException {
         try {
-            new DiscordBot();
+            new DiscordBot(args);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
     }
 
 
-    public DiscordBot() throws IllegalArgumentException, SQLException {
+    public DiscordBot(String[] args) throws IllegalArgumentException, SQLException {
         INSTANCE = this;
 
         try {
@@ -186,13 +190,32 @@ public class DiscordBot {
             try {
                 while ((line = reader.readLine()) != null) {
 
-                    if (line.equalsIgnoreCase("exit")) {
-
-                        jda.shutdown();
-
-                        System.exit(0);
-                    } else {
-                        System.out.println("Use 'exit' to shutdown.");
+                    switch (line) {
+                        case "exit":
+                            jda.shutdown();
+                            System.exit(0);
+                            break;
+                        case "deletepolls":
+                            jda.shutdown();
+                            try {
+                                System.out.println("Lösche Umfragen-Datenbank...");
+                                Connection connection = LiteSQL.POOL.getConnection();
+                                Statement stmt = connection.createStatement();
+                                stmt.addBatch("DROP TABLE polls;");
+                                stmt.addBatch("DROP TABLE pollvotes;");
+                                stmt.addBatch("DROP TABLE pollchoices;");
+                                stmt.executeBatch();
+                                stmt.close();
+                                connection.close();
+                                System.out.println("Umfragendatenbank vollständig gelöscht.");
+                                System.out.println("Stoppe Bot...");
+                            } catch (SQLException exception) {
+                                exception.printStackTrace();
+                            } finally {
+                                System.exit(0);
+                            }
+                        default:
+                            System.out.println("Use 'exit' to shutdown.");
                     }
                 }
             } catch (IOException e) {

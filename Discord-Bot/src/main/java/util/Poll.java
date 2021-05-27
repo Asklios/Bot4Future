@@ -66,4 +66,10 @@ public interface Poll {
      * @return id of the poll creator
      */
     String getPollOwner();
+
+    /**
+     * Returns If votes should be displayed
+     * @return display votes?
+     */
+    boolean areVotesVisible();
 }

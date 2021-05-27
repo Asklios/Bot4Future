@@ -10,6 +10,7 @@ public class Emojis {
     public static final String READY = "☑";
     public static final String LOCK = "\uD83D\uDD12";
     public static final String CLOSE = "❌";
+    public static final String VIEW = "\uD83D\uDC40";
 
     public static final String INFO = "\uD83D\uDCA1";
 

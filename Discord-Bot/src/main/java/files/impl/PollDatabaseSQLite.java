@@ -39,6 +39,7 @@ public class PollDatabaseSQLite implements PollDatabase {
                 poll.guildId = resultSet.getString("guildid");
                 poll.msgId = resultSet.getString("msgid");
                 poll.votesPerUser = resultSet.getInt("votesperuser");
+                poll.showVotes = resultSet.getInt("hidevotes") != 1;
                 Statement stmt2 = connection.createStatement();
                 ResultSet choiceResult = stmt2.executeQuery("SELECT * FROM pollchoices WHERE pollguildid=" + poll.guildId + " AND pollmsgid=" + poll.msgId);
                 while (choiceResult.next()) {
@@ -79,7 +80,7 @@ public class PollDatabaseSQLite implements PollDatabase {
 
     @Override
     public void deletePoll(String id) {
-        LiteSQL.onUpdate("UPDATE polls SET closed = 1 WHERE msgid = " + id);
+        LiteSQL.onUpdate("DELETE FROM polls WHERE msgid = " + id);
         if (getPoll(id) != null) {
             polls.remove(getPoll(id));
         }
@@ -88,7 +89,7 @@ public class PollDatabaseSQLite implements PollDatabase {
     @Override
     public void savePoll(Poll poll) throws SQLException {
         Connection connection = LiteSQL.POOL.getConnection();
-        PreparedStatement stmt = connection.prepareStatement("INSERT INTO polls (guildid, msgid, name, description, votesperuser, endtime, ownerid, closed) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        PreparedStatement stmt = connection.prepareStatement("INSERT INTO polls (guildid, msgid, name, description, votesperuser, endtime, ownerid, hidevotes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         stmt.setString(1, poll.getGuildId());
         stmt.setString(2, poll.getMessageId());
         stmt.setString(3, poll.getName());
@@ -96,7 +97,7 @@ public class PollDatabaseSQLite implements PollDatabase {
         stmt.setInt(5, poll.getVotesPerUser());
         stmt.setLong(6, poll.getCloseTime());
         stmt.setString(7, poll.getPollOwner());
-        stmt.setInt(8, 0);
+        stmt.setInt(8, poll.areVotesVisible() ? 0 : 1);
 
         PreparedStatement stmt2 = connection.prepareStatement("INSERT INTO pollchoices (pollguildid, pollmsgid, choiceid, value) VALUES (?, ?, ?, ?)");
         for (PollChoice c : poll.getChoices()) {
@@ -145,6 +146,7 @@ public class PollDatabaseSQLite implements PollDatabase {
         public int votesPerUser = 1;
         public long closeTime = 0;
         public String closeDisplay;
+        public boolean showVotes = true;
         List<PollChoice> choices = new ArrayList<>();
 
         @Override
@@ -190,6 +192,11 @@ public class PollDatabaseSQLite implements PollDatabase {
         @Override
         public String getPollOwner() {
             return userId;
+        }
+
+        @Override
+        public boolean areVotesVisible() {
+            return showVotes;
         }
     }
 
