@@ -70,7 +70,6 @@ public class PollManager {
 
     public void handleReactionEvent(GenericMessageReactionEvent event) {
         if (event.isFromGuild()) {
-            System.out.println(event.getMessageId());
             database.getPolls().stream().filter(poll -> event.getGuild().getId().equals(poll.getGuildId())
                     && event.getMessageId().equals(poll.getMessageId()))
                     .findFirst().ifPresent(poll -> {
@@ -525,7 +524,6 @@ public class PollManager {
         }
         setups.remove(data.userId);
         Message msg = data.targetChannel.sendMessage(new EmbedBuilder().setDescription("Diese Nachricht wird gleich durch eine Umfrage ersetzt.").build()).complete();
-        System.out.println(msg.getId() + " " + data.msg.getId());
         List<String> emojis = new ArrayList<>();
         for (int i = 0; i < data.choices.size(); i++) {
             emojis.add(Emojis.EMOJI_LETTERS.get(i));
