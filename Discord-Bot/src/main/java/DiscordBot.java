@@ -23,6 +23,7 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -120,6 +121,7 @@ public class DiscordBot {
         builder.enableIntents(GatewayIntent.GUILD_PRESENCES);
         builder.enableIntents(GatewayIntent.GUILD_MEMBERS);
         builder.setMemberCachePolicy(MemberCachePolicy.ALL);
+        builder.enableCache(CacheFlag.MEMBER_OVERRIDES);
 
         builder.setToken(botToken);
 

@@ -103,7 +103,7 @@ public class CommandManager {
         //PollCommands
         this.commands.put("poll", new CreatePollCommand());
         this.commands.put("polllist", (member, channel, message) -> {
-            channel.sendMessage(DiscordBot.INSTANCE.pollManager.database.getPolls().size() + "").queue();
+            DiscordBot.INSTANCE.pollManager.database.getPolls().forEach(poll -> System.out.println(poll.getMessageId()));
         });
     }
 
