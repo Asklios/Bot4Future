@@ -150,13 +150,13 @@ public class PollManager {
                     builder.append("\n```");
                     event.getUser().openPrivateChannel().queue(channel -> channel.sendMessage(builder.toString()).queue());
                 } else if (Emojis.VIEW.equalsIgnoreCase(emote)) {
-                    if (event.getMember().getId().equalsIgnoreCase(poll.getPollOwner()) || event.getMember().hasPermission(Permission.ADMINISTRATOR)) {
+                    if (event.getMember().getId().equalsIgnoreCase(poll.getPollOwner()) || event.getMember().hasPermission(Permission.ADMINISTRATOR) || event.getMember().hasPermission(Permission.BAN_MEMBERS)) {
                         event.getMember().getUser().openPrivateChannel().queue(pChannel -> {
                             sendVoters(poll, pChannel);
                         });
                     } else {
                         event.getMember().getUser().openPrivateChannel().queue(pChannel -> {
-                            pChannel.sendMessage("Nur Admins und Umfragenersteller können sich die Teilnehmenden anzeigen lassen.");
+                            pChannel.sendMessage("Nur Admins, Mods und Umfragenersteller können sich die Teilnehmenden anzeigen lassen.");
                         });
                     }
                 }
