@@ -150,7 +150,9 @@ public class PollManager {
                     builder.append("\n```");
                     event.getUser().openPrivateChannel().queue(channel -> channel.sendMessage(builder.toString()).queue());
                 } else if (Emojis.VIEW.equalsIgnoreCase(emote)) {
-                    if (event.getMember().getId().equalsIgnoreCase(poll.getPollOwner()) || event.getMember().hasPermission(Permission.ADMINISTRATOR) || event.getMember().hasPermission(Permission.BAN_MEMBERS)) {
+                    if (event.getMember().getId().equalsIgnoreCase(poll.getPollOwner())
+                            || event.getMember().hasPermission(Permission.ADMINISTRATOR)
+                            || event.getMember().hasPermission(Permission.KICK_MEMBERS)) {
                         event.getMember().getUser().openPrivateChannel().queue(pChannel -> {
                             sendVoters(poll, pChannel);
                         });
@@ -351,18 +353,15 @@ public class PollManager {
                     event.getMessage().delete().queue();
                 }
             } else if (setEndTime.contains(id)) {
-                try {
                     DateTime time = DiscordBot.FORMATTER.parseDateTime(event.getMessage().getContentRaw());
-                    if (time.isBeforeNow()) throw new IllegalArgumentException();
-                    setup.endTime = time;
-                    setEndTime.remove(id);
-                    resetMessage(setup.msg, setup);
-                } catch (IllegalArgumentException e) {
-                    event.getChannel().sendMessage("Du musst ein gültiges Datum angeben!")
-                            .queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));
-                } finally {
-                    event.getMessage().delete().queue();
-                }
+                    if (time.isBeforeNow()) {
+                        event.getChannel().sendMessage("Du musst ein gültiges Datum angeben!")
+                                .queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));
+                    } else {
+                        setup.endTime = time;
+                        setEndTime.remove(id);
+                        resetMessage(setup.msg, setup);
+                    }
             } else if (setTargetChannel.contains(id)) {
                 if (event.getMessage().getMentionedChannels().size() != 1) {
                     event.getChannel().sendMessage("DU musst exakt EINEN Textchannel angeben.").queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));
