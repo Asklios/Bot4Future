@@ -1,0 +1,22 @@
+name: Old Build
+
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: '0976c0c188ea6d526f6b6f31b74cb500fa4f373f'
+      - name: install buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      - name: login to docker hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - name: build image
+        run: |
+          docker buildx build --push \
+            --tag asklios/bot4future:latest \
+            --platform linux/amd64,linux/arm64 ./Discord-Bot/
