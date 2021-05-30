@@ -28,7 +28,9 @@ public class CommandListener extends ListenerAdapter {
     public void onMessageReceived(MessageReceivedEvent event) {
         if (event.getAuthor().isBot()) return;
 
-        DiscordBot.INSTANCE.pollManager.handleMessageCreateEvent(event);
+        if (event.getMember() != null)
+            DiscordBot.INSTANCE.pollManager.handleMessageCreateEvent(event);
+
         String messageString = event.getMessage().getContentDisplay(); // Nachricht wie sie ankommt mit Formatierung
         String[] args = new String[0];
         try {
