@@ -23,19 +23,20 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import javax.security.auth.login.LoginException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class DiscordBot {
-
-    public static List<String> EMOJI_LETTERS = List.of("\uD83C\uDDE6 \uD83C\uDDE7 \uD83C\uDDE8 \uD83C\uDDE9 \uD83C\uDDEA \uD83C\uDDEB \uD83C\uDDEC \uD83C\uDDED \uD83C\uDDEE \uD83C\uDDEF \uD83C\uDDF0 \uD83C\uDDF1 \uD83C\uDDF2 \uD83C\uDDF3 \uD83C\uDDF4 \uD83C\uDDF5 \uD83C\uDDF6 \uD83C\uDDF7 \uD83C\uDDF8 \uD83C\uDDF9 \uD83C\uDDFA \uD83C\uDDFB \uD83C\uDDFC \uD83C\uDDFD \uD83C\uDDFE \uD83C\uDDFF".split(" "));
 
     public static DiscordBot INSTANCE;
     public boolean shutdown = false;
@@ -67,11 +68,13 @@ public class DiscordBot {
 
     public PollManager pollManager;
 
-    public static ScheduledExecutorService POOL = Executors.newScheduledThreadPool(5);
+    public static final ScheduledExecutorService POOL = Executors.newScheduledThreadPool(5);
+    public static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("d.MM.yy, k:mm");
+
 
     long startUpTime = System.currentTimeMillis();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
         try {
             new DiscordBot();
         } catch (IllegalArgumentException e) {
@@ -80,7 +83,7 @@ public class DiscordBot {
     }
 
 
-    public DiscordBot() throws IllegalArgumentException {
+    public DiscordBot() throws IllegalArgumentException, SQLException {
         INSTANCE = this;
 
         try {
@@ -105,6 +108,7 @@ public class DiscordBot {
         LiteSQLActivity.connect();
         ActivitySQLManager.onCreate();
         pollManager = new PollManager();
+        pollManager.database.loadAllPolls();
         new EventAudit().updateIgnoredChannels();
 
         JDABuilder builder = JDABuilder.createDefault(botToken);

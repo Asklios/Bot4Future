@@ -133,6 +133,7 @@ public class ReactionListener extends ListenerAdapter {
             return;
         }
 
+        DiscordBot.INSTANCE.pollManager.handleReactionEvent(event);
         //reactionroles
         long guildID = event.getGuild().getIdLong();
         long channelID = event.getChannel().getIdLong();
