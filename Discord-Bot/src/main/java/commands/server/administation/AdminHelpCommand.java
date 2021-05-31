@@ -68,12 +68,9 @@ public class AdminHelpCommand implements ServerCommand {
                 "*Admins können alle Daten löschen die für ihren Server gespeicht wurden.* \n" +
                 "```%removeallcalldata ``` \n " +
 
-                /*
                 "**:bar_chart: Poll-Command:** --> *permission.MESSAGE_MANAGE*\n" +
-                "```%poll <emote1> % <text1> % <emote2> % <text2> % <emote3> % <text3> \n" +
-                "%getpoll #channel <MessageId Poll> \n" +
-                "%closepoll #channel <MessageId Poll> ``` \n " +*/
-                " ");
+                "```%poll```" +
+                        "*Der Rest wird in der folgenden Nachricht beschrieben.*" );
 
             EmbedBuilder builder2 = new EmbedBuilder();
             builder2.setColor(0x1da64a);

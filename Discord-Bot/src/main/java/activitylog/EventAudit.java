@@ -68,7 +68,7 @@ public class EventAudit {
 
     public void messageUpdateAudit(MessageUpdateEvent event) {
 
-        if (!event.isFromType(ChannelType.TEXT)) {
+        if (!event.isFromType(ChannelType.TEXT) || event.getMember().getUser().isBot()) {
             return;
         }
 
@@ -128,7 +128,7 @@ public class EventAudit {
                 return;
             }
         } catch (NullPointerException e) {
-            //
+            e.printStackTrace();
         }
 
         String decryptText = new CryptoMessageHandler().readEncryptedMessageWithId(event.getGuild().getIdLong(),
