@@ -109,4 +109,17 @@ public class LiteSQL {
             return null;
         }
     }
+
+    /**
+     * Provides a Statement that can be used for batches
+     * @return Statement if successful, null if a SQLException occurs.
+     */
+    public static Statement getStatement(){
+        try {
+            return conn.createStatement();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

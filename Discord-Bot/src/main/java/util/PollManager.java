@@ -75,6 +75,10 @@ public class PollManager {
     }
 
     public void handleReactionEvent(GenericMessageReactionEvent event) {
+        database.getPolls().forEach(poll -> {
+            System.out.println("----");
+            poll.getChoices().forEach(c -> System.out.println(c.getText() + " " + c.getChoiceId()));
+        });
         if (event.isFromGuild()) {
             database.getPolls().stream().filter(poll -> event.getGuild().getId().equals(poll.getGuildId())
                     && event.getMessageId().equals(poll.getMessageId()))
@@ -353,6 +357,8 @@ public class PollManager {
                     event.getMessage().delete().queue();
                 }
             } else if (setEndTime.contains(id)) {
+                event.getMessage().delete().queue();
+                try {
                     DateTime time = DiscordBot.FORMATTER.parseDateTime(event.getMessage().getContentRaw());
                     if (time.isBeforeNow()) {
                         event.getChannel().sendMessage("Du musst ein gültiges Datum angeben!")
@@ -362,6 +368,10 @@ public class PollManager {
                         setEndTime.remove(id);
                         resetMessage(setup.msg, setup);
                     }
+                } catch (IllegalArgumentException e) {
+                    event.getChannel().sendMessage("Du musst ein gültiges Datum angeben!")
+                            .queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));
+                }
             } else if (setTargetChannel.contains(id)) {
                 if (event.getMessage().getMentionedChannels().size() != 1) {
                     event.getChannel().sendMessage("DU musst exakt EINEN Textchannel angeben.").queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));

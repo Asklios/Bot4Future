@@ -54,7 +54,7 @@ public class UnbanRequestHandler {
             if (message.length() == 18) {
                 try {
                     Guild guild = event.getJDA().getGuildById(message);
-                    if (guild.equals(null)) {
+                    if (guild == null) {
                         channel.sendMessage("Der Server konnte nicht gefunden werden, bitte überprüfe die ID.").queue();
                         return;
                     }
