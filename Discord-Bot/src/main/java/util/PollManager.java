@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import org.joda.time.DateTime;
 
@@ -25,12 +26,13 @@ import java.util.stream.Collectors;
 public class PollManager {
     private Map<String, PollSetup> setups = new HashMap<>();
 
-    private List<String> setDescription = new ArrayList<>();
-    private List<String> setName = new ArrayList<>();
-    private List<String> addChoice = new ArrayList<>();
-    private List<String> removeChoice = new ArrayList<>();
-    private List<String> setVotesPerUser = new ArrayList<>();
-    private List<String> setEndTime = new ArrayList<>();
+    private final List<String> setDescription = new ArrayList<>();
+    private final List<String> setName = new ArrayList<>();
+    private final List<String> addChoice = new ArrayList<>();
+    private final List<String> removeChoice = new ArrayList<>();
+    private final List<String> setVotesPerUser = new ArrayList<>();
+    private final List<String> setEndTime = new ArrayList<>();
+    private final List<String> setTargetChannel = new ArrayList<>();
 
     public final PollDatabase database = new PollDatabaseSQLite();
 
@@ -69,16 +71,18 @@ public class PollManager {
 
     public void handleReactionEvent(GenericMessageReactionEvent event) {
         if (event.isFromGuild()) {
+            System.out.println(event.getMessageId());
             database.getPolls().stream().filter(poll -> event.getGuild().getId().equals(poll.getGuildId())
                     && event.getMessageId().equals(poll.getMessageId()))
                     .findFirst().ifPresent(poll -> {
-                if (poll.getCloseTime() < System.currentTimeMillis() || event instanceof MessageReactionRemoveEvent || event.getUser().isBot())
+                if (poll.getCloseTime() < System.currentTimeMillis() || event instanceof MessageReactionRemoveEvent || event.getUser().isBot()) {
                     return;
+                }
                 ZonedDateTime zdt = ZonedDateTime.of(event.getMember().getTimeJoined().toLocalDateTime(), ZoneId.systemDefault());
                 boolean isTwoWeeks = (System.currentTimeMillis() - zdt.toInstant().toEpochMilli() + 2 * 60 * 60 * 1000) > (14 * 24 * 60 * 60 * 1000);
-                if (isTwoWeeks) {
+                if (!isTwoWeeks) {
                     event.getMember().getUser().openPrivateChannel().queue(pChannel -> {
-                        pChannel.sendMessage("Du musst seit mindestens zwei Wochen auf " + event.getGuild().getName() + " sein, um an Umfragen teilzunehmen");
+                        pChannel.sendMessage("Du musst seit mindestens zwei Wochen auf " + event.getGuild().getName() + " sein, um an Umfragen teilzunehmen").queue();
                     });
                     return;
                 }
@@ -101,8 +105,6 @@ public class PollManager {
                                     channel.sendMessage("Du hast bereits für diese Option angestimmt!").queue();
                                 });
                             } else {
-                                for (PollChoice c : poll.getChoices()) {
-                                }
                                 poll.getChoices().get(choice).getVotes().add(event.getUserId());
                                 event.retrieveMessage().queue(msg -> msg.editMessage(createPollMessage(poll)).queue());
                             }
@@ -161,9 +163,9 @@ public class PollManager {
                         removeChoice.remove(uId);
                     } else if (setEndTime.contains(uId)) {
                         setEndTime.remove(uId);
-                    } else if (setVotesPerUser.contains(uId)) {
-                        setVotesPerUser.remove(uId);
-                    }
+                    } else if (setTargetChannel.contains(uId)) {
+                        setTargetChannel.remove(uId);
+                    } else setVotesPerUser.remove(uId);
                     setup.msg.editMessage(createSetupMessage(setup)).queue();
                 } else if (emote.equals(Emojis.EMOJI_LETTERS.get(0))) {
                     setName.add(event.getMember().getId());
@@ -222,7 +224,7 @@ public class PollManager {
                 } else if (emote.equals(Emojis.EMOJI_LETTERS.get(5))) {
                     event.retrieveMessage().queue(msg -> {
                         msg.editMessage(new EmbedBuilder()
-                                .setTitle("Endzeitpunkt.")
+                                .setTitle("Endzeitpunkt")
                                 .setDescription("Gib den Zeitpunkt an, an dem die Umfrage geschlossen werden soll.\n" +
                                         "\n*Syntax:*\n" +
                                         "```\n" +
@@ -233,6 +235,19 @@ public class PollManager {
                                 .build()).queue();
                     });
                     setEndTime.add(event.getUserId());
+                } else if (emote.equals(Emojis.EMOJI_LETTERS.get(6))) {
+                    event.retrieveMessage().queue(msg -> {
+                        msg.editMessage(new EmbedBuilder()
+                                .setTitle("Ziel setzen")
+                                .setDescription("Gebe den Channelnamen ein, in dem die Umfrage gesendet werden soll.\n" +
+                                        "Beachte:\n" +
+                                        "```\n" +
+                                        "  - beginnne den Channelnamen mit #\n" +
+                                        "  - du musst in dem Channel schreiben können\n" +
+                                        "```")
+                                .build()).queue();
+                    });
+                    setTargetChannel.add(event.getUserId());
                 } else if (emote.equals(Emojis.READY)) {
                     DiscordBot.POOL.schedule(() -> {
                         try {
@@ -329,6 +344,23 @@ public class PollManager {
                 } finally {
                     event.getMessage().delete().queue();
                 }
+            } else if (setTargetChannel.contains(id)) {
+                if (event.getMessage().getMentionedChannels().size() != 1) {
+                    event.getChannel().sendMessage("DU musst exakt EINEN Textchannel angeben.").queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));
+                } else {
+                    TextChannel channel = event.getMessage().getMentionedChannels().get(0);
+                    if (event.getMember().getPermissions(DiscordBot.INSTANCE.jda.getGuildChannelById(channel.getId())).contains(Permission.MESSAGE_WRITE)) {
+                        setup.targetChannel = channel;
+                        setTargetChannel.remove(event.getMember().getId());
+                        resetMessage(setup.msg, setup);
+                    } else {
+                        event.getChannel().sendMessage("Du hast nicht das Recht in dem angegebenen Channel Nachrichten zu schreiben!").queue(
+                                msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS)
+                        );
+                    }
+
+                }
+                event.getMessage().delete().queue();
             }
         }
     }
@@ -354,7 +386,7 @@ public class PollManager {
                     setups.remove(member.getId());
                 }
             }, 15, TimeUnit.MINUTES);
-            List<String> emotes = Arrays.asList(Emojis.BACK, Emojis.EMOJI_LETTERS.get(0), Emojis.EMOJI_LETTERS.get(1), Emojis.EMOJI_LETTERS.get(2), Emojis.EMOJI_LETTERS.get(3), Emojis.EMOJI_LETTERS.get(4), Emojis.EMOJI_LETTERS.get(5), Emojis.READY);
+            List<String> emotes = Arrays.asList(Emojis.BACK, Emojis.EMOJI_LETTERS.get(0), Emojis.EMOJI_LETTERS.get(1), Emojis.EMOJI_LETTERS.get(2), Emojis.EMOJI_LETTERS.get(3), Emojis.EMOJI_LETTERS.get(4), Emojis.EMOJI_LETTERS.get(5), Emojis.EMOJI_LETTERS.get(6), Emojis.READY);
             new Emojis.ReactionAdder(emotes).addReactions(msg, () -> {
             });
         });
@@ -372,6 +404,7 @@ public class PollManager {
         public int votesPerUser = 1;
         public DateTime endTime;
         public String userId;
+        public TextChannel targetChannel;
     }
 
     private static MessageEmbed createSetupMessage(PollSetup pollData) {
@@ -387,12 +420,14 @@ public class PollManager {
                 .addField("Möglichkeiten", choices.toString(), false)
                 .addField("Stimmen pro Nutzer", pollData.votesPerUser + (pollData.votesPerUser == 1 ? " Stimme" : " Stimmen"), true)
                 .addField("Endzeitpunkt", pollData.endTime == null ? "*nicht gesetzt*" : DiscordBot.FORMATTER.print(pollData.endTime), true)
+                .addField("Zielchannel", pollData.targetChannel == null ? "*nicht gesetzt*" : pollData.targetChannel.getAsMention(), true)
                 .addField("Eigenschaften anpassen", "\uD83C\uDDE6 | Name ändern\n"
                         + "\uD83C\uDDE7 | Beschreibung ändern\n"
                         + "\uD83C\uDDE8 | Möglichkeit hinzufügen\n"
                         + "\uD83C\uDDE9 | Möglichkeit entfernen\n"
                         + "\uD83C\uDDEA | Stimmen pro Nutzer festlegen\n"
                         + "\uD83C\uDDEB | Endzeitpunkt festlegen\n"
+                        + "\uD83C\uDDEC | Zielchannel festlegen\n"
                         + Emojis.READY + " | Umfrage speichern", false)
                 .build();
     }
@@ -470,8 +505,8 @@ public class PollManager {
         return new EmbedBuilder()
                 .setTitle("Umfrageergebnis: " + poll.getName())
                 .setDescription(poll.getDescription())
-                .addField("Möglichkeiten:", choices.toString(), true)
-                .addField("Ergebnis: (" + (int) totalVotes + " Vote" + (totalVotes == 1 ? "" : "s") + ")", current.toString(), true)
+                .addField("Möglichkeiten:", choices.toString(), false)
+                .addField("Ergebnis: (" + (int) totalVotes + " Vote" + (totalVotes == 1 ? "" : "s") + ")", current.toString(), false)
                 .setFooter("Geschlossen seit " + poll.getCloseDisplay())
                 .build();
     }
@@ -490,8 +525,9 @@ public class PollManager {
                     .build()).queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));
             return;
         }
-        Message msg = data.msg;
-        msg.clearReactions().complete();
+        setups.remove(data.userId);
+        Message msg = data.targetChannel.sendMessage(new EmbedBuilder().setDescription("Diese Nachricht wird gleich durch eine Umfrage ersetzt.").build()).complete();
+        System.out.println(msg.getId() + " " + data.msg.getId());
         List<String> emojis = new ArrayList<>();
         for (int i = 0; i < data.choices.size(); i++) {
             emojis.add(Emojis.EMOJI_LETTERS.get(i));
@@ -522,7 +558,7 @@ public class PollManager {
 
             @Override
             public String getMessageId() {
-                return data.msgId;
+                return msg.getId();
             }
 
             @Override
@@ -545,6 +581,7 @@ public class PollManager {
                 return data.userId;
             }
         };
+        data.msg.editMessage(createSetupMessage(data)).queue();
         msg.editMessage(createPollMessage(poll)).queue();
         new Emojis.ReactionAdder(emojis).addReactions(msg, () -> {
             msg.addReaction(Emojis.LOCK);
@@ -554,7 +591,7 @@ public class PollManager {
     }
 
     private boolean isPollDataReady(PollSetup data) {
-        return data.name != null && data.description != null && data.choices.size() > 1 && data.endTime != null;
+        return data.name != null && data.description != null && data.choices.size() > 1 && data.endTime != null && data.targetChannel != null;
     }
 
     private static class PollChoiceHelper {
