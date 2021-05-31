@@ -66,6 +66,7 @@ public class UserRecordsDatabaseSQLite implements UserRecordsDatabase {
         try {
             assert result != null;
             id = result.getLong("id");
+            LiteSQL.closePreparedStatement(prepStmt);
         } catch (SQLException e) {
             e.printStackTrace();
         }

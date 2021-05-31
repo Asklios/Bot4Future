@@ -62,6 +62,10 @@ public class SelfRolesSQLite implements SelfRoles {
             e.printStackTrace();
         }
 
+        if (IAmCommand.getServerSelfRoles() == null) {
+            loadSelfRoles();
+        }
+
         HashMap<Long, HashMap<String, Long>> serverSelfRoles = IAmCommand.getServerSelfRoles();
         HashMap<String, Long> guildSelfRoles = serverSelfRoles.get(guildId);
         guildSelfRoles.put(role.toLowerCase(), roleId);
