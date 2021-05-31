@@ -1,25 +1,26 @@
 package main.java.util;
 
 import main.java.DiscordBot;
-import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.impl.PollDatabaseSQLite;
-import main.java.files.interfaces.ChannelDatabase;
 import main.java.files.interfaces.PollDatabase;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import org.joda.time.DateTime;
 
 import java.awt.*;
 import java.sql.SQLException;
-import java.util.List;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class PollManager {
     private Map<String, PollSetup> setups = new HashMap<>();
@@ -32,14 +33,116 @@ public class PollManager {
     private List<String> setEndTime = new ArrayList<>();
 
     public final PollDatabase database = new PollDatabaseSQLite();
-    private ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
+
+    public PollManager() {
+        DiscordBot.POOL.scheduleAtFixedRate(() -> {
+            List<String> closedPolls = new ArrayList<>();
+            database.getPolls().forEach(poll -> {
+                if (poll.getCloseTime() < System.currentTimeMillis()) {
+                    DiscordBot.INSTANCE.jda.getGuildById(poll.getGuildId()).getTextChannels().forEach(channel -> {
+                        channel.retrieveMessageById(poll.getMessageId()).submit().thenAccept(msg -> {
+                            msg.editMessage(createPollResultMessage(poll)).queue();
+                            msg.clearReactions().queue();
+                        }).exceptionally((t) -> null);
+                    });
+                    closedPolls.add(poll.getMessageId());
+                }
+            });
+            closedPolls.forEach(toClose -> database.deletePoll(toClose));
+            try {
+                database.saveVotes();
+            } catch (SQLException exception) {
+                System.out.println("ERROR: Could not save votes");
+                exception.printStackTrace();
+            }
+        }, 5, 30, TimeUnit.SECONDS);
+    }
+
+    public void saveVotes() {
+        try {
+            database.saveVotes();
+        } catch (SQLException exception) {
+            System.out.println("ERROR: Could not save votes");
+            exception.printStackTrace();
+        }
+    }
 
     public void handleReactionEvent(GenericMessageReactionEvent event) {
         if (event.isFromGuild()) {
             database.getPolls().stream().filter(poll -> event.getGuild().getId().equals(poll.getGuildId())
                     && event.getMessageId().equals(poll.getMessageId()))
                     .findFirst().ifPresent(poll -> {
+                if (poll.getCloseTime() < System.currentTimeMillis() || event instanceof MessageReactionRemoveEvent || event.getUser().isBot())
+                    return;
+                ZonedDateTime zdt = ZonedDateTime.of(event.getMember().getTimeJoined().toLocalDateTime(), ZoneId.systemDefault());
+                boolean isTwoWeeks = (System.currentTimeMillis() - zdt.toInstant().toEpochMilli() + 2 * 60 * 60 * 1000) > (14 * 24 * 60 * 60 * 1000);
+                if (isTwoWeeks) {
+                    event.getMember().getUser().openPrivateChannel().queue(pChannel -> {
+                        pChannel.sendMessage("Du musst seit mindestens zwei Wochen auf " + event.getGuild().getName() + " sein, um an Umfragen teilzunehmen");
+                    });
+                    return;
+                }
+                String emote = event.getReactionEmote().getEmoji();
+                event.getReaction().removeReaction(event.getUser()).queue();
+                if (Emojis.EMOJI_LETTERS.contains(emote)) {
+                    int choice = Emojis.EMOJI_LETTERS.indexOf(emote);
+                    if (poll.getChoices().size() < choice) {
+                        event.getChannel().sendMessage("Ungültige Option, bitte wähle eine richtige.")
+                                .queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));
+                    } else {
+                        int cnt = (int) poll.getChoices().stream().filter(c -> c.getVotes().contains(event.getUserId())).count();
+                        if (cnt >= poll.getVotesPerUser()) {
+                            event.getUser().openPrivateChannel().queue(channel -> {
+                                channel.sendMessage("Du hast bereits " + cnt + " Stimmen abgegeben!").queue();
+                            });
+                        } else {
+                            if (poll.getChoices().get(choice).getVotes().contains(event.getUserId())) {
+                                event.getUser().openPrivateChannel().queue(channel -> {
+                                    channel.sendMessage("Du hast bereits für diese Option angestimmt!").queue();
+                                });
+                            } else {
+                                for (PollChoice c : poll.getChoices()) {
+                                }
+                                poll.getChoices().get(choice).getVotes().add(event.getUserId());
+                                event.retrieveMessage().queue(msg -> msg.editMessage(createPollMessage(poll)).queue());
+                            }
+                        }
+                    }
+                } else if (Emojis.LOCK.equals(emote)) {
+                    if (poll.getPollOwner().equalsIgnoreCase(event.getUserId()) || event.getMember().hasPermission(Permission.ADMINISTRATOR)) {
+                        event.retrieveMessage().queue(msg -> {
+                            msg.editMessage(createPollResultMessage(poll)).queue();
+                            msg.clearReactions().queue();
+                        });
+                        database.deletePoll(poll.getMessageId());
+                    }
+                } else if (Emojis.CLOSE.equalsIgnoreCase(emote)) {
+                    poll.getChoices().forEach(pollChoice -> {
+                        pollChoice.getVotes().remove(event.getUserId());
+                    });
+                    event.retrieveMessage().queue(msg -> msg.editMessage(createPollMessage(poll)).queue());
+                    event.getUser().hasPrivateChannel();
+                    event.getUser().openPrivateChannel().queue(channel -> {
+                        channel.sendMessage("Deine Auswahl wurde zurückgesetzt.").queue();
+                    });
+                    event.getReaction().removeReaction(event.getUser()).queue();
+                } else if (Emojis.INFO.equalsIgnoreCase(emote)) {
+                    List<String> selected = new ArrayList<>();
+                    poll.getChoices().forEach(choice -> {
+                        if (choice.getVotes().contains(event.getUserId())) {
+                            selected.add(choice.getText());
+                        }
+                    });
 
+                    StringBuilder builder = new StringBuilder("Du hast folgende Optionen ausgewählt:\n```");
+                    if (selected.size() == 0) {
+                        builder.append("\n (Du hast nichts ausgewählt!)");
+                    } else {
+                        selected.forEach(s -> builder.append("\n- " + s));
+                    }
+                    builder.append("\n```");
+                    event.getUser().openPrivateChannel().queue(channel -> channel.sendMessage(builder.toString()).queue());
+                }
             });
         }
 
@@ -79,13 +182,18 @@ public class PollManager {
                                 .build()).queue();
                     });
                 } else if (emote.equals(Emojis.EMOJI_LETTERS.get(2))) {
-                    addChoice.add(event.getMember().getId());
-                    event.retrieveMessage().queue(msg -> {
-                        msg.editMessage(new EmbedBuilder()
-                                .setTitle("Neue Möglichkeit hinzufügen")
-                                .setDescription("Gib den Text für die neue Möglichkeit ein.")
-                                .build()).queue();
-                    });
+                    if (setup.choices.size() == 17) {
+                        event.getChannel().sendMessage("Du kannst maximal 17 Möglichkeiten nutzen!")
+                                .queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));
+                    } else {
+                        addChoice.add(event.getMember().getId());
+                        event.retrieveMessage().queue(msg -> {
+                            msg.editMessage(new EmbedBuilder()
+                                    .setTitle("Neue Möglichkeit hinzufügen")
+                                    .setDescription("Gib den Text für die neue Möglichkeit ein.")
+                                    .build()).queue();
+                        });
+                    }
                 } else if (emote.equals(Emojis.EMOJI_LETTERS.get(3))) {
                     if (setup.choices.size() < 1) {
                         setup.msg.getChannel().sendMessage("Es gibt noch keine Möglichkeiten, die du entfernen könntest!")
@@ -151,15 +259,28 @@ public class PollManager {
                 resetMessage(setup.msg, setup);
                 event.getMessage().delete().queue();
             } else if (setDescription.contains(id)) {
-                setup.description = event.getMessage().getContentStripped();
-                setDescription.remove(id);
-                resetMessage(setup.msg, setup);
+                String description = event.getMessage().getContentRaw();
+                if (description.length() > 2048) {
+                    event.getChannel().sendMessage("Die Beschreibung kann maximal 2048 Zeichen lang sein!")
+                            .queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));
+                } else {
+                    setup.description = event.getMessage().getContentStripped();
+                    setDescription.remove(id);
+                    resetMessage(setup.msg, setup);
+                }
                 event.getMessage().delete().queue();
             } else if (addChoice.contains(id)) {
-                if (setup.choices.contains(event.getMessage().getContentStripped())) {
+                String choice = event.getMessage().getContentRaw();
+                if (setup.choices.contains(choice)) {
                     event.getChannel().sendMessage("Diese Möglichkeit exsistiert bereits!")
                             .queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));
-                    addChoice.remove(id);
+                } else if (setup.choices.stream().collect(Collectors.joining()).length() > 950) {
+                    event.getChannel().sendMessage("Da Discord nur Nachrichten bis zu einer bestimmten Länge " +
+                            "zulässt, musst du darauf achten, dass alle Möglichkeiten zusammen max. 950 Zeichen lang sind.\n" +
+                            "Nutze sonst die Beschreibung mit, bzw. erkläre die Abstimmung in einer Extra-Nachricht\n\n" +
+                            "*Hinweis: das Limit liegt bei 950 Zeichen, obwohl das von Discord festgelegte bei 1024 liegt, da " +
+                            "dieses auch noch Formatierungen von mir bekommt.*")
+                            .queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));
                 } else {
                     setup.choices.add(event.getMessage().getContentStripped());
                     addChoice.remove(id);
@@ -169,12 +290,14 @@ public class PollManager {
             } else if (removeChoice.contains(id)) {
                 try {
                     Integer integer = Integer.valueOf(event.getMessage().getContentRaw());
-                    if (setup.choices.size() > integer || integer < 1) {
+                    if (setup.choices.size() > integer || 1 > integer) {
                         setup.msg.getChannel().sendMessage("Du musst eine gültige Zahl angeben!").queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));
+                    } else {
+                        setup.choices.remove(integer - 1);
+                        if (setup.choices.size() > setup.votesPerUser) setup.votesPerUser = setup.votesPerUser - 1;
+                        resetMessage(setup.msg, setup);
+                        removeChoice.remove(id);
                     }
-                    setup.choices.remove(integer - 1);
-                    resetMessage(setup.msg, setup);
-                    removeChoice.remove(id);
                 } catch (NumberFormatException e) {
                     event.getChannel().sendMessage("Du musst eine gültige Zahl angeben!").queue(msg -> msg.delete().queueAfter(5, TimeUnit.SECONDS));
                 } finally {
@@ -230,7 +353,7 @@ public class PollManager {
                     msg.clearReactions().queue();
                     setups.remove(member.getId());
                 }
-            }, 5, TimeUnit.MINUTES);
+            }, 15, TimeUnit.MINUTES);
             List<String> emotes = Arrays.asList(Emojis.BACK, Emojis.EMOJI_LETTERS.get(0), Emojis.EMOJI_LETTERS.get(1), Emojis.EMOJI_LETTERS.get(2), Emojis.EMOJI_LETTERS.get(3), Emojis.EMOJI_LETTERS.get(4), Emojis.EMOJI_LETTERS.get(5), Emojis.READY);
             new Emojis.ReactionAdder(emotes).addReactions(msg, () -> {
             });
@@ -277,42 +400,79 @@ public class PollManager {
     private MessageEmbed createPollMessage(Poll poll) {
         StringBuilder choices = new StringBuilder();
         StringBuilder current = new StringBuilder();
-        AtomicReference<Integer> totalVotes = new AtomicReference<>(0);
+        float totalVotes = poll.getChoices().stream().map(PollChoice::getVotes).collect(Collectors.summingInt(List::size));
         poll.getChoices().forEach(choice -> {
-            totalVotes.set(totalVotes.get().intValue() + choice.getVotes().size());
             choices.append(Emojis.EMOJI_LETTERS.get(choice.getChoiceId()) + " | " + choice.getText() + "\n");
         });
 
         poll.getChoices().forEach(choice -> {
-            current.append(Emojis.EMOJI_LETTERS.get(choice.getChoiceId()) + " | ");
-            if (totalVotes.get() == 0) {
+            current.append(Emojis.EMOJI_LETTERS.get(choice.getChoiceId()) + " │");
+            if (choice.getVotes().size() == 0) {
                 for (int i = 0; i < 12; i++) {
                     current.append(Emojis.CHART_EMPTY);
                 }
-                current.append("\n");
+                current.append("│\n");
             } else {
-                int percent = (choice.getVotes().size() / totalVotes.get()) * 12;
-                for (int i = 0; i < percent; i++) {
-                    current.append(Emojis.CHART_FULL);
+                StringBuilder local = new StringBuilder();
+                float percent = (choice.getVotes().size() / totalVotes) * 12;
+                for (int i = 0; i < percent; i++) local.append(Emojis.CHART_FULL);
+                while (local.length() != 12) {
+                    local.append(Emojis.CHART_EMPTY);
                 }
-                for (int i = 0; i < 12 - percent; i++) {
-                    current.append(Emojis.CHART_EMPTY);
-                }
+                current.append(local).append("│");
                 current.append("\n");
             }
         });
+
         return new EmbedBuilder()
                 .setTitle("Umfrage: " + poll.getName())
                 .setDescription(poll.getDescription())
-                .addField("Möglichkeiten:", choices.toString(), false)
-                .addField("Jetziger Stand: (" + totalVotes.get() + " Vote" + (totalVotes.get() == 1 ? "" : "s") + ")", current.toString(), false)
+                .addField("Möglichkeiten:", choices.toString(), true)
+                .addField("Jetziger Stand: (" + (int) totalVotes + " Stimme" + (totalVotes == 1 ? "" : "n") + ")", current.toString(), false)
                 .addField("Hinweise:", "Reagiere mit den entsprechenden Buchstaben " +
                         "um für eine Möglichkeit abzustimmen. Du hast **" + poll.getVotesPerUser() + "** " +
                         (poll.getVotesPerUser() == 1 ? "Stimme\n" : "Stimmen.\n") +
                         "Wenn du deine Auswahl zurücksetzen willst, reagiere mit " + Emojis.CLOSE + "." +
-                        "Um deine jetzige Auswahl zu erhalten, reagiere mit " + Emojis.INFO + "\n\n" +
-                        "Der Ersteller einer Umfrage kann diese mit dem Reagieren mit " + Emojis.LOCK + " schließen.", false)
+                        "Um deine jetzige Auswahl zu erhalten, reagiere mit " + Emojis.INFO + "\n" +
+                        "Du musst seit mindestens zwei Wochen auf diesem Server sein, damit Umfragen nicht manipuliert werden können.\n\n" +
+                        "Der Ersteller einer Umfrage kann diese mit dem Reagieren mit " + Emojis.LOCK + " schließen.", true)
                 .setFooter("Diese Umfrage ist bis " + poll.getCloseDisplay() + " geöffnet.")
+                .build();
+    }
+
+    private MessageEmbed createPollResultMessage(Poll poll) {
+        StringBuilder choices = new StringBuilder();
+        StringBuilder current = new StringBuilder();
+        float totalVotes = poll.getChoices().stream().map(PollChoice::getVotes).collect(Collectors.summingInt(List::size));
+
+        poll.getChoices().forEach(choice -> {
+            choices.append(Emojis.EMOJI_LETTERS.get(choice.getChoiceId()) + " | " + choice.getText() + "\n");
+        });
+
+        poll.getChoices().forEach(choice -> {
+            current.append(Emojis.EMOJI_LETTERS.get(choice.getChoiceId()) + " │");
+            if (choice.getVotes().size() == 0) {
+                for (int i = 0; i < 12; i++) {
+                    current.append(Emojis.CHART_EMPTY);
+                }
+                current.append("│\n");
+            } else {
+                StringBuilder local = new StringBuilder();
+                float percent = (choice.getVotes().size() / totalVotes) * 12;
+                for (int i = 0; i < percent; i++) local.append(Emojis.CHART_FULL);
+                while (local.length() != 12) {
+                    local.append(Emojis.CHART_EMPTY);
+                }
+                current.append(local).append("│");
+                current.append("\n");
+            }
+        });
+        return new EmbedBuilder()
+                .setTitle("Umfrageergebnis: " + poll.getName())
+                .setDescription(poll.getDescription())
+                .addField("Möglichkeiten:", choices.toString(), true)
+                .addField("Ergebnis: (" + (int) totalVotes + " Vote" + (totalVotes == 1 ? "" : "s") + ")", current.toString(), true)
+                .setFooter("Geschlossen seit " + poll.getCloseDisplay())
                 .build();
     }
 
@@ -390,6 +550,7 @@ public class PollManager {
             msg.addReaction(Emojis.LOCK);
         });
         database.savePoll(poll);
+        database.loadAllPolls();
     }
 
     private boolean isPollDataReady(PollSetup data) {

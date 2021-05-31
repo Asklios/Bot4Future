@@ -19,8 +19,11 @@ public class PollDatabaseSQLite implements PollDatabase {
     private List<Poll> polls = new ArrayList<>();
 
     @Override
-    public void loadAllPolls() throws SQLException {
-        ResultSet rs = LiteSQL.onQuery("SELECT tbl_name FROM sqlite_master WHERE type = 'table'");
+    public void loadAllPolls() {
+        try {
+            polls.clear();
+            Connection connection = LiteSQL.POOL.getConnection();
+            Statement stmt1 = connection.createStatement();
 
         System.out.println(rs.getString("tbl_name"));
 
@@ -43,15 +46,30 @@ public class PollDatabaseSQLite implements PollDatabase {
             poll.msgId = resultSet.getString("msgid");
             poll.votesPerUser = resultSet.getInt("votesperuser");
 
-            resultSet.close();
-            ResultSet choiceResult = LiteSQL.onQuery("SELECT * FROM pollchoices WHERE pollguildid=" + poll.guildId + " AND pollmsgid=" + poll.msgId);
-            while (choiceResult.next()) {
-                PollChoiceImpl choice = new PollChoiceImpl();
-                choice.text = choiceResult.getString("value");
-                choice.choiceId = choiceResult.getInt("choiceid");
-                ResultSet voteResult = LiteSQL.onQuery("SELECT * FROM pollvotes WHERE pollguildid=" + poll.guildId + " AND pollmsgid=" + poll.msgId + " AND choiceid=" + choice.choiceId);
-                while (voteResult.next()) {
-                    choice.votes.add(voteResult.getString("userid"));
+            while (resultSet.next()) {
+                PollImpl poll = new PollImpl();
+                poll.name = resultSet.getString("name");
+                poll.description = resultSet.getString("description");
+                poll.closeTime = resultSet.getLong("endtime");
+                poll.closeDisplay = DiscordBot.FORMATTER.print(new DateTime(poll.closeTime));
+                poll.userId = resultSet.getString("ownerid");
+                poll.guildId = resultSet.getString("guildid");
+                poll.msgId = resultSet.getString("msgid");
+                poll.votesPerUser = resultSet.getInt("votesperuser");
+                Statement stmt2 = connection.createStatement();
+                ResultSet choiceResult = stmt2.executeQuery("SELECT * FROM pollchoices WHERE pollguildid=" + poll.guildId + " AND pollmsgid=" + poll.msgId);
+                while (choiceResult.next()) {
+                    PollChoiceImpl choice = new PollChoiceImpl();
+                    choice.text = choiceResult.getString("value");
+                    choice.choiceId = choiceResult.getInt("choiceid");
+                    Statement stmt3 = connection.createStatement();
+                    ResultSet voteResult = stmt3.executeQuery("SELECT * FROM pollvotes WHERE pollguildid=" + poll.guildId + " AND pollmsgid=" + poll.msgId + " AND choiceid=" + choice.choiceId);
+                    while (voteResult.next()) {
+                        choice.votes.add(voteResult.getString("userid"));
+                    }
+                    stmt3.close();
+                    voteResult.close();
+                    poll.choices.add(choice);
                 }
                 voteResult.close();
                 poll.choices.add(choice);
