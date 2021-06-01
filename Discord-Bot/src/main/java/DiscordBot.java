@@ -193,17 +193,12 @@ public class DiscordBot {
                         case "deletepolls":
                             jda.shutdown();
                             try {
-                                Statement stmt = LiteSQL.getStatement();
-                                assert stmt != null;
-                                stmt.addBatch("DROP TABLE polls;");
-                                stmt.addBatch("DROP TABLE pollvotes;");
-                                stmt.addBatch("DROP TABLE pollchoices;");
-                                stmt.executeBatch();
-                                stmt.close();
+
+                                LiteSQL.onUpdate("DROP TABLE polls;");
+                                LiteSQL.onUpdate("DROP TABLE pollvotes;");
+                                LiteSQL.onUpdate("DROP TABLE pollchoices;");
                                 System.out.println("Umfragendatenbank vollständig gelöscht.");
                                 System.out.println("Stoppe Bot...");
-                            } catch (SQLException exception) {
-                                exception.printStackTrace();
                             } finally {
                                 System.exit(0);
                             }

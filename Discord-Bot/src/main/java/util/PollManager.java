@@ -598,7 +598,7 @@ public class PollManager {
         builder.addField("Hinweise:", "Reagiere mit den entsprechenden Buchstaben " +
                 "um für eine Möglichkeit abzustimmen. Du hast **" + poll.getVotesPerUser() + "** " +
                 (poll.getVotesPerUser() == 1 ? "Stimme\n" : "Stimmen.\n") +
-                "Wenn du deine Auswahl zurücksetzen willst, reagiere mit " + Emojis.CLOSE + "." +
+                "Wenn du deine Auswahl zurücksetzen willst, reagiere mit " + Emojis.CLOSE + ". " +
                 "Um deine jetzige Auswahl zu erhalten, reagiere mit " + Emojis.INFO + "\n" +
                 "Du musst seit mindestens zwei Wochen auf diesem Server sein, damit Umfragen nicht manipuliert werden können.\n\n" +
                 "Der Ersteller einer Umfrage kann diese mit dem Reagieren mit " + Emojis.LOCK + " schließen.", true)
