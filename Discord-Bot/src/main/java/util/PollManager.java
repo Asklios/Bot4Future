@@ -75,10 +75,6 @@ public class PollManager {
     }
 
     public void handleReactionEvent(GenericMessageReactionEvent event) {
-        database.getPolls().forEach(poll -> {
-            System.out.println("----");
-            poll.getChoices().forEach(c -> System.out.println(c.getText() + " " + c.getChoiceId()));
-        });
         if (event.isFromGuild()) {
             database.getPolls().stream().filter(poll -> event.getGuild().getId().equals(poll.getGuildId())
                     && event.getMessageId().equals(poll.getMessageId()))

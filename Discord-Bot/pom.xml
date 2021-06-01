@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>Bot4Future</groupId>
     <artifactId>Bot4Future</artifactId>
-    <version>v6.0.0</version>
+    <version>v6.0.1</version>
 
     <properties>
         <project.java.version>11</project.java.version>
@@ -95,6 +95,11 @@
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>2.10.10</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.30</version>
         </dependency>
     </dependencies>
 </project>

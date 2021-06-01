@@ -48,8 +48,6 @@ public class InviteManager {
     public void checkNewMember(Member member) {
         try {
             guild.retrieveInvites().queue(invites -> invites.forEach(invite -> {
-                System.out.println(invite.getCode() + " - " + specialInviteCode);
-
                 if (!invite.getCode().equals(specialInviteCode)) return;
 
                 if (inviteCount < invite.getUses()) {
