@@ -3,9 +3,7 @@ package main.java.helper.api;
 import lombok.Getter;
 import lombok.NonNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class LocalGroups {
 
@@ -72,11 +70,24 @@ public class LocalGroups {
      * @return LocalGroup or null.
      */
     public LocalGroup getGroupByName(String name) {
-        List<Long> ids = localGroupsByName.get(name);
-        if (ids == null) return null;
-        LocalGroup[] localGroup = new LocalGroup[1];
-        ids.forEach(id -> localGroup[0] = LocalGroups.localGroups.get(id));
-        return localGroup[0];
+        return LocalGroups.localGroups.values()
+                .stream()
+                .filter(localGroup -> localGroup.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Finds the group with the specified id
+     * @param id
+     * @return LocalGroup or null
+     */
+    public LocalGroup getGroupById(Long id) {
+        return localGroups.values()
+                .stream()
+                .filter(localGroup -> localGroup.getId() == id)
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -91,6 +102,8 @@ public class LocalGroups {
     }
 
     public LocalGroup[] getLocalGroups() {
-        return (LocalGroups.localGroups.values().toArray(LocalGroup[]::new));
+        LocalGroup[] groups = LocalGroups.localGroups.values().toArray(LocalGroup[]::new);
+        Arrays.sort(groups);
+        return (groups);
     }
 }

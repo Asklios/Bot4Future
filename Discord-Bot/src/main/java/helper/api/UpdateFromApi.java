@@ -1,8 +1,7 @@
 package main.java.helper.api;
 
+import main.java.DiscordBot;
 import main.java.helper.TimeMillis;
-import main.java.helper.TimedTask;
-import main.java.helper.TimedTasks;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 public class UpdateFromApi {
 
@@ -38,11 +38,12 @@ public class UpdateFromApi {
         new LocalGroups().deleteAll();
         new Strikes().deleteAll();
 
-        addLocalGroup(localGroups);
+        addLocalGroups(localGroups);
         addStrikes(strikes);
 
-        long endTime = System.currentTimeMillis() + 1000*60*30;
-        new TimedTasks().addTimedTask(TimedTask.TimedTaskType.APIUPDATE, endTime);
+        DiscordBot.POOL.schedule(() -> {
+            new UpdateFromApi().completeUpdate();
+        }, 30, TimeUnit.MINUTES);
     }
 
     private List<String> readUrl(String urlString) throws IOException {
@@ -70,7 +71,7 @@ public class UpdateFromApi {
         return lines;
     }
 
-    private void addLocalGroup(String localGroups) {
+    private void addLocalGroups(String localGroups) {
         String[] localGroupsSplit = localGroups.replaceAll("\\[", "").replaceAll("]", "")
                 .split("},\\{");
         for (String s : localGroupsSplit) {
@@ -218,6 +219,7 @@ public class UpdateFromApi {
             Date lastUpdate;
             if (lastUpdateString == null) lastUpdate = null;
             else lastUpdate = TimeMillis.stringToDate(lastUpdateString);
+
 
             new Strikes().addStrike(id, locationName, localGroupName, lat, lon, state, dateTime, note, eventLink, lastUpdate);
         }

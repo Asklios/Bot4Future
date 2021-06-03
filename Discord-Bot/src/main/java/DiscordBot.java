@@ -71,7 +71,9 @@ public class DiscordBot {
     private TimedTasksDatabase timedTasksDatabase;
     private SelfRoles selfRoles;
 
+
     public PollManager pollManager;
+    public SubscribtionDatabase subscribtionDatabase;
 
     public static final ScheduledExecutorService POOL = Executors.newScheduledThreadPool(5);
     public static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("d.MM.yy, k:mm");
@@ -114,6 +116,9 @@ public class DiscordBot {
         ActivitySQLManager.onCreate();
         pollManager = new PollManager();
         pollManager.database.loadAllPolls();
+
+        subscribtionDatabase = new SubscribtionDatabaseSQLite();
+
         new EventAudit().updateIgnoredChannels();
 
         JDABuilder builder = JDABuilder.createDefault(botToken);

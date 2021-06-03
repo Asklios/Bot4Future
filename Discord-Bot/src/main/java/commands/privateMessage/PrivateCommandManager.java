@@ -6,6 +6,9 @@ import main.java.commands.privateMessage.info.PmInfoCommands;
 import main.java.commands.privateMessage.pb.PbCountdownPmCommand;
 import main.java.commands.privateMessage.pb.SetPbFilterCommand;
 import main.java.commands.privateMessage.pb.SetPbPmCommand;
+import main.java.commands.privateMessage.strikes.StrikeSubscribeCommand;
+import main.java.commands.privateMessage.strikes.StrikeSubscribtionsCommand;
+import main.java.commands.privateMessage.strikes.StrikeUnsubscribeCommand;
 import main.java.commands.server.administation.poll.CreatePollCommand;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.PrivateChannel;
@@ -26,6 +29,10 @@ public class PrivateCommandManager {
         this.commands.put("pbcountdown", new PbCountdownPmCommand());
         this.commands.put("ogs", new ListOgsPmCommand());
         this.commands.put("og", new OgInfoPmCommand());
+
+        this.commands.put("subscribe", new StrikeSubscribeCommand());
+        this.commands.put("unsubscribe", new StrikeUnsubscribeCommand());
+        this.commands.put("subscribtions", new StrikeSubscribtionsCommand());
 
         //PmInfoCommands
         String[] infoCommands = {"test", "webseite", "app", "instagram", "insta", "facebook", "twitter", "youtube",

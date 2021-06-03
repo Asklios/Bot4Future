@@ -28,6 +28,7 @@ public class SQLManager {
         LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS polls(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, guildid INTEGER, msgid STRING, name STRING, description STRING, votesperuser INTEGER, endtime INTEGER, ownerid INTEGER, hidevotes INTEGER)");
         LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS pollchoices(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, pollguildid INTEGER, pollmsgid INTEGER, choiceid INTEGER, value STRING)");
         LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS pollvotes(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, pollguildid INTEGER, pollmsgid INTEGER, choiceid INTEGER, userid INTEGER)");
+        LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS subscribtions(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, userid STRING, localgroupid INTEGER)");
 
         if(System.getenv("RESETPOLLS") != null && System.getenv("RESETPOLLS").equalsIgnoreCase("true")){
             LiteSQL.onUpdate("DROP TABLE polls;");

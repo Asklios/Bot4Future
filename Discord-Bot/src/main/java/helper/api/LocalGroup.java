@@ -2,9 +2,10 @@ package main.java.helper.api;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 
 @Getter @Setter
-public class LocalGroup {
+public class LocalGroup implements Comparable<LocalGroup> {
 
     private long id;
     private String name;
@@ -37,5 +38,10 @@ public class LocalGroup {
         this.telegram = telegram;
         this.other = other;
         this.email = email;
+    }
+
+    @Override
+    public int compareTo(@NotNull LocalGroup o) {
+        return this.name.compareTo(o.getName());
     }
 }
