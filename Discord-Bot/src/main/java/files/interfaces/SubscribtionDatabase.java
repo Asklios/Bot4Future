@@ -38,4 +38,11 @@ public interface SubscribtionDatabase {
      * @return Map<OG-ID, List<UserID>>
      */
     Map<Long, List<String>> getAllSubscribtions();
+
+    /**
+     * Gitb alle Abonements für die angegebene Ortsgruppe wieder
+     * @param localgroupId ID der Ortsgruppe
+     * @return Liste mit allen Abonennten.
+     */
+    List<String> getSubscribtionsForLocalGroup(Long localgroupId);
 }

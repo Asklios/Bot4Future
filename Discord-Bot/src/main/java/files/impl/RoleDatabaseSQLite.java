@@ -22,7 +22,7 @@ import java.util.Map;
  */
 public class RoleDatabaseSQLite implements RoleDatabase {
 
-    private static String[] roleTypes = new String[]{
+    private static final String[] roleTypes = new String[]{
             "mute",
             "specialrole",
             "specialcode",

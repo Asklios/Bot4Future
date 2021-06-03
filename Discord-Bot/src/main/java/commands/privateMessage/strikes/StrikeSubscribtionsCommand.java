@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class StrikeSubscribtionsCommand implements PrivateCommand {
-    private SubscribtionDatabase db = DiscordBot.INSTANCE.subscribtionDatabase;
+    private final SubscribtionDatabase db = DiscordBot.INSTANCE.subscribtionDatabase;
 
     @Override
     public void performCommand(User user, PrivateChannel channel, Message message) {

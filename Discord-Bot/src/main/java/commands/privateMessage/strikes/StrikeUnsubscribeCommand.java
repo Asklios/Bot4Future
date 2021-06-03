@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.User;
 
 public class StrikeUnsubscribeCommand implements PrivateCommand {
-    private SubscribtionDatabase db = DiscordBot.INSTANCE.subscribtionDatabase;
+    private final SubscribtionDatabase db = DiscordBot.INSTANCE.subscribtionDatabase;
 
     @Override
     public void performCommand(User user, PrivateChannel channel, Message message) {

@@ -8,11 +8,11 @@ import java.util.*;
 public class LocalGroups {
 
     @Getter
-    private static HashMap<Long, LocalGroup> localGroups = new HashMap<>();
+    private static final HashMap<Long, LocalGroup> localGroups = new HashMap<>();
 
     //index HashMaps
-    private static HashMap<String, List<Long>> localGroupsByName = new HashMap<>();
-    private static HashMap<String, List<Long>> localGroupsByState = new HashMap<>();
+    private static final HashMap<String, List<Long>> localGroupsByName = new HashMap<>();
+    private static final HashMap<String, List<Long>> localGroupsByState = new HashMap<>();
 
     /**
      * Deletes all saved LocalGroups.

@@ -1,7 +1,5 @@
 package main.java.files.interfaces;
 
-import main.java.helper.api.LocalGroups;
-
 public interface StrikeUpdateDatabase {
     /**
      * Gibt das letzte bearbeitete Update eines Streiks wieder. Dies wird genutzt, damit die Streikinfos nicht mehrmals an die
@@ -17,5 +15,12 @@ public interface StrikeUpdateDatabase {
      * @param timestamp und dem Unix-Timestamp
      */
     void setLastHandledUpdate(Long strikeId, Long timestamp);
+
+    /**
+     * Lösche alle Datenbankeinträge, welche keine Bedeutung mehr haben.
+     */
+    void cleanupDatabase();
+
+
 
 }

@@ -41,6 +41,9 @@ public class UpdateFromApi {
         addLocalGroups(localGroups);
         addStrikes(strikes);
 
+        DiscordBot.INSTANCE.notifier.handleNotify();
+        DiscordBot.INSTANCE.subscribtionDatabase.getUpdateDatabase().cleanupDatabase();
+
         DiscordBot.POOL.schedule(() -> {
             new UpdateFromApi().completeUpdate();
         }, 30, TimeUnit.MINUTES);

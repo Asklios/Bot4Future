@@ -29,7 +29,7 @@ public class AutoListener {
             return;
         }
         String s = message.getContentRaw().replaceAll(" ", "\\$").replaceAll("\\?", "").replaceAll("\\.", "").replaceAll("\\!", "").toLowerCase();
-        if (s.length() > 3 && s.substring(0, 3).equals("ntd")) {
+        if (s.length() > 3 && s.startsWith("ntd")) {
             performNtd(s, channel);
         }
         s = this.autoResponse.get(s); // s = festgelegte Antwort
@@ -42,7 +42,7 @@ public class AutoListener {
     private void readFile() {
         try {
             File file = new File(DiscordBot.INSTANCE.getAutoListenerFilePath());
-            Scanner scanner = new Scanner(file, "UTF-8");
+            Scanner scanner = new Scanner(file, StandardCharsets.UTF_8);
 
             while (scanner.hasNextLine()) {
 
@@ -53,7 +53,7 @@ public class AutoListener {
                 split[0] = split[0].replaceAll(" ", "\\$").replaceAll("\\?", "").replaceAll("\\.", "").replaceAll("\\!", "").toLowerCase();
                 if (split.length == 2) {
 
-                    if (split[0].substring(0, 3).equals("ntd")) {
+                    if (split[0].startsWith("ntd")) {
                         if (ntdToHashMap(split[0], split[1])) {
                             autoResponse.put(split[0], split[1]);
                         }
@@ -76,6 +76,8 @@ public class AutoListener {
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

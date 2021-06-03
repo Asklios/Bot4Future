@@ -9,8 +9,8 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class SubscribtionDatabaseSQLite implements SubscribtionDatabase {
-    private Map<Long, List<String>> subscribtions = new HashMap<>();
-    private StrikeUpdateDatabase updateDB;
+    private final Map<Long, List<String>> subscribtions = new HashMap<>();
+    private final StrikeUpdateDatabase updateDB;
 
     public SubscribtionDatabaseSQLite() {
         updateDB = new StrikeUpdateDatabaseSQLite();
@@ -53,7 +53,7 @@ public class SubscribtionDatabaseSQLite implements SubscribtionDatabase {
 
     @Override
     public void unsubscribe(String userId, Long ogId) {
-        if (subscribtions.containsKey(ogId) && subscribtions.get(ogId).contains(userId))
+        if (subscribtions.containsKey(ogId))
             subscribtions.get(ogId).remove(userId);
         LiteSQL.onUpdate("DELETE FROM subscribtions WHERE userid=\"" + userId + "\" AND localgroupid=\"" + ogId + "\";");
     }
@@ -61,5 +61,11 @@ public class SubscribtionDatabaseSQLite implements SubscribtionDatabase {
     @Override
     public Map<Long, List<String>> getAllSubscribtions() {
         return Collections.unmodifiableMap(subscribtions);
+    }
+
+    @Override
+    public List<String> getSubscribtionsForLocalGroup(Long localgroupId) {
+        if(!subscribtions.containsKey(localgroupId)) subscribtions.put(localgroupId, new ArrayList<>());
+        return subscribtions.get(localgroupId);
     }
 }

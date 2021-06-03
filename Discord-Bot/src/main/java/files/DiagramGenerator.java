@@ -16,8 +16,8 @@ import java.util.Comparator;
 
 public class DiagramGenerator implements ServerCommand {
 
-    private int width = 500;
-    private int height = 80;
+    private final int width = 500;
+    private final int height = 80;
 
     @Override
     public void performCommand(Member member, TextChannel channel, Message message){

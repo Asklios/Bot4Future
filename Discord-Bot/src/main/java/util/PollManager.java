@@ -403,7 +403,7 @@ public class PollManager {
             setup.msgId = msg.getId();
             setup.msg = msg;
             DiscordBot.POOL.schedule(() -> {
-                if (setups.values().contains(setup)) {
+                if (setups.containsValue(setup)) {
                     msg.editMessage(new EmbedBuilder().setTitle("Umfrage erstellen fehlgeschlagen!")
                             .setDescription("Du hast zu lange gebraucht!").build()).queue();
                     msg.clearReactions().queue();

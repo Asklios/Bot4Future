@@ -2,7 +2,7 @@ package main.java;
 
 public class GuildData {
 
-    private long id;
+    private final long id;
     private String specialInviteCode;
     private long specialRoleID;
 

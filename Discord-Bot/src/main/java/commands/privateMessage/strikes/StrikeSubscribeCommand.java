@@ -5,7 +5,6 @@ import main.java.commands.privateMessage.PrivateCommand;
 import main.java.files.interfaces.SubscribtionDatabase;
 import main.java.helper.api.LocalGroup;
 import main.java.helper.api.LocalGroups;
-import main.java.helper.api.Strikes;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -13,7 +12,7 @@ import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.User;
 
 public class StrikeSubscribeCommand implements PrivateCommand {
-    private SubscribtionDatabase db = DiscordBot.INSTANCE.subscribtionDatabase;
+    private final SubscribtionDatabase db = DiscordBot.INSTANCE.subscribtionDatabase;
 
     @Override
     public void performCommand(User user, PrivateChannel channel, Message message) {

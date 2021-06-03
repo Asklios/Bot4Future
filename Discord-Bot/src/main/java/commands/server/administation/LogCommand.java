@@ -85,8 +85,8 @@ public class LogCommand implements ServerCommand {
 
         for (int i = messageList.size() - 1; i >= 0; i--) {
             Message message = messageList.get(i);
-            messageTime = message.getTimeCreated().format(dateFormat).toString();
-            author = "(" + message.getAuthor().getId() + ")" + message.getAuthor().getName().toString();
+            messageTime = message.getTimeCreated().format(dateFormat);
+            author = "(" + message.getAuthor().getId() + ")" + message.getAuthor().getName();
 
             messageText = message.getContentRaw();
             if (!message.getAttachments().isEmpty()) {

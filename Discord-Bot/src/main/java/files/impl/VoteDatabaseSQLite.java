@@ -83,8 +83,7 @@ public class VoteDatabaseSQLite implements VoteDatabase {
         try {
             ResultSet result = LiteSQL.onQuery("SELECT * FROM votereactions WHERE guildid = " +
                     guildID + " AND channelid = " + channelID + " AND messageid = " + messageID + " AND emotes LIKE '%" + emote + "%'");
-            if (result.next()) return true;
-            return false;
+            return result.next();
         } catch (SQLException e) {
             e.printStackTrace();
             return false;

@@ -16,14 +16,18 @@ import main.java.helper.TimedTasks;
 import main.java.helper.api.UpdateFromApi;
 import main.java.listener.*;
 import main.java.util.PollManager;
+import main.java.util.StrikeNotifier;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.events.ReadyEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -59,25 +63,25 @@ public class DiscordBot {
     private String newPbPath;
     private String dbFilePath;
     private String botToken;
-    private List<GuildData> guildsData = new ArrayList<>();
+    private final List<GuildData> guildsData = new ArrayList<>();
     private String[] defIds;
-    private long muteBanTimerPeriod = 5 * 60 * 1000;
-	private VoteDatabase voteDatabase;
-    private RoleDatabase roleDatabase;
-    private ChannelDatabase channelDatabase;
-    private UserRecordsDatabase userRecordsDatabase;
-    private GetMemberFromMessage getMemberFromMessage;
-    private InviteDatabase inviteDatabase;
-    private TimedTasksDatabase timedTasksDatabase;
-    private SelfRoles selfRoles;
+    private final long muteBanTimerPeriod = 5 * 60 * 1000;
+	private final VoteDatabase voteDatabase;
+    private final RoleDatabase roleDatabase;
+    private final ChannelDatabase channelDatabase;
+    private final UserRecordsDatabase userRecordsDatabase;
+    private final GetMemberFromMessage getMemberFromMessage;
+    private final InviteDatabase inviteDatabase;
+    private final TimedTasksDatabase timedTasksDatabase;
+    private final SelfRoles selfRoles;
 
 
-    public PollManager pollManager;
-    public SubscribtionDatabase subscribtionDatabase;
+    public final PollManager pollManager;
+    public final SubscribtionDatabase subscribtionDatabase;
+    public final StrikeNotifier notifier;
 
     public static final ScheduledExecutorService POOL = Executors.newScheduledThreadPool(5);
     public static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("d.MM.yy, k:mm");
-
 
     long startUpTime = System.currentTimeMillis();
 
@@ -118,6 +122,7 @@ public class DiscordBot {
         pollManager.database.loadAllPolls();
 
         subscribtionDatabase = new SubscribtionDatabaseSQLite();
+        notifier = new StrikeNotifier(subscribtionDatabase);
 
         new EventAudit().updateIgnoredChannels();
 
