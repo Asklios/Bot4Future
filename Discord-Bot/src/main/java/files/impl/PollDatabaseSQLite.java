@@ -131,6 +131,42 @@ public class PollDatabaseSQLite implements PollDatabase {
         stmt.close();
     }
 
+    @Override
+    public PollVoterList getPollVoters(String guildId, String messageId) {
+        try {
+            PreparedStatement stmt = LiteSQL.prepStmt("SELECT * FROM 'pollvoters' WHERE guildid=? AND msgid=?");
+            stmt.setString(1, guildId);
+            stmt.setString(2, messageId);
+            assert stmt != null;
+            ResultSet result = stmt.executeQuery();
+            if(result.next())
+            return new PollVoterList(result.getString("guildid"),
+                    result.getString("msgid"),
+                    result.getString("pollowner"),
+                    result.getString("content"));
+            else return null;
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public void setPollVoters(Poll poll, String content) {
+        LiteSQL.onUpdate("DELETE FROM pollvoters WHERE msgid=\"" + poll.getMessageId() + "\" AND guildid=\"" + poll.getGuildId() + "\"");
+        try {
+            PreparedStatement stmt = LiteSQL.prepStmt("INSERT INTO pollvoters (msgid, guildid, pollowner, content) " +
+                    "VALUES (?, ?, ?, ?)");
+            stmt.setString(1, poll.getMessageId());
+            stmt.setString(2, poll.getGuildId());
+            stmt.setString(3, poll.getPollOwner());
+            stmt.setString(4, content);
+            stmt.executeUpdate();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
 
     private class PollImpl implements Poll {
         public String name;

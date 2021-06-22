@@ -1,5 +1,6 @@
 package main.java.files.interfaces;
 
+import lombok.Getter;
 import main.java.util.Poll;
 
 import java.sql.SQLException;
@@ -39,4 +40,37 @@ public interface PollDatabase {
      * Save all votes
      */
     void saveVotes() throws SQLException;
+
+    /**
+     * Gives the content of the voter list of a poll
+     * @param guildId
+     * @param messageId
+     * @return
+     */
+    PollVoterList getPollVoters(String guildId, String messageId);
+
+    /**
+     * Sets the content of the voter list for the given poll.
+     * @param poll
+     * @param content
+     */
+    void setPollVoters(Poll poll, String content);
+
+    class PollVoterList {
+        @Getter
+        private final String guildId;
+        @Getter
+        private final String msgId;
+        @Getter
+        private final String pollOwner;
+        @Getter
+        private final String content;
+
+        public PollVoterList(String guildId, String msgId, String pollOwner, String content){
+            this.content = content;
+            this.msgId = msgId;
+            this.pollOwner = pollOwner;
+            this.guildId = guildId;
+        }
+    }
 }

@@ -120,6 +120,7 @@ public class PollManager {
                             msg.editMessage(createPollResultMessage(poll)).queue();
                             msg.clearReactions().queue();
                         });
+                        database.setPollVoters(poll, generateVoterList(poll));
                         logPoll(poll, event.getGuild(), true, true, true);
                         database.deletePoll(poll.getMessageId());
                     }
@@ -154,7 +155,7 @@ public class PollManager {
                             || event.getMember().hasPermission(Permission.ADMINISTRATOR)
                             || event.getMember().hasPermission(Permission.KICK_MEMBERS)) {
                         event.getMember().getUser().openPrivateChannel().queue(pChannel -> {
-                            sendVoters(poll, pChannel);
+                            sendVoters(poll, pChannel, null);
                         });
                     } else {
                         event.getMember().getUser().openPrivateChannel().queue(pChannel -> {
@@ -282,6 +283,24 @@ public class PollManager {
                 }
             }
         });
+
+        if (!event.getReactionEmote().getEmoji().equals(Emojis.VIEW)) return;
+        event.getReaction().removeReaction(event.getUser()).queue();
+        PollDatabase.PollVoterList list = database.getPollVoters(event.getGuild().getId(), event.getMessageId());
+        if (list != null) {
+            if (event.getUser().getId().equals(list.getPollOwner())
+                    || event.getMember().hasPermission(Permission.ADMINISTRATOR)
+                    || event.getMember().hasPermission(Permission.KICK_MEMBERS)) {
+                event.getUser().openPrivateChannel().queue(channel -> {
+                    sendVoters(null, channel, list.getContent());
+                });
+            } else {
+                event.getUser().openPrivateChannel().queue(channel -> {
+                    channel.sendMessage("Nur Admins, Mods und Umfragenersteller können sich die" +
+                            " Teilnehmenden anzeigen lassen.");
+                });
+            }
+        }
     }
 
     public void handleMessageCreateEvent(MessageReceivedEvent event) {
@@ -514,40 +533,21 @@ public class PollManager {
                 .build();
     }
 
-    private void sendVoters(Poll poll, MessageChannel channel) {
+    private void sendVoters(Poll poll, MessageChannel channel, String content) {
         CompletableFuture.runAsync(() -> {
             File tempFolder = new File("temp");
             tempFolder.mkdirs();
             File voterFile = new File(tempFolder, "voters" + RANDOM.nextInt(100000) + ".txt");
             if (voterFile.exists()) {
-                sendVoters(poll, channel);
+                sendVoters(poll, channel, content);
             } else {
-                Map<String, Integer> voters = new HashMap<>();
-                List<String> voterDisplays = new ArrayList<>();
-                poll.getChoices().forEach(choice -> {
-                    choice.getVotes().forEach(voter -> {
-                        if (voters.containsKey(voter)) {
-                            voters.put(voter, voters.get(voter) + 1);
-                        } else {
-                            voters.put(voter, 1);
-                        }
-                    });
-                });
-                voters.forEach((voter, votes) -> {
-                    Member m = DiscordBot.INSTANCE.jda.getGuildById(poll.getGuildId()).getMemberById(voter);
-                    String display = m.getUser().getName() + "#"
-                            + m.getUser().getDiscriminator()
-                            + " (" + m.getId() + ") | "
-                            + m.getEffectiveName() + ": " + votes + " Votes\n";
-                    voterDisplays.add(display);
-                });
-                Collections.sort(voterDisplays);
-                String fileContent = voterDisplays.stream().collect(Collectors.joining(" "));
-
                 try {
                     voterFile.createNewFile();
                     FileWriter writer = new FileWriter(voterFile);
-                    writer.write(fileContent);
+                    if (poll == null)
+                        writer.write(content);
+                    else
+                        writer.write(generateVoterList(poll));
                     writer.close();
 
                     channel.sendFile(voterFile, "voters.txt").submit().thenAccept(msg -> {
@@ -560,6 +560,30 @@ public class PollManager {
 
             }
         });
+    }
+
+    private String generateVoterList(Poll poll) {
+        Map<String, Integer> voters = new HashMap<>();
+        List<String> voterDisplays = new ArrayList<>();
+        poll.getChoices().forEach(choice -> {
+            choice.getVotes().forEach(voter -> {
+                if (voters.containsKey(voter)) {
+                    voters.put(voter, voters.get(voter) + 1);
+                } else {
+                    voters.put(voter, 1);
+                }
+            });
+        });
+        voters.forEach((voter, votes) -> {
+            Member m = DiscordBot.INSTANCE.jda.getGuildById(poll.getGuildId()).getMemberById(voter);
+            String display = m.getUser().getName() + "#"
+                    + m.getUser().getDiscriminator()
+                    + " (" + m.getId() + ") | "
+                    + m.getEffectiveName() + ": " + votes + " Votes\n";
+            voterDisplays.add(display);
+        });
+        Collections.sort(voterDisplays);
+        return voterDisplays.stream().collect(Collectors.joining(" "));
     }
 
     private MessageEmbed createPollMessage(Poll poll) {
