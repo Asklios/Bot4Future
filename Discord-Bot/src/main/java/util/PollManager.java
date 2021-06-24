@@ -47,6 +47,7 @@ public class PollManager {
                     Guild g = DiscordBot.INSTANCE.jda.getGuildById(poll.getGuildId());
                     g.getTextChannels().forEach(channel -> {
                         channel.retrieveMessageById(poll.getMessageId()).submit().thenAccept(msg -> {
+                            database.setPollVoters(poll, generateVoterList(poll));
                             logPoll(poll, g, true, true, true);
                             msg.editMessage(createPollResultMessage(poll)).queue();
                             msg.clearReactions().queue();
@@ -284,10 +285,11 @@ public class PollManager {
             }
         });
 
-        if (!event.getReactionEmote().getEmoji().equals(Emojis.VIEW)) return;
-        event.getReaction().removeReaction(event.getUser()).queue();
+        if (event instanceof MessageReactionRemoveEvent ||
+                !event.getReactionEmote().getEmoji().equals(Emojis.VIEW)) return;
         PollDatabase.PollVoterList list = database.getPollVoters(event.getGuild().getId(), event.getMessageId());
         if (list != null) {
+            event.getReaction().removeReaction(event.getUser()).queue();
             if (event.getUser().getId().equals(list.getPollOwner())
                     || event.getMember().hasPermission(Permission.ADMINISTRATOR)
                     || event.getMember().hasPermission(Permission.KICK_MEMBERS)) {
