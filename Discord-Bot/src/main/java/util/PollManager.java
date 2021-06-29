@@ -87,8 +87,9 @@ public class PollManager {
                 boolean isTwoWeeks = (System.currentTimeMillis() - zdt.toInstant().toEpochMilli() + 2 * 60 * 60 * 1000) > (14 * 24 * 60 * 60 * 1000);
                 if (!isTwoWeeks) {
                     event.getMember().getUser().openPrivateChannel().queue(pChannel -> {
-                        pChannel.sendMessage("Du musst seit mindestens zwei Wochen auf " + event.getGuild().getName() + " sein, um an Umfragen teilzunehmen").queue();
+                        pChannel.sendMessage("Du musst seit mindestens zwei Wochen auf " + event.getGuild().getName() + " sein, um an Umfragen teilzunehmen.").queue();
                     });
+                    event.getReaction().removeReaction(event.getUser()).queue();
                     return;
                 }
                 String emote = event.getReactionEmote().getEmoji();
