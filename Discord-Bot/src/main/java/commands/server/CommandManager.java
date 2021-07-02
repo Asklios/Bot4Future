@@ -102,6 +102,10 @@ public class CommandManager {
 
         //PollCommands
         this.commands.put("poll", new CreatePollCommand());
+
+        //SlashCommands
+        this.commands.put("registerslash", new RegisterSlashCommandsCommand());
+        this.commands.put("unregisterslash", new UnregisterSlashCommandsCommand());
     }
 
     public boolean perform(String command, Member m, TextChannel channel, Message message) {

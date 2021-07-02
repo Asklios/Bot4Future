@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberUpdateEvent;
+import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.exceptions.ContextException;
@@ -115,6 +116,11 @@ public class CommandListener extends ListenerAdapter {
         System.out.println("ready");
         DiscordBot.INSTANCE.updateGuilds(event.getJDA().getGuilds());
         SpecialCodeCommand.writeInviteCount(event.getJDA().getGuilds());
+    }
+
+    @Override
+    public void onSlashCommand(@NotNull SlashCommandEvent event) {
+        DiscordBot.INSTANCE.slashCommandManager.handleSlashCommand(event);
     }
 }
 

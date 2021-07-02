@@ -15,7 +15,7 @@ public class IAmCommand implements ServerCommand {
     @Getter @Setter
     static HashMap<Long, HashMap<String, Long>> serverSelfRoles = new HashMap<>();
 
-    SelfRoles selfRoles = new SelfRolesSQLite();
+    private SelfRoles selfRoles = new SelfRolesSQLite();
 
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {

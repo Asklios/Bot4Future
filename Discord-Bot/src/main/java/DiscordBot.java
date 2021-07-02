@@ -5,6 +5,7 @@ import main.java.activitylog.EventAudit;
 import main.java.activitylog.LiteSQLActivity;
 import main.java.commands.privateMessage.PrivateCommandManager;
 import main.java.commands.server.CommandManager;
+import main.java.commands.slash.SlashCommandManager;
 import main.java.files.LiteSQL;
 import main.java.files.LiteSqlClear;
 import main.java.files.PropertiesReader;
@@ -72,6 +73,8 @@ public class DiscordBot {
     private SelfRoles selfRoles;
 
     public PollManager pollManager;
+
+    public SlashCommandManager slashCommandManager = new SlashCommandManager();
 
     public static final ScheduledExecutorService POOL = Executors.newScheduledThreadPool(5);
     public static final DateTimeFormatter FORMATTER = DateTimeFormat.forPattern("d.MM.yy, k:mm");
