@@ -106,6 +106,9 @@ public class CommandManager {
         //SlashCommands
         this.commands.put("registerslash", new RegisterSlashCommandsCommand());
         this.commands.put("unregisterslash", new UnregisterSlashCommandsCommand());
+
+        //Fun
+        this.commands.put("cookies", new CookieCommand());
     }
 
     public boolean perform(String command, Member m, TextChannel channel, Message message) {
