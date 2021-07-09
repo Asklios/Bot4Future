@@ -24,7 +24,6 @@ public class BumpListener extends ListenerAdapter {
 
     @Override
     public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
-        bumpers.put(event.getGuild().getId(), 0);
         if (roleDatabase.getBumpRole(event.getGuild()) == null) return;
         if (event.getAuthor().getIdLong() == 302050872383242240L //is disboard bot
                 && event.getMessage().getEmbeds().size() == 1) { //message has embed
@@ -52,7 +51,7 @@ public class BumpListener extends ListenerAdapter {
                     switch (bumps) {
                         case 1:
                             cookies = RANDOM.nextInt(10) + 15;
-                            builder.append("Super " + event.getMember().getAsMention() + ", schön das" +
+                            builder.append("Super " + event.getMember().getAsMention() + ", schön das " +
                                     "du unseren Server gebumpt hast! Dafür gebe ich dir " + cookies + " Kekse:\n");
                             for (int i = 0; i < cookies; i++) {
                                 builder.append(Emojis.COOKIE);
