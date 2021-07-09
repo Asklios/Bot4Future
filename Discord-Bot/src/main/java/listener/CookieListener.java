@@ -14,7 +14,7 @@ public class CookieListener extends ListenerAdapter {
     public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
         if (RANDOM.nextInt(20) + 1 > 4) return;
         if (CookieCommand.cookieServers.contains(event.getGuild().getId())) {
-            event.getMessage().addReaction(Emojis.COOKIE).queue();
+            //event.getMessage().addReaction(Emojis.COOKIE).queue();
         }
     }
 }
