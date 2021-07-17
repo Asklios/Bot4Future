@@ -11,6 +11,7 @@ import main.java.helper.*;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -28,7 +29,7 @@ public class MuteCommand implements ServerCommand {
     public void performCommand(Member member, TextChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.KICK_MEMBERS)) {
-            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
+            channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10, TimeUnit.SECONDS));
             return;
         }
 
@@ -40,19 +41,19 @@ public class MuteCommand implements ServerCommand {
         Role muteRole = this.roleDatabase.getMuteRole(guild);
 
         if (muteRole == null) {
-            channel.sendMessage("Es wurde noch keine Muterolle festgelegt. `%muterole @role`").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+            channel.sendMessage("Es wurde noch keine Muterolle festgelegt. `%muterole @role`").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
             return;
         }
 
         if (messageSplit.length == 0) {
             channel.sendMessage("`%mute @user <time> <reason>` ```<time> = <Anzahl><Einheit> \n \n " +
-                    "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+                    "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
             return;
         }
 
         if (messageSplit.length < 3) {
             channel.sendMessage("Falsche Formatierung. `%mute @user <time> <reason>` ```<time> = <Anzahl><Einheit> \n \n " +
-                    "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").queue(m -> m.delete().queueAfter(15,TimeUnit.SECONDS));
+                    "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").queue(m -> m.delete().queueAfter(15, TimeUnit.SECONDS));
             return;
         }
 
@@ -68,7 +69,7 @@ public class MuteCommand implements ServerCommand {
 
         //es konnte kein Member gefunden/gelesen werden
         if (mention == null) {
-            channel.sendMessage(member.getAsMention() + " - Die UserId \"" + messageSplit[1] + "\" konnte nicht gefunden werden.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
+            channel.sendMessage(member.getAsMention() + " - Die UserId \"" + messageSplit[1] + "\" konnte nicht gefunden werden.").queue(m -> m.delete().queueAfter(10, TimeUnit.SECONDS));
             return;
         }
 
@@ -82,8 +83,12 @@ public class MuteCommand implements ServerCommand {
         List<Role> removeRoles = mention.getRoles();
         for (Role r : removeRoles) {
             if (!guild.getSelfMember().getRoles().get(0).canInteract(r)) {
-                channel.sendMessage("Der Bot kann " + mention.getEffectiveName() + " nicht muten, da seine Rollen zu niedrig sind.")
-                        .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+                try {
+                    channel.sendMessage("Der Bot kann " + mention.getEffectiveName() + " nicht muten, da seine Rollen zu niedrig sind.")
+                            .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
+                } catch (ErrorResponseException error) {
+                    System.out.println("Error while removing roles!");
+                }
                 return;
             }
         }
@@ -94,7 +99,7 @@ public class MuteCommand implements ServerCommand {
 
         UserRecord userRecord = this.userRecordsDatabase.addRecord(muteUserId, date, endTime, "mute", guildId, reason, muteMemberRoles);
 
-        channel.sendMessage(mention.getAsMention() + " wurde für " + timeString + " gemuted.").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
+        channel.sendMessage(mention.getAsMention() + " wurde für " + timeString + " gemuted.").queue(m -> m.delete().queueAfter(10, TimeUnit.SECONDS));
 
         //inform user
         User muteUser = mention.getUser();
@@ -133,7 +138,7 @@ public class MuteCommand implements ServerCommand {
         //execute mute
 
         for (Role r : removeRoles) {
-            guild.removeRoleFromMember(mention,r).complete();
+            guild.removeRoleFromMember(mention, r).complete();
         }
         guild.addRoleToMember(mention, muteRole).complete();
 
@@ -145,23 +150,17 @@ public class MuteCommand implements ServerCommand {
         try {
             if (timeString.endsWith("m")) {
                 timeMillis = TimeMillis.monthMillis(timeString);
-            }
-            else if (timeString.endsWith("w")) {
+            } else if (timeString.endsWith("w")) {
                 timeMillis = TimeMillis.weekMillis(timeString);
-            }
-            else if (timeString.endsWith("d")) {
+            } else if (timeString.endsWith("d")) {
                 timeMillis = TimeMillis.dayMillis(timeString);
-            }
-            else if (timeString.endsWith("h")) {
+            } else if (timeString.endsWith("h")) {
                 timeMillis = TimeMillis.hourMillis(timeString);
-            }
-            else if (timeString.endsWith("min")) {
+            } else if (timeString.endsWith("min")) {
                 timeMillis = TimeMillis.minuteMillis(timeString);
-            }
-            else if (timeString.endsWith("sec")) {
+            } else if (timeString.endsWith("sec")) {
                 timeMillis = TimeMillis.secondMillis(timeString);
-            }
-            else{
+            } else {
                 sendMessageTimeFormat(member, channel);
                 return 0;
             }
@@ -174,6 +173,6 @@ public class MuteCommand implements ServerCommand {
 
     private void sendMessageTimeFormat(Member member, TextChannel channel) {
         channel.sendMessage(member.getAsMention() + " Die Zeitangabe wurde falsch formatiert. ```<time> = <Anzahl><Einheit> \n \n " +
-        "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
+                "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").queue(m -> m.delete().queueAfter(10, TimeUnit.SECONDS));
     }
 }
