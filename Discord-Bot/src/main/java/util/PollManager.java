@@ -76,6 +76,8 @@ public class PollManager {
     }
 
     public void handleReactionEvent(GenericMessageReactionEvent event) {
+        // Don't handle custom emotes
+        if (event.getReaction().getReactionEmote().isEmote()) return;
         if (event.isFromGuild()) {
             database.getPolls().stream().filter(poll -> event.getGuild().getId().equals(poll.getGuildId())
                     && event.getMessageId().equals(poll.getMessageId()))
@@ -463,7 +465,7 @@ public class PollManager {
                 for (int i = 0; i < 12; i++) {
                     current.append(Emojis.CHART_EMPTY);
                 }
-                current.append("│\n");
+                current.append("│ (" + choice.getVotes().size() + ")\n");
             } else {
                 StringBuilder local = new StringBuilder();
                 float percent = (choice.getVotes().size() / totalVotes) * 12;
@@ -471,8 +473,7 @@ public class PollManager {
                 while (local.length() != 12) {
                     local.append(Emojis.CHART_EMPTY);
                 }
-                current.append(local).append("│");
-                current.append("\n");
+                current.append(local).append("│ (" + choice.getVotes().size() + ")\n");
             }
         });
 
@@ -485,9 +486,14 @@ public class PollManager {
                     .addField("Stand anzeigen", poll.areVotesVisible() ? "Ja" : "Nein", false)
                     .addField("Schließt", poll.getCloseDisplay(), false)
                     .addField("Votes per User", poll.getVotesPerUser() + "", false)
-                    .addField("Möglichkeiten", choices.toString(), false);
+                    .addField("Möglichkeiten", choices.toString(), false)
+                    .setFooter(poll.getPollOwner(),
+                            DiscordBot.INSTANCE.jda.getUserById(poll.getPollOwner()).getAvatarUrl());
             if (logState) {
-                builder.addField("Jetziger Stand: (" + (int) totalVotes + " Stimme" + (totalVotes == 1 ? "" : "n") + ")", current.toString(), false);
+                builder.addField("Ergebnis: (" + (int) totalVotes + " Stimme" + (totalVotes == 1 ? "" : "n") + ")", current.toString(), false);
+            }
+            if (logVoters) {
+                this.sendVoters(poll, channel, "");
             }
             channel.sendMessage(builder.build()).queue();
         }
@@ -603,7 +609,7 @@ public class PollManager {
                 for (int i = 0; i < 12; i++) {
                     current.append(Emojis.CHART_EMPTY);
                 }
-                current.append("│\n");
+                current.append("│ (" + choice.getVotes().size() + ")\n");
             } else {
                 StringBuilder local = new StringBuilder();
                 float percent = (choice.getVotes().size() / totalVotes) * 12;
@@ -611,8 +617,7 @@ public class PollManager {
                 while (local.length() != 12) {
                     local.append(Emojis.CHART_EMPTY);
                 }
-                current.append(local).append("│");
-                current.append("\n");
+                current.append(local).append("│ (" + choice.getVotes().size() + ")\n");
             }
         });
 
@@ -629,7 +634,8 @@ public class PollManager {
                 "Um deine jetzige Auswahl zu erhalten, reagiere mit " + Emojis.INFO + "\n" +
                 "Du musst seit mindestens zwei Wochen auf diesem Server sein, damit Umfragen nicht manipuliert werden können.\n\n" +
                 "Der Ersteller einer Umfrage kann diese mit dem Reagieren mit " + Emojis.LOCK + " schließen.", true)
-                .setFooter("Diese Umfrage ist bis " + poll.getCloseDisplay() + " geöffnet.");
+                .setFooter("Diese Umfrage ist bis " + poll.getCloseDisplay() + " geöffnet.",
+                        DiscordBot.INSTANCE.jda.getUserById(poll.getPollOwner()).getAvatarUrl());
         return builder.build();
     }
 
@@ -648,7 +654,7 @@ public class PollManager {
                 for (int i = 0; i < 12; i++) {
                     current.append(Emojis.CHART_EMPTY);
                 }
-                current.append("│\n");
+                current.append("│ (" + choice.getVotes().size() + ")\n");
             } else {
                 StringBuilder local = new StringBuilder();
                 float percent = (choice.getVotes().size() / totalVotes) * 12;
@@ -656,8 +662,7 @@ public class PollManager {
                 while (local.length() != 12) {
                     local.append(Emojis.CHART_EMPTY);
                 }
-                current.append(local).append("│");
-                current.append("\n");
+                current.append(local).append("│ (" + choice.getVotes().size() + ")\n");
             }
         });
         return new EmbedBuilder()
@@ -665,7 +670,8 @@ public class PollManager {
                 .setDescription(poll.getDescription())
                 .addField("Möglichkeiten:", choices.toString(), false)
                 .addField("Ergebnis: (" + (int) totalVotes + " Vote" + (totalVotes == 1 ? "" : "s") + ")", current.toString(), false)
-                .setFooter("Geschlossen seit " + poll.getCloseDisplay())
+                .setFooter("Geschlossen seit " + poll.getCloseDisplay(),
+                        DiscordBot.INSTANCE.jda.getUserById(poll.getPollOwner()).getAvatarUrl())
                 .build();
     }
 
