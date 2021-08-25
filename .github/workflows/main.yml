@@ -15,8 +15,12 @@ jobs:
         uses: docker/setup-buildx-action@v1
       - name: login to docker hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: build image
         run: |
           docker buildx build --push \
             --tag asklios/bot4future:latest \
             --platform linux/amd64,linux/arm64 ./Discord-Bot/
+          docker image tag asklios/bot4future:latest ghcr.io/asklios/bot4future:latest
+          docker push ghcr.io/asklios/bot4future:latest
