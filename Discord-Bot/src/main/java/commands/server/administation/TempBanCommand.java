@@ -1,5 +1,6 @@
 package main.java.commands.server.administation;
 
+import main.java.DiscordBot;
 import main.java.commands.server.ServerCommand;
 import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.impl.UserRecordsDatabaseSQLite;
@@ -13,19 +14,19 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class TempBanCommand implements ServerCommand {
 
-    private UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
     private ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {
 
         if (!member.hasPermission(Permission.BAN_MEMBERS)) {
-            channel.sendMessage("Du hast nicht die Berechtigung diesen Command zu nutzen :(").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+            channel.sendMessage("Du hast nicht die Berechtigung diesen Command zu nutzen :(").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
             return;
         }
 
@@ -36,17 +37,14 @@ public class TempBanCommand implements ServerCommand {
         Member banMember = GetMemberFromMessage.firstMentionedMember(message);
 
         banMember(message, banMember, reason, endTime);
-        UserRecord userRecord = null;
 
-        try {
-            userRecord = this.userRecordsDatabase.addRecord(banMember.getIdLong(), System.currentTimeMillis(), endTime, "tempban", channel.getGuild().getIdLong(),
-                    reason, "active");
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-        }
+        TaskBuilder.GuildUserPair data = new TaskBuilder.GuildUserPair();
+        data.userId = banMember.getId();
+        data.guildId = channel.getGuild().getId();
+        data.reason = reason;
+        data.actionDay = TimeMillis.dateFromMillis(System.currentTimeMillis());
 
-        assert userRecord != null;
-        new TimedTasks().addTimedTask(TimedTask.TimedTaskType.UNBAN, endTime, userRecord.getId() + "");
+        DiscordBot.INSTANCE.delayedTasks.addTask(new Date(endTime), "UNBAN", data.toString());
     }
 
     private long getTimeMillis(Member member, TextChannel channel, String timeString) {
@@ -54,23 +52,17 @@ public class TempBanCommand implements ServerCommand {
         try {
             if (timeString.endsWith("m")) {
                 timeMillis = TimeMillis.monthMillis(timeString);
-            }
-            else if (timeString.endsWith("w")) {
+            } else if (timeString.endsWith("w")) {
                 timeMillis = TimeMillis.weekMillis(timeString);
-            }
-            else if (timeString.endsWith("d")) {
+            } else if (timeString.endsWith("d")) {
                 timeMillis = TimeMillis.dayMillis(timeString);
-            }
-            else if (timeString.endsWith("h")) {
+            } else if (timeString.endsWith("h")) {
                 timeMillis = TimeMillis.hourMillis(timeString);
-            }
-            else if (timeString.endsWith("min")) {
+            } else if (timeString.endsWith("min")) {
                 timeMillis = TimeMillis.minuteMillis(timeString);
-            }
-            else if (timeString.endsWith("sec")) {
+            } else if (timeString.endsWith("sec")) {
                 timeMillis = TimeMillis.secondMillis(timeString);
-            }
-            else{
+            } else {
                 sendMessageTimeFormat(member, channel);
                 return 0;
             }
@@ -83,7 +75,7 @@ public class TempBanCommand implements ServerCommand {
 
     private void sendMessageTimeFormat(Member member, TextChannel channel) {
         channel.sendMessage(member.getAsMention() + " Die Zeitangabe wurde falsch formatiert. ```<time> = <Anzahl><Einheit> \n \n " +
-                "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
+                "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").queue(m -> m.delete().queueAfter(10, TimeUnit.SECONDS));
     }
 
     private void banMember(Message message, Member banMember, String reason, long endtime) {
@@ -95,7 +87,7 @@ public class TempBanCommand implements ServerCommand {
             if (!banMember.getRoles().isEmpty() && !highestBotRole.canInteract(banMember.getRoles().get(0))) {
                 message.getChannel().sendMessage("Der Bot kann " + banMember.getAsMention() +
                         " nicht bannen, da seine Rollen zu niedrig sind.")
-                        .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+                        .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
                 return;
             }
 
@@ -119,7 +111,7 @@ public class TempBanCommand implements ServerCommand {
                 });
 
             } catch (IllegalStateException | ErrorResponseException e) {
-                message.getChannel().sendMessage("Es konnte keine PN an den Nutzer gesendet werden.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+                message.getChannel().sendMessage("Es konnte keine PN an den Nutzer gesendet werden.").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
             } catch (IllegalMonitorStateException e) {
                 System.err.println("Cought Exception: IllegalMonitorStateException BanCommand.java (banMemberPN)");
             }

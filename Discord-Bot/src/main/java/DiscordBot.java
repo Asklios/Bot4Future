@@ -41,6 +41,7 @@ import java.util.Random;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class DiscordBot {
 
@@ -63,7 +64,7 @@ public class DiscordBot {
     private List<GuildData> guildsData = new ArrayList<>();
     private String[] defIds;
     private long muteBanTimerPeriod = 5 * 60 * 1000;
-	private VoteDatabase voteDatabase;
+    private VoteDatabase voteDatabase;
     private RoleDatabase roleDatabase;
     private ChannelDatabase channelDatabase;
     private UserRecordsDatabase userRecordsDatabase;
@@ -71,6 +72,8 @@ public class DiscordBot {
     private InviteDatabase inviteDatabase;
     private TimedTasksDatabase timedTasksDatabase;
     private SelfRoles selfRoles;
+
+    public DelayedTaskDatabase delayedTasks = new DelayedTaskDatabaseSQLite();
 
     public PollManager pollManager;
 
@@ -170,8 +173,12 @@ public class DiscordBot {
         timedTasksDatabase.removeAllEntriesByType("APIUPDATE");
         timedTasksDatabase.removeAllEntriesByType("DBCLEAR");
 
-        LiteSqlClear.timedClearDatabase();
         System.out.println("started TimedTasks");
+
+        delayedTasks.load();
+        System.out.println("started DelayedTasks");
+
+        POOL.scheduleAtFixedRate(() -> new LiteSqlClear().clearDatabase(), 0, 24, TimeUnit.HOURS);
 
         //schedules api updates - depends on TimedTasks
         new UpdateFromApi().completeUpdate();
@@ -317,17 +324,34 @@ public class DiscordBot {
     public String getAutoListenerFilePath() {
         return autoListenerFilePath;
     }
+
     public String getDbFilePath() {
         return dbFilePath;
     }
+
     public String getLogFilePath() {
         return logFilePath;
     }
-    public String getDiagramFilePath() {return diagramFilePath;}
-    public String getBotPbPath() {return botPbPath;}
-    public String getPbFilterPath() {return pbFilterPath;}
-    public String getPbPath() {return pbPath;}
-    public String getNewPbPath() {return newPbPath;}
+
+    public String getDiagramFilePath() {
+        return diagramFilePath;
+    }
+
+    public String getBotPbPath() {
+        return botPbPath;
+    }
+
+    public String getPbFilterPath() {
+        return pbFilterPath;
+    }
+
+    public String getPbPath() {
+        return pbPath;
+    }
+
+    public String getNewPbPath() {
+        return newPbPath;
+    }
 
     public List<GuildData> getGuildsData() {
         return guildsData;
@@ -338,6 +362,6 @@ public class DiscordBot {
     }
 
     public long getMuteTimerPeriod() {
-		return muteBanTimerPeriod;
-	}
+        return muteBanTimerPeriod;
+    }
 }

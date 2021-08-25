@@ -30,6 +30,8 @@ public class SQLManager {
         LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS pollvotes(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, pollguildid INTEGER, pollmsgid INTEGER, choiceid INTEGER, userid INTEGER)");
         LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS pollvoters(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, guildid INTEGER, msgid INTEGER, pollowner INTEGER, content STRING)");
 
+        LiteSQL.onUpdate("CREATE TABLE IF NOT EXISTS delayed_tasks(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, uuid STRING NOT NULL, date INTEGER NOT NULL, type STRING NOT NULL, data STRING NOT NULL)");
+
         if(System.getenv("RESETPOLLS") != null && System.getenv("RESETPOLLS").equalsIgnoreCase("true")){
             LiteSQL.onUpdate("DROP TABLE polls;");
             LiteSQL.onUpdate("DROP TABLE pollvotes;");

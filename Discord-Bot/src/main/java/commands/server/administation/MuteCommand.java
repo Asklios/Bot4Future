@@ -1,5 +1,6 @@
 package main.java.commands.server.administation;
 
+import main.java.DiscordBot;
 import main.java.commands.server.ServerCommand;
 import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.impl.RoleDatabaseSQLite;
@@ -15,6 +16,7 @@ import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -22,7 +24,6 @@ import java.util.stream.Collectors;
 public class MuteCommand implements ServerCommand {
 
     private RoleDatabase roleDatabase = new RoleDatabaseSQLite();
-    private UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
     private ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
     @Override
@@ -62,6 +63,7 @@ public class MuteCommand implements ServerCommand {
         long timeMillis = getTimeMillis(member, channel, timeString);
         long date = System.currentTimeMillis();
         long endTime = date + timeMillis;
+        Date endDate = new Date(endTime);
         long guildId = guild.getIdLong();
         long muteUserId;
         String muteMemberRoles;
@@ -79,25 +81,9 @@ public class MuteCommand implements ServerCommand {
             return;
         }
 
-        //es fehlen Berechtigungen
-        List<Role> removeRoles = mention.getRoles();
-        for (Role r : removeRoles) {
-            if (!guild.getSelfMember().getRoles().get(0).canInteract(r)) {
-                try {
-                    channel.sendMessage("Der Bot kann " + mention.getEffectiveName() + " nicht muten, da seine Rollen zu niedrig sind.")
-                            .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
-                } catch (ErrorResponseException error) {
-                    System.out.println("Error while removing roles!");
-                }
-                return;
-            }
-        }
-
-        muteMemberRoles = mention.getRoles().stream().map(ISnowflake::getIdLong).map(Object::toString).collect(Collectors.joining("⫠"));
         reason = Arrays.stream(messageSplit, 3, messageSplit.length).collect(Collectors.joining(" "));
         muteUserId = mention.getIdLong();
 
-        UserRecord userRecord = this.userRecordsDatabase.addRecord(muteUserId, date, endTime, "mute", guildId, reason, muteMemberRoles);
 
         channel.sendMessage(mention.getAsMention() + " wurde für " + timeString + " gemuted.").queue(m -> m.delete().queueAfter(10, TimeUnit.SECONDS));
 
@@ -136,13 +122,14 @@ public class MuteCommand implements ServerCommand {
         }
 
         //execute mute
-
-        for (Role r : removeRoles) {
-            guild.removeRoleFromMember(mention, r).complete();
-        }
         guild.addRoleToMember(mention, muteRole).complete();
 
-        new TimedTasks().addTimedTask(TimedTask.TimedTaskType.UNMUTE, endTime, userRecord.getId() + "");
+        TaskBuilder.GuildUserPair data = new TaskBuilder.GuildUserPair();
+        data.guildId = guildId + "";
+        data.userId = muteUserId + "";
+        data.reason = reason;
+        data.actionDay = TimeMillis.dateFromMillis(System.currentTimeMillis());
+        DiscordBot.INSTANCE.delayedTasks.addTask(endDate, "UNMUTE", data.toString());
     }
 
     private long getTimeMillis(Member member, TextChannel channel, String timeString) {
