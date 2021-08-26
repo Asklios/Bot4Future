@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.time.OffsetDateTime;
+import java.util.concurrent.TimeUnit;
 
 
 public class UnmuteTask {
@@ -40,7 +41,7 @@ public class UnmuteTask {
             b.setThumbnail(member.getUser().getEffectiveAvatarUrl());
             b.addField("Name: ", member.getAsMention(), true);
             b.addField("ID: ", userId + "", true);
-            b.addField(":alarm_clock: gemutet seit: ", data.actionDay, false);
+            b.addField(":alarm_clock: gemutet seit: ", "<t:" + TimeUnit.MILLISECONDS.toSeconds(Long.parseLong(data.actionDay)) + ">", false);
             if (data.reason != null)
                 b.addField(":page_facing_up: Mute Begründung: ", data.reason, false);
             b.setTimestamp(OffsetDateTime.now());

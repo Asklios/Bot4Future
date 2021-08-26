@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.time.OffsetDateTime;
+import java.util.concurrent.TimeUnit;
 
 public class UnbanTask {
     RoleDatabase roleDatabase = new RoleDatabaseSQLite();
@@ -41,7 +42,8 @@ public class UnbanTask {
         //b.setThumbnail(member.getUser().getEffectiveAvatarUrl());
         b.addField("Name: ", "<@" + userId + ">", true);
         b.addField("ID: ", userId + "", true);
-        b.addField(":alarm_clock: gebannt seit: ", data.actionDay, false);
+        b.addField(":alarm_clock: gebannt seit: ", "<t:" +
+                TimeUnit.MILLISECONDS.toSeconds(Long.parseLong(data.actionDay)) + ">", false);
         b.addField(":page_facing_up: Ban Begründung: ", data.reason, false);
         b.setFooter("by " + guild.getSelfMember().getEffectiveName(), guild.getSelfMember().getUser().getEffectiveAvatarUrl());
         b.setTimestamp(OffsetDateTime.now());

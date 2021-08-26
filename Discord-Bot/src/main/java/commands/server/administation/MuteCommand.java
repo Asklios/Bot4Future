@@ -94,7 +94,7 @@ public class MuteCommand implements ServerCommand {
 
             EmbedBuilder p = new EmbedBuilder();
             p.setTitle("Du wurdest auf " + guild.getName() + " gemuted. \n Server-ID: *" + message.getGuild().getId() + "*");
-            p.setDescription("**Begründung:** " + reason + "\n \n Endet: " + TimeMillis.dateFromMillis(endTime));
+            p.setDescription("**Begründung:** " + reason + "\n \n Endet: <t:" + TimeUnit.MILLISECONDS.toSeconds(endTime) + ":R>");
             p.setImage(message.getGuild().getBannerUrl());
             p.setTimestamp(OffsetDateTime.now());
             p.setColor(0xff000);
@@ -113,7 +113,7 @@ public class MuteCommand implements ServerCommand {
             a.setThumbnail(muteUser.getAvatarUrl() == null ? muteUser.getDefaultAvatarUrl() : muteUser.getAvatarUrl());
             a.setFooter("by " + message.getAuthor().getName(), message.getAuthor().getEffectiveAvatarUrl());
             a.setTimestamp(OffsetDateTime.now());
-            a.appendDescription("Dauer: " + timeString + " -> " + TimeMillis.dateFromMillis(endTime));
+            a.appendDescription("Dauer: " + timeString + " -> <t:" + TimeUnit.MILLISECONDS.toSeconds(endTime) + ":R>" );
             a.addField("Name: ", muteUser.getAsMention(), true);
             a.addField("ID: ", muteUser.getId(), true);
             a.addField(":page_facing_up: Begründung: ", reason, false);
@@ -128,7 +128,7 @@ public class MuteCommand implements ServerCommand {
         data.guildId = guildId + "";
         data.userId = muteUserId + "";
         data.reason = reason;
-        data.actionDay = TimeMillis.dateFromMillis(System.currentTimeMillis());
+        data.actionDay = System.currentTimeMillis() + "";
         DiscordBot.INSTANCE.delayedTasks.addTask(endDate, "UNMUTE", data.toString());
     }
 

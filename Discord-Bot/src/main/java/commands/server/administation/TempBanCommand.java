@@ -42,7 +42,7 @@ public class TempBanCommand implements ServerCommand {
         data.userId = banMember.getId();
         data.guildId = channel.getGuild().getId();
         data.reason = reason;
-        data.actionDay = TimeMillis.dateFromMillis(System.currentTimeMillis());
+        data.actionDay = System.currentTimeMillis() + "";
 
         DiscordBot.INSTANCE.delayedTasks.addTask(new Date(endTime), "UNBAN", data.toString());
     }
@@ -96,7 +96,7 @@ public class TempBanCommand implements ServerCommand {
                 EmbedBuilder pn = new EmbedBuilder();
 
                 pn.setTitle("Du wurdest auf " + message.getGuild().getName() + " temporär gebannt. \n Server-ID: *" + message.getGuild().getId() + "*");
-                pn.setDescription("**Entbannungsdatum:** " + TimeMillis.dateFromMillis(endtime) +
+                pn.setDescription("**Entbannungsdatum:** " + "<t:" + TimeUnit.MILLISECONDS.toSeconds(endtime) + ":R>" +
                         "\n \n **Begründung:** " + reason + "\n \n Wenn du Einspruch einlegen möchtest, " +
                         "dann tritt bitte unserem Bot-Dev-Server bei damit der Bot weiterhin deine Nachrichten lesen kann. "
                         + "\n https://discord.gg/KumdM4e \n \n Stelle anschließend deinen Antrag auf Entbannung indem du " +
@@ -117,14 +117,14 @@ public class TempBanCommand implements ServerCommand {
             }
 
             //Audit Nachricht wird gesendet
-            outputAuditMessage(banMember.getUser(), message.getAuthor(), reason, TimeMillis.dateFromMillis(endtime), message.getGuild());
+            outputAuditMessage(banMember.getUser(), message.getAuthor(), reason, endtime, message.getGuild());
 
             //Nutzer wird gebannt
             message.getGuild().ban(banMember, 1, reason).queue();
         }
     }
 
-    private void outputAuditMessage(User targetUser, User commandUser, String reason, String endDate, Guild guild) {
+    private void outputAuditMessage(User targetUser, User commandUser, String reason, long endDate, Guild guild) {
 
         TextChannel audit = this.channelDatabase.getAuditChannel(guild);
 
@@ -143,7 +143,7 @@ public class TempBanCommand implements ServerCommand {
         builder.addField("Name: ", targetUser.getAsMention(), false);
         builder.addField("ID: ", targetUser.getId(), false);
         builder.addField(":page_facing_up:Begründung: ", reason, false);
-        builder.addField("Endet: ", endDate, false);
+        builder.addField("Endet: ", "<t:" + TimeUnit.MILLISECONDS.toSeconds(endDate) +":R>", false);
 
         audit.sendMessage(builder.build()).queue();
     }
