@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class TempBanCommand implements ServerCommand {
 
     private ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
+    private UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
 
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {
@@ -35,13 +36,21 @@ public class TempBanCommand implements ServerCommand {
         long endTime = System.currentTimeMillis() + getTimeMillis(member, channel, messageSplit[2]);
         String reason = Arrays.stream(messageSplit, 3, messageSplit.length).collect(Collectors.joining(" "));
         Member banMember = GetMemberFromMessage.firstMentionedMember(message);
-
+        UserRecord record = null;
+        try {
+            record = this.userRecordsDatabase.addRecord(banMember.getIdLong(), System.currentTimeMillis(), endTime, "tempban", channel.getGuild().getIdLong(),
+                    reason, "active");
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+        assert record != null;
         banMember(message, banMember, reason, endTime);
 
-        TaskBuilder.GuildUserPair data = new TaskBuilder.GuildUserPair();
+        TaskBuilder.TaskData data = new TaskBuilder.TaskData();
         data.userId = banMember.getId();
         data.guildId = channel.getGuild().getId();
         data.reason = reason;
+        data.link = record.getId();
         data.actionDay = System.currentTimeMillis() + "";
 
         DiscordBot.INSTANCE.delayedTasks.addTask(new Date(endTime), "UNBAN", data.toString());

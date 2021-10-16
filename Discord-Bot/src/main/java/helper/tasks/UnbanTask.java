@@ -8,8 +8,6 @@ import main.java.files.interfaces.ChannelDatabase;
 import main.java.files.interfaces.RoleDatabase;
 import main.java.files.interfaces.UserRecordsDatabase;
 import main.java.helper.TaskBuilder;
-import main.java.helper.TimeMillis;
-import main.java.helper.TimedTask;
 import main.java.helper.UserRecord;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -23,7 +21,14 @@ public class UnbanTask {
     ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
     UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
 
-    public void unban(TaskBuilder.GuildUserPair data) {
+    public void unban(TaskBuilder.TaskData data) {
+
+        UserRecord userRecord = userRecordsDatabase.recordById(data.link);
+
+        //if there is no userRecord with the provided id
+        if (userRecord == null) return;
+        userRecord.setNote("lifted");
+        userRecordsDatabase.setNoteLiftedById(userRecord.getId());
 
         String guildId = data.guildId;
         String userId = data.userId;

@@ -1,20 +1,24 @@
 package main.java.helper;
 
+import main.java.DiscordBot;
 import main.java.files.impl.RoleDatabaseSQLite;
 import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.RoleDatabase;
 import main.java.files.interfaces.UserRecordsDatabase;
+import main.java.helper.tasks.UnmuteTask;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberUpdateEvent;
 
-import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
-import java.util.List;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Event reactions connected to the mute task.
+ *
  * @author Asklios
  * @version 01.01.2021
  */
@@ -55,26 +59,26 @@ public class MuteObserver {
             return;
         }
 
-        List<TimedTask> timedTasks = new ArrayList<>();
+        Map<Long, TaskBuilder.TaskData> taskData = new HashMap<>();
 
-        recordIds.forEach(id -> {
-            try {
-                TimedTasks.tasks.forEach((aLong, timedTask) -> {
-                    if (timedTask.getType() != TimedTask.TimedTaskType.UNMUTE) return;
-                    try {
-                        if (!(timedTask.getNote().equals(id + ""))) return;
-                        timedTasks.add(timedTask);
-                    } catch (NullPointerException e) {
-                        e.printStackTrace();
-                    }
-                });
-            } catch (ConcurrentModificationException e) {
-                e.printStackTrace();
+        ResultSet tasks = DiscordBot.INSTANCE.delayedTasks.getTasksByType("UNMUTE");
+        try {
+            while (tasks.next()) {
+                taskData.put(tasks.getLong("id"), TaskBuilder.TaskData.of(tasks.getString("data")));
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        AtomicBoolean reload = new AtomicBoolean(false);
+        taskData.forEach((id, data) -> {
+            if(data.guildId.equals(guild.getId()) && data.userId.equals(userId)){
+                reload.set(true);
+                new UnmuteTask().unmute(data);
+                DiscordBot.INSTANCE.delayedTasks.deleteTask(id);
             }
         });
-        for (TimedTask timedTask : timedTasks) {
-            new UnMute().liftMute(timedTask);
-            new TimedTasks().removeTimedTask(timedTask);
-        }
+
+        if(reload.get())
+            DiscordBot.INSTANCE.delayedTasks.reload();
     }
 }

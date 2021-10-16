@@ -3,23 +3,19 @@ package main.java.helper;
 import com.google.gson.Gson;
 import main.java.helper.tasks.UnbanTask;
 import main.java.helper.tasks.UnmuteTask;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Guild;
 
-import javax.swing.text.html.Option;
-import java.util.Base64;
 import java.util.Optional;
-import java.util.function.Function;
 
 public class TaskBuilder {
-    public static class GuildUserPair {
+    public static class TaskData {
         public String guildId;
         public String userId;
         public String reason;
         public String actionDay;
+        public long link;
 
-        public static GuildUserPair of(String data) {
-            return new Gson().fromJson(data, GuildUserPair.class);
+        public static TaskData of(String data) {
+            return new Gson().fromJson(data, TaskData.class);
         }
 
         @Override
@@ -31,13 +27,13 @@ public class TaskBuilder {
     public static Optional<TaskContext> buildTaskExecutor(String taskType, String taskData) {
         switch (taskType.toUpperCase()) {
             case "UNBAN": {
-                GuildUserPair pair = GuildUserPair.of(taskData);
+                TaskData pair = TaskData.of(taskData);
                 return Optional.of(jda -> {
                     new UnbanTask().unban(pair);
                 });
             }
             case "UNMUTE": {
-                GuildUserPair pair = GuildUserPair.of(taskData);
+                TaskData pair = TaskData.of(taskData);
                 return Optional.of(jda -> {
                     new UnmuteTask().unmute(pair);
                 });
@@ -47,8 +43,8 @@ public class TaskBuilder {
     }
 
     public static void main(String[] args) {
-        GuildUserPair data = new GuildUserPair();
+        TaskData data = new TaskData();
         data.reason = "\"";
-        System.out.println(GuildUserPair.of(data.toString()).toString());
+        System.out.println(TaskData.of(data.toString()).toString());
     }
 }

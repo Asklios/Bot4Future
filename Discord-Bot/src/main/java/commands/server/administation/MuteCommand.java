@@ -12,12 +12,10 @@ import main.java.helper.*;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -25,6 +23,7 @@ public class MuteCommand implements ServerCommand {
 
     private RoleDatabase roleDatabase = new RoleDatabaseSQLite();
     private ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
+    private UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
 
     @Override
     public void performCommand(Member member, TextChannel channel, Message message) {
@@ -66,7 +65,7 @@ public class MuteCommand implements ServerCommand {
         Date endDate = new Date(endTime);
         long guildId = guild.getIdLong();
         long muteUserId;
-        String muteMemberRoles;
+
         String reason;
 
         //es konnte kein Member gefunden/gelesen werden
@@ -84,6 +83,7 @@ public class MuteCommand implements ServerCommand {
         reason = Arrays.stream(messageSplit, 3, messageSplit.length).collect(Collectors.joining(" "));
         muteUserId = mention.getIdLong();
 
+        UserRecord userRecord = this.userRecordsDatabase.addRecord(muteUserId, date, endTime, "mute", guildId, reason, "");
 
         channel.sendMessage(mention.getAsMention() + " wurde für " + timeString + " gemuted.").queue(m -> m.delete().queueAfter(10, TimeUnit.SECONDS));
 
@@ -113,7 +113,7 @@ public class MuteCommand implements ServerCommand {
             a.setThumbnail(muteUser.getAvatarUrl() == null ? muteUser.getDefaultAvatarUrl() : muteUser.getAvatarUrl());
             a.setFooter("by " + message.getAuthor().getName(), message.getAuthor().getEffectiveAvatarUrl());
             a.setTimestamp(OffsetDateTime.now());
-            a.appendDescription("Dauer: " + timeString + " -> <t:" + TimeUnit.MILLISECONDS.toSeconds(endTime) + ":R>" );
+            a.appendDescription("Dauer: " + timeString + " -> <t:" + TimeUnit.MILLISECONDS.toSeconds(endTime) + ":R>");
             a.addField("Name: ", muteUser.getAsMention(), true);
             a.addField("ID: ", muteUser.getId(), true);
             a.addField(":page_facing_up: Begründung: ", reason, false);
@@ -124,10 +124,11 @@ public class MuteCommand implements ServerCommand {
         //execute mute
         guild.addRoleToMember(mention, muteRole).complete();
 
-        TaskBuilder.GuildUserPair data = new TaskBuilder.GuildUserPair();
+        TaskBuilder.TaskData data = new TaskBuilder.TaskData();
         data.guildId = guildId + "";
         data.userId = muteUserId + "";
         data.reason = reason;
+        data.link = userRecord.getId();
         data.actionDay = System.currentTimeMillis() + "";
         DiscordBot.INSTANCE.delayedTasks.addTask(endDate, "UNMUTE", data.toString());
     }

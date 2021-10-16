@@ -64,6 +64,8 @@ public class AuditListener extends ListenerAdapter {
 
 
     private void outputBanMessage(TextChannel channel, User targetUser, AuditLogEntry logEntry, Guild guild) {
+        if (logEntry.getReason() != null && logEntry.getReason().startsWith("BannSystem | Report-ID: "))
+            return;
 
         //wenn der Ban durch den Bot ausgeführt wird, wird die Nachricht dort verschickt
         if (logEntry.getUser().getIdLong() == guild.getSelfMember().getIdLong()) {

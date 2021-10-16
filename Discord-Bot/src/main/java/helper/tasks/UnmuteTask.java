@@ -3,9 +3,12 @@ package main.java.helper.tasks;
 import main.java.DiscordBot;
 import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.impl.RoleDatabaseSQLite;
+import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
 import main.java.files.interfaces.RoleDatabase;
+import main.java.files.interfaces.UserRecordsDatabase;
 import main.java.helper.TaskBuilder;
+import main.java.helper.UserRecord;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -22,8 +25,10 @@ public class UnmuteTask {
 
     RoleDatabase roleDatabase = new RoleDatabaseSQLite();
     ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
+    UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
 
-    public void unmute(TaskBuilder.GuildUserPair data) {
+    public void unmute(TaskBuilder.TaskData data) {
+        userRecordsDatabase.setNoteLiftedById(data.link);
         String guildId = data.guildId;
         String userId = data.userId;
 

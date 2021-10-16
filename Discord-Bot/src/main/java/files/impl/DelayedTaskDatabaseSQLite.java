@@ -12,12 +12,10 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class DelayedTaskDatabaseSQLite implements DelayedTaskDatabase {
-    private Map<Long, Task> tasks = new HashMap<>();
     private Timer timer = new Timer("DELAYED_TASK_TIMER");
 
     @Override
     public void load() {
-        tasks.clear();
         ResultSet result = LiteSQL.onQuery("SELECT * FROM delayed_tasks;");
         try {
             while (result.next()) {
@@ -28,7 +26,13 @@ public class DelayedTaskDatabaseSQLite implements DelayedTaskDatabase {
                             Task t = new Task();
                             t.date = new Date(d);
                             t.task = ctx;
-                            tasks.put(id, t);
+                            timer.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    t.task.run(DiscordBot.INSTANCE.jda);
+                                    deleteTask(id);
+                                }
+                            }, t.date);
                         });
 
             }
@@ -36,15 +40,6 @@ public class DelayedTaskDatabaseSQLite implements DelayedTaskDatabase {
             System.err.println("Error while loading delayed tasks");
             e.printStackTrace();
         }
-        tasks.forEach((id, ctx) -> {
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    ctx.task.run(DiscordBot.INSTANCE.jda);
-                    deleteTask(id);
-                }
-            }, ctx.date);
-        });
     }
 
     @Override
@@ -54,7 +49,7 @@ public class DelayedTaskDatabaseSQLite implements DelayedTaskDatabase {
         try {
             stmt.setString(1, uuid.toString());
             stmt.setLong(2, date.getTime());
-            stmt.setString(3, taskType);
+            stmt.setString(3, taskType.toLowerCase(Locale.ROOT));
             stmt.setString(4, taskData);
 
             stmt.execute();
@@ -75,6 +70,11 @@ public class DelayedTaskDatabaseSQLite implements DelayedTaskDatabase {
     }
 
     @Override
+    public ResultSet getTasksByType(String taskType) {
+        return LiteSQL.onQuery("SELECT * FROM delayed_tasks WHERE type=\"" + taskType.toLowerCase() + "\"");
+    }
+
+    @Override
     public void deleteTask(long taskId) {
         LiteSQL.onUpdate("DELETE FROM delayed_tasks WHERE id=" + taskId);
     }
@@ -84,6 +84,12 @@ public class DelayedTaskDatabaseSQLite implements DelayedTaskDatabase {
         LiteSQL.onUpdate("DELETE FROM delayed_tasks WHERE uuid=\"" + taskUUID.toString() + "\"");
     }
 
+    @Override
+    public void reload(){
+        timer.cancel();
+        timer = new Timer("DELAYED_TASKS");
+        load();
+    }
     private class Task {
         public Date date;
         public TaskContext task;
