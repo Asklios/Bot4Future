@@ -21,6 +21,8 @@ import java.util.function.Consumer;
 
 public class AuditListener extends ListenerAdapter {
 
+    static final long BANNSYSTEM_ID = 697374082509045800l;
+
     UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
     ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
@@ -64,7 +66,6 @@ public class AuditListener extends ListenerAdapter {
 
 
     private void outputBanMessage(TextChannel channel, User targetUser, AuditLogEntry logEntry, Guild guild) {
-
         //wenn der Ban durch den Bot ausgeführt wird, wird die Nachricht dort verschickt
         if (logEntry.getUser().getIdLong() == guild.getSelfMember().getIdLong()) {
             return;
@@ -73,20 +74,23 @@ public class AuditListener extends ListenerAdapter {
         // Nachricht wird in den festgelegten auditChannel gesendet
         if (channel == null) return;
 
-        EmbedBuilder builder = new EmbedBuilder();
-        // Inhalt der Auditausgabe bei Ban
+        // Wenn der Bann durch das Bannsystem durchgeführt wurde, wird dieser vom BannSysten selber geloggt.
+        if (logEntry.getUser().getIdLong() != BANNSYSTEM_ID) {
+            EmbedBuilder builder = new EmbedBuilder();
+            // Inhalt der Auditausgabe bei Ban
 
-        //builder.setFooter(bannedBy);
-        builder.setTimestamp(OffsetDateTime.now());
-        builder.setColor(0xff0000); // rot
-        builder.setThumbnail(targetUser.getAvatarUrl() == null ? targetUser.getDefaultAvatarUrl() : targetUser.getAvatarUrl()); // wenn AvatarUrl = null ist wird der DefaultAvatar vewendet
-        builder.setFooter("by " + logEntry.getUser().getName());
-        builder.addField("Name: ", targetUser.getAsMention(), false);
-        builder.addField("ID: ", targetUser.getId(), false);
-        builder.addField(":page_facing_up:Begründung: ", logEntry.getReason() == null ? "" : logEntry.getReason(), false);
-        builder.setTitle(":hammer: Nutzer gebannt:");
+            //builder.setFooter(bannedBy);
+            builder.setTimestamp(OffsetDateTime.now());
+            builder.setColor(0xff0000); // rot
+            builder.setThumbnail(targetUser.getAvatarUrl() == null ? targetUser.getDefaultAvatarUrl() : targetUser.getAvatarUrl()); // wenn AvatarUrl = null ist wird der DefaultAvatar vewendet
+            builder.setFooter("by " + logEntry.getUser().getName());
+            builder.addField("Name: ", targetUser.getAsMention(), false);
+            builder.addField("ID: ", targetUser.getId(), false);
+            builder.addField(":page_facing_up:Begründung: ", logEntry.getReason() == null ? "" : logEntry.getReason(), false);
+            builder.setTitle(":hammer: Nutzer gebannt:");
 
-        channel.sendMessage(builder.build()).queue();
+            channel.sendMessage(builder.build()).queue();
+        }
 
         //write ban to .db
         this.userRecordsDatabase.addRecord(targetUser.getIdLong(), System.currentTimeMillis(), 0, "ban", guild.getIdLong(),
@@ -96,6 +100,9 @@ public class AuditListener extends ListenerAdapter {
     private void outputUnbanMessage(TextChannel channel, User targetUser, AuditLogEntry logEntry) {
         // Nachricht wird in den festgelegten auditChannel gesendet
         if (channel == null) return;
+
+        //// Wenn der Unbann durch das Bannsystem durchgeführt wurde, wird dieser vom BannSysten selber geloggt.
+        if (logEntry.getUser().getIdLong() == BANNSYSTEM_ID) return;
 
         EmbedBuilder builder = new EmbedBuilder();
         // Inhalt der Auditausgabe bei Entbannung
