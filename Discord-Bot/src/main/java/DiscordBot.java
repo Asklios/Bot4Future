@@ -149,6 +149,7 @@ public class DiscordBot {
         builder.addEventListeners(new ReactionListener(voteDatabase));
         builder.addEventListeners(new BumpListener());
         builder.addEventListeners(new CookieListener());
+        builder.addEventListeners(new QuestionListener());
 
         try {
             jda = builder.build();

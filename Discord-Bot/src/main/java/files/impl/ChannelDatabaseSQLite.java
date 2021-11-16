@@ -1,5 +1,6 @@
 package main.java.files.impl;
 
+import main.java.DiscordBot;
 import main.java.files.LiteSQL;
 import main.java.files.interfaces.ChannelDatabase;
 import net.dv8tion.jda.api.entities.Guild;
@@ -21,6 +22,7 @@ public class ChannelDatabaseSQLite implements ChannelDatabase {
 
     /**
      * Adds empty entries for every guild. Enables SQL: UPDATE
+     *
      * @param guild the id of the new guild.
      */
     @Override
@@ -39,13 +41,18 @@ public class ChannelDatabaseSQLite implements ChannelDatabase {
             e.printStackTrace();
         }
 
-        if (!types.contains("audit")) LiteSQL.onUpdate("INSERT INTO guildchannels(guildid, type) VALUES(" + guildid + ", 'audit')");
-        if (!types.contains("eventaudit")) LiteSQL.onUpdate("INSERT INTO guildchannels(guildid, type) VALUES(" + guildid + ", 'eventaudit')");
-        if (!types.contains("pnchannel")) LiteSQL.onUpdate("INSERT INTO guildchannels(guildid, type) VALUES(" + guildid + ", 'pnchannel')");
+        if (!types.contains("audit"))
+            LiteSQL.onUpdate("INSERT INTO guildchannels(guildid, type) VALUES(" + guildid + ", 'audit')");
+        if (!types.contains("eventaudit"))
+            LiteSQL.onUpdate("INSERT INTO guildchannels(guildid, type) VALUES(" + guildid + ", 'eventaudit')");
+        if (!types.contains("pnchannel"))
+            LiteSQL.onUpdate("INSERT INTO guildchannels(guildid, type) VALUES(" + guildid + ", 'pnchannel')");
+
     }
 
     /**
      * Saves the TextChannel for audit-messages.
+     *
      * @param textChannel the specified audit-channel.
      */
     @Override
@@ -53,11 +60,12 @@ public class ChannelDatabaseSQLite implements ChannelDatabase {
         long channelId = textChannel.getIdLong();
         long guildId = textChannel.getGuild().getIdLong();
 
-        LiteSQL.onUpdate("UPDATE guildchannels SET channelid = " + channelId + " WHERE guildid = " +  guildId + " AND type = 'audit'");
+        LiteSQL.onUpdate("UPDATE guildchannels SET channelid = " + channelId + " WHERE guildid = " + guildId + " AND type = 'audit'");
     }
 
     /**
      * Returns the saved TextChannel for audit-messages.
+     *
      * @param guild the requesting guild.
      * @return The audit TextChannel or null if it is not yet defined.
      */
@@ -80,6 +88,7 @@ public class ChannelDatabaseSQLite implements ChannelDatabase {
 
     /**
      * Saves the TextChannel for event-audit-messages.
+     *
      * @param textChannel the specified event-audit-channel.
      */
     @Override
@@ -87,11 +96,12 @@ public class ChannelDatabaseSQLite implements ChannelDatabase {
         long channelId = textChannel.getIdLong();
         long guildId = textChannel.getGuild().getIdLong();
 
-        LiteSQL.onUpdate("UPDATE guildchannels SET channelid = " + channelId + " WHERE guildid = " +  guildId + " AND type = 'eventaudit'");
+        LiteSQL.onUpdate("UPDATE guildchannels SET channelid = " + channelId + " WHERE guildid = " + guildId + " AND type = 'eventaudit'");
     }
 
     /**
      * Returns the saved TextChannel for event-audit-messages.
+     *
      * @param guild the requesting guild.
      * @return The event-audit TextChannel or null if it is not yet defined.
      */
@@ -114,6 +124,7 @@ public class ChannelDatabaseSQLite implements ChannelDatabase {
 
     /**
      * Saves the TextChannel for Messages from the pmSystem.
+     *
      * @param textChannel the specified pm-channel.
      */
     @Override
@@ -121,16 +132,17 @@ public class ChannelDatabaseSQLite implements ChannelDatabase {
         long channelId = textChannel.getIdLong();
         long guildId = textChannel.getGuild().getIdLong();
 
-        LiteSQL.onUpdate("UPDATE guildchannels SET channelid = " + channelId + " WHERE guildid = " +  guildId + " AND type = 'pnchannel'");
+        LiteSQL.onUpdate("UPDATE guildchannels SET channelid = " + channelId + " WHERE guildid = " + guildId + " AND type = 'pnchannel'");
     }
 
     /**
      * Returns the saved TextChannel for the pmSystem.
+     *
      * @param guild the requesting guild.
      * @return The pm TextChannel or null if it is not yet defined.
      */
     @Override
-    public TextChannel getPmChannel(Guild guild) throws NullPointerException{
+    public TextChannel getPmChannel(Guild guild) throws NullPointerException {
         long guildId = guild.getIdLong();
 
         ResultSet result = LiteSQL.onQuery("SELECT channelid FROM guildchannels WHERE guildid = " + guildId + " AND type = 'pnchannel'");
@@ -148,10 +160,39 @@ public class ChannelDatabaseSQLite implements ChannelDatabase {
 
     /**
      * Sets all entries back to null for the provided guild.
+     *
      * @param guildId the id of the requesting guild.
      */
     @Override
     public void removeGuildData(long guildId) {
         LiteSQL.onUpdate("UPDATE guildchannels SET channelid = NULL WHERE guildid = " + guildId);
+    }
+
+    @Override
+    public void saveQuestionChannel(TextChannel textChannel) {
+        long channelId = textChannel.getIdLong();
+        long guildId = textChannel.getGuild().getIdLong();
+        getQuestionChannel(DiscordBot.INSTANCE.jda.getGuildById(guildId));
+
+        LiteSQL.onUpdate("UPDATE guildchannels SET channelid = " + channelId + " WHERE guildid = " + guildId + " AND type = 'question'");
+    }
+
+    @Override
+    public TextChannel getQuestionChannel(Guild guild) throws NullPointerException {
+        long guildId = guild.getIdLong();
+
+        ResultSet result = LiteSQL.onQuery("SELECT channelid FROM guildchannels WHERE guildid = " + guildId + " AND type = 'question'");
+
+        try {
+            if (result.next()) {
+                long channelId = result.getLong("channelid");
+                return guild.getTextChannelById(channelId);
+            } else {
+                LiteSQL.onUpdate("INSERT INTO guildchannels(guildid, type) VALUES(" + guild.getIdLong() + ", 'question')");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

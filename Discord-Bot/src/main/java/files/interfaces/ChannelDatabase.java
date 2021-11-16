@@ -58,4 +58,16 @@ public interface ChannelDatabase {
      * @param guildId the id of the requesting guild.
      */
     void removeGuildData(long guildId);
+
+    /**
+     * Saves the TextChannel for the question channel for the given guild.
+     * @param textChannel the specified question channel.
+     */
+    void saveQuestionChannel(TextChannel textChannel) throws NullPointerException;
+    /**
+     * Returns the saved Question channel for the given guild.
+     * @param guild the requesting guild.
+     * @return The question TextChannel or null if it is not yet defined.
+     */
+    TextChannel getQuestionChannel(Guild guild);
 }

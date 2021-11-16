@@ -14,6 +14,8 @@ import main.java.commands.server.developer.KillCommand;
 import main.java.commands.server.invite.*;
 import main.java.commands.server.pmCommands.GetPmChannelCommand;
 import main.java.commands.server.pmCommands.PmChannelCommand;
+import main.java.commands.server.question.GetQuestionChannelCommand;
+import main.java.commands.server.question.QuestionChannelCommand;
 import main.java.commands.server.user.*;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -77,6 +79,9 @@ public class CommandManager {
         this.commands.put("getpmchannel", new GetPmChannelCommand());
         this.commands.put("selfrole", new AddSelfRoleCommand());
         this.commands.put("rmselfrole", new RemoveSelfRoleCommand());
+
+        this.commands.put("questionchannel", new GetQuestionChannelCommand());
+        this.commands.put("questions", new QuestionChannelCommand());
         /*this.commands.put("poll", new PollCommand());
         this.commands.put("getpoll", new GetPollCommand());
         this.commands.put("closepoll", new ClosePollCommand());*/
