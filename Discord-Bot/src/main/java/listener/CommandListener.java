@@ -116,6 +116,8 @@ public class CommandListener extends ListenerAdapter {
         System.out.println("ready");
         DiscordBot.INSTANCE.updateGuilds(event.getJDA().getGuilds());
         SpecialCodeCommand.writeInviteCount(event.getJDA().getGuilds());
+        DiscordBot.INSTANCE.slashCommandManager.startupGuilds();
+        DiscordBot.INSTANCE.selfRoles.cleanUp();
     }
 
     @Override

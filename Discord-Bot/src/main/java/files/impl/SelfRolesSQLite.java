@@ -59,7 +59,7 @@ public class SelfRolesSQLite implements SelfRoles {
         try {
             assert prepStmt != null;
             prepStmt.setLong(1, guildId);
-            prepStmt.setString(2, role.toLowerCase());
+            prepStmt.setString(2, role);
             prepStmt.setLong(3, roleId);
             prepStmt.executeUpdate();
         } catch (SQLException e) {
@@ -72,7 +72,7 @@ public class SelfRolesSQLite implements SelfRoles {
 
         HashMap<Long, HashMap<String, Long>> serverSelfRoles = IAmCommand.getServerSelfRoles();
         HashMap<String, Long> guildSelfRoles = serverSelfRoles.getOrDefault(guildId, new HashMap<>());
-        guildSelfRoles.put(role.toLowerCase(), roleId);
+        guildSelfRoles.put(role, roleId);
         serverSelfRoles.put(guildId, guildSelfRoles);
         IAmCommand.setServerSelfRoles(serverSelfRoles);
     }

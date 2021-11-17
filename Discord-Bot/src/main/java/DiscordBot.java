@@ -60,17 +60,17 @@ public class DiscordBot {
     private String newPbPath;
     private String dbFilePath;
     private String botToken;
-    private List<GuildData> guildsData = new ArrayList<>();
+    private final List<GuildData> guildsData = new ArrayList<>();
     private String[] defIds;
-    private long muteBanTimerPeriod = 5 * 60 * 1000;
-	private VoteDatabase voteDatabase;
-    private RoleDatabase roleDatabase;
-    private ChannelDatabase channelDatabase;
-    private UserRecordsDatabase userRecordsDatabase;
-    private GetMemberFromMessage getMemberFromMessage;
-    private InviteDatabase inviteDatabase;
-    private TimedTasksDatabase timedTasksDatabase;
-    private SelfRoles selfRoles;
+    private final long muteBanTimerPeriod = 5 * 60 * 1000;
+	private final VoteDatabase voteDatabase;
+    private final RoleDatabase roleDatabase;
+    private final ChannelDatabase channelDatabase;
+    private final UserRecordsDatabase userRecordsDatabase;
+    private final GetMemberFromMessage getMemberFromMessage;
+    private final InviteDatabase inviteDatabase;
+    private final TimedTasksDatabase timedTasksDatabase;
+    public SelfRoles selfRoles;
 
     public PollManager pollManager;
 
@@ -159,14 +159,11 @@ public class DiscordBot {
         }
         System.out.println("Bot Status: online");
 
-        slashCommandManager.startupGuilds();
-
         shutdown();
 
         System.out.println("loaded userRecords");
 
         selfRoles.loadSelfRoles();
-        selfRoles.cleanUp();
 
         //start timedTasks - depends on UserRecords
         TimedTasks.startTimedTasks();

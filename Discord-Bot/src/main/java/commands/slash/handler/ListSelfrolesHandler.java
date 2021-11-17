@@ -1,5 +1,6 @@
 package main.java.commands.slash.handler;
 
+import com.sun.source.tree.Tree;
 import main.java.commands.server.user.IAmCommand;
 import main.java.commands.slash.SlashCommandHandler;
 import main.java.helper.api.LocalGroups;
@@ -18,18 +19,17 @@ public class ListSelfrolesHandler implements SlashCommandHandler {
         HashMap<String, Long> server = IAmCommand.getServerSelfRoles().get(guildId);
         if (server == null) {
             event.replyEmbeds(new EmbedBuilder().setDescription("Für diesen Server" +
-                    " exsistieren keine selbst gebbaren Rollen.").build())
+                            " exsistieren keine selbst gebbaren Rollen.").build())
                     .setEphemeral(true)
                     .queue();
             return;
         }
-        List<String> guildRoles = IAmCommand.getServerSelfRoles().get(guildId).keySet()
-                .stream()
-                .sorted()
-                .collect(Collectors.toList());
+        List<Long> guildRoles = new ArrayList<>(new TreeMap<>(IAmCommand.getServerSelfRoles().get(guildId)).values());
+
+
         if (guildRoles.isEmpty()) {
             event.replyEmbeds(new EmbedBuilder().setDescription("Für diesen Server" +
-                    " exsistieren keine selbst gebbaren Rollen.").build())
+                            " exsistieren keine selbst gebbaren Rollen.").build())
                     .setEphemeral(true)
                     .queue();
         } else {
@@ -42,7 +42,7 @@ public class ListSelfrolesHandler implements SlashCommandHandler {
                 colums[i] = new ArrayList();
                 while (j * fieldLength > k) {
                     if (k >= guildRoles.size()) break;
-                    colums[i].add(guildRoles.get(k));
+                    colums[i].add( "<@&" + guildRoles.get(k) + ">");
                     k++;
                 }
                 j++;

@@ -146,9 +146,8 @@ public class AdminHelpCommand implements ServerCommand {
                             " \r\n" +
                             "\n" +
                             "**:roll_of_paper: Rollenvergabe per Command**\n" +
-                            "`%selfrole @Rolle1 @Rolle2 @RolleN` fügt die Rolle zu den selbstgebbaren hinzu. " +
-                            "Der Bot erstellt die Rollen nicht mehr automatisch, das war zu verbuggt. \n" +
-                            "`%rmselfrole @Rolle1 @Rolle2 @RolleN` entfernt die Rolle von den selbst gebbaren. \n" +
+                            "Die Commands zum Verwalten der selbst gebbaren Rollen sind jetzt bei den Slash-Commands." +
+                            "Versuche /selfroles \n" +
                             "--> *permission.ADMINISTRATOR*\n\n" +
                             "```%iam <Rollenname>``` mit diesem Command kann sich jeder eine SelfRole geben." +
                             "");
@@ -156,7 +155,7 @@ public class AdminHelpCommand implements ServerCommand {
             EmbedBuilder builder4 = new EmbedBuilder();
             builder4.setTitle("Festlegen von Textkanälen");
             builder4.setColor(0x1da64a);
-            builder4.setFooter("Bot4Future by @Asklios @Semmler");
+            builder4.setFooter("Bot4Future by @Asklios @Semmler @DrDeee");
             builder4.setTimestamp(OffsetDateTime.now());
             builder4.setDescription(
 

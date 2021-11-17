@@ -78,8 +78,6 @@ public class CommandManager {
         this.commands.put("auditignore", new EventAuditIgnoredChannelsCommand());
         this.commands.put("pmchannel", new PmChannelCommand());
         this.commands.put("getpmchannel", new GetPmChannelCommand());
-        this.commands.put("selfrole", new AddSelfRoleCommand());
-        this.commands.put("rmselfrole", new RemoveSelfRoleCommand());
 
         this.commands.put("questionchannel", new GetQuestionChannelCommand());
         this.commands.put("questions", new QuestionChannelCommand());
