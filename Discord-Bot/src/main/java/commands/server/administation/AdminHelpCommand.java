@@ -146,9 +146,9 @@ public class AdminHelpCommand implements ServerCommand {
                             " \r\n" +
                             "\n" +
                             "**:roll_of_paper: Rollenvergabe per Command**\n" +
-                            "`%selfrole <Rollenname>` fügt die Rolle zu den selbstgebbaren hinzu. " +
-                            "Wenn sie noch nicht existiert wird eine neue erstellt. \n" +
-                            "`%rmselfrole <Rollenname>` entfernt die Rolle von den selbst gebbaren. \n" +
+                            "`%selfrole @Rolle1 @Rolle2 @RolleN` fügt die Rolle zu den selbstgebbaren hinzu. " +
+                            "Der Bot erstellt die Rollen nicht mehr automatisch, das war zu verbuggt. \n" +
+                            "`%rmselfrole @Rolle1 @Rolle2 @RolleN` entfernt die Rolle von den selbst gebbaren. \n" +
                             "--> *permission.ADMINISTRATOR*\n\n" +
                             "```%iam <Rollenname>``` mit diesem Command kann sich jeder eine SelfRole geben." +
                             "");
