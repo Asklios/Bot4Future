@@ -64,6 +64,7 @@ public class SlashCommandManager {
                     List<CommandPrivilege> privileges = new ArrayList<>();
                     guild.getRoles().forEach(role -> {
                         if(role.hasPermission(Permission.MESSAGE_MANAGE) && !role.isManaged()){
+                            System.out.println("Allow role: "  + role.getName());
                             privileges.add(CommandPrivilege.enable(role));
                         }
                     });
