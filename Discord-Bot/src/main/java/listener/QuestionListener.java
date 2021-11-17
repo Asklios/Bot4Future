@@ -34,6 +34,8 @@ public class QuestionListener extends ListenerAdapter {
                     .collect(Collectors.toList());
 
             emojis.forEach(emoji -> event.getMessage().addReaction(emoji).complete());
+            event.getMessage().getEmotes().stream().filter(e -> event.getGuild().getIdLong() == e.getGuild().getIdLong())
+                    .forEach(e -> event.getMessage().addReaction(e).complete());
         }
     }
 }
