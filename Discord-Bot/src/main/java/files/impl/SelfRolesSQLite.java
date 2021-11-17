@@ -1,13 +1,18 @@
 package main.java.files.impl;
 
+import main.java.DiscordBot;
 import main.java.commands.server.user.IAmCommand;
 import main.java.files.LiteSQL;
 import main.java.files.interfaces.SelfRoles;
+import net.dv8tion.jda.api.entities.Guild;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 public class SelfRolesSQLite implements SelfRoles {
@@ -35,8 +40,7 @@ public class SelfRolesSQLite implements SelfRoles {
 
                 if (serverRoles.containsKey(guildId)) {
                     serverRoles.get(guildId).put(role.toLowerCase(), roleId);
-                }
-                else {
+                } else {
                     HashMap<String, Long> roleMap = new HashMap<>();
                     roleMap.put(role.toLowerCase(), roleId);
                     serverRoles.put(guildId, roleMap);
@@ -67,7 +71,7 @@ public class SelfRolesSQLite implements SelfRoles {
         }
 
         HashMap<Long, HashMap<String, Long>> serverSelfRoles = IAmCommand.getServerSelfRoles();
-        HashMap<String, Long> guildSelfRoles = serverSelfRoles.get(guildId);
+        HashMap<String, Long> guildSelfRoles = serverSelfRoles.getOrDefault(guildId, new HashMap<>());
         guildSelfRoles.put(role.toLowerCase(), roleId);
         serverSelfRoles.put(guildId, guildSelfRoles);
         IAmCommand.setServerSelfRoles(serverSelfRoles);
@@ -99,5 +103,33 @@ public class SelfRolesSQLite implements SelfRoles {
         guildSelfRoles.remove(roleName.toLowerCase());
         serverSelfRoles.put(guildId, guildSelfRoles);
         IAmCommand.setServerSelfRoles(serverSelfRoles);
+    }
+
+    @Override
+    public void cleanUp() {
+        Map<Long, HashMap<String, Long>> selfRoles = IAmCommand.getServerSelfRoles();
+        int cnt = 0;
+        for (long guildId : selfRoles.keySet()) {
+            Guild guild = DiscordBot.INSTANCE.jda.getGuildById(guildId);
+            if (guild == null) {
+                List<Long> toRemove = new ArrayList<>();
+                for (long roleId : selfRoles.get(guildId).values()) {
+                    toRemove.add(roleId);
+                    cnt++;
+                }
+                toRemove.forEach(id -> removeSelfRoleByRoleId(guildId, id));
+            } else {
+                List<Long> toRemove = new ArrayList<>();
+                for (long id : selfRoles.get(guildId).values()) {
+                    if (guild.getRoleById(id) == null) {
+                        toRemove.add(id);
+                        cnt++;
+                    }
+                }
+                toRemove.forEach(id -> removeSelfRoleByRoleId(guildId, id));
+            }
+        }
+
+        System.out.println("Removed " + cnt +" selfrole" + (cnt == 1 ? "." : "s."));
     }
 }

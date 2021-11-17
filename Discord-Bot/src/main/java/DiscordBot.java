@@ -159,11 +159,14 @@ public class DiscordBot {
         }
         System.out.println("Bot Status: online");
 
+        slashCommandManager.startupGuilds();
+
         shutdown();
 
         System.out.println("loaded userRecords");
 
         selfRoles.loadSelfRoles();
+        selfRoles.cleanUp();
 
         //start timedTasks - depends on UserRecords
         TimedTasks.startTimedTasks();

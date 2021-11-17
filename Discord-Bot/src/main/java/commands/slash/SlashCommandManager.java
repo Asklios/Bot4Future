@@ -1,5 +1,6 @@
 package main.java.commands.slash;
 
+import main.java.DiscordBot;
 import main.java.activitylog.EventAudit;
 import main.java.commands.slash.handler.IamHandler;
 import main.java.commands.slash.handler.IamNotHandler;
@@ -10,6 +11,7 @@ import main.java.commands.slash.models.ListSelfrolesCommand;
 import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Invite;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -17,13 +19,16 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SlashCommandManager {
     private Map<String, SlashCommandHandler> handlers = new HashMap<>();
@@ -59,23 +64,22 @@ public class SlashCommandManager {
         return true;
     }
 
-    public void unregisterCommandsForGuild(Guild guild) {
-        guild.retrieveCommands().queue(cmdList -> {
-            for (Command cmd : cmdList)
-                guild.deleteCommandById(cmd.getId()).queue();
-        });
-    }
-
     public void handleSlashCommand(SlashCommandEvent event) {
-        if (event.getGuild() == null) return;
+        if (event.getChannel() == null || event.getChannel().getType() != ChannelType.TEXT) {
+            event.replyEmbeds(new EmbedBuilder().setDescription("Slash-Commands werden" +
+                    " nur in normalen Kanälen unterstützt. In Threads oder" +
+                    " Direktnachrichten sind diese deaktiviert.").build())
+                    .setEphemeral(true).queue();
+            return;
+        }
         TextChannel c = channelDatabase.getEventAuditChannel(event.getGuild());
-        if(c != null){
-            c.sendMessage(new EmbedBuilder().setTitle("Slash-Command genutzt:" + event.getName())
+        if (c != null) {
+            c.sendMessage(new EmbedBuilder().setTitle("Slash-Command genutzt: " + event.getName())
                     .addField("User", event.getMember().getUser().getAsTag(), false)
-                    .addField("Befehl", event.toString(), false)
-                    .addField("Channel", "#" + event.getChannel().getName(), false)
+                    .addField("Argumente", getArgString(event), false)
+                    .addField("Channel", event.getTextChannel().getAsMention(), false)
                     .setColor(Color.YELLOW)
-            .build()).queue();
+                    .build()).queue();
         }
         SlashCommandHandler handler = handlers.getOrDefault(event.getName(), null);
         if (handler == null) {
@@ -83,8 +87,44 @@ public class SlashCommandManager {
                     "Bitte melde dies einem Developer, das ist definitiv nicht so gedacht").setEphemeral(true)
                     .queue();
             return;
+        } else {
+            handler.handle(event);
         }
-        if (handler.deferReply()) event.deferReply().queue();
-        handler.handle(event);
+    }
+
+    private String getArgString(SlashCommandEvent event) {
+        String data = "";
+        if (event.getOptions().size() == 0) return "*Keine genutzen Argumente*";
+        for (OptionMapping mapping : event.getOptions()) {
+            data += "**" + mapping.getName() + "**: ";
+            switch (mapping.getType()) {
+                case ROLE:
+                    data += mapping.getAsRole().getAsMention();
+                    break;
+                case USER:
+                    data += mapping.getAsUser().getAsMention();
+                    break;
+                case BOOLEAN:
+                    data += mapping.getAsBoolean() ? "Ja" : "Nein";
+                    break;
+                case CHANNEL:
+                    data += mapping.getAsGuildChannel().getAsMention();
+                    break;
+                case MENTIONABLE:
+                    data += mapping.getAsMentionable().getAsMention();
+                    break;
+                default:
+                    data += mapping.getAsString();
+                    break;
+            }
+            data += "\n";
+        }
+        return data;
+    }
+
+    public void startupGuilds() {
+        DiscordBot.INSTANCE.jda.getGuilds().forEach(guild -> {
+            registerCommandsForGuild(guild);
+        });
     }
 }

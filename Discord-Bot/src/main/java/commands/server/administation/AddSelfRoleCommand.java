@@ -27,8 +27,6 @@ public class AddSelfRoleCommand implements ServerCommand {
             return;
         }
 
-        //%selfrole <roleName>
-        String[] messageSplit = message.getContentDisplay().split("\\s+");
         Guild guild = channel.getGuild();
 
         if (!message.getMentionedRoles().isEmpty()) {
@@ -40,45 +38,20 @@ public class AddSelfRoleCommand implements ServerCommand {
                 sendAuditMessage(r, member);
             });
             return;
-        }
+        } else sendFormat(message);
 
-        String searchString = "";
-        for (int i = 1; i < messageSplit.length; i++) {
-            if (searchString.equals("")) searchString = messageSplit[i];
-            else searchString = searchString + " " + messageSplit[i];
-        }
+    }
 
-        List<Role> roles = channel.getGuild().getRoles();
-        Role role = null;
-        for (Role r : roles) {
-            if (r.getName().equals(searchString)) {
-                role = r;
-                break;
-            }
-        }
-
-        if (role != null) {
-            selfRoles.addSelfRole(guild.getIdLong(), role.getName(), role.getIdLong());
-            channel.sendMessage("`" + role.getName() + "` wurde zu den selbst gebbaren Rollen hinzugefügt.")
-                    .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
-            sendAuditMessage(role, member);
-        }
-        else {
-            RoleAction ra = guild.createRole();
-            ra.setName(searchString).queue();
-            ra.setPermissions(Permission.EMPTY_PERMISSIONS).queue();
-            ra.queue(r -> {
-                selfRoles.addSelfRole(guild.getIdLong(), r.getName(), r.getIdLong());
-                sendAuditMessage(r, member);
-            });
-            channel.sendMessage("`" + searchString + "` wurde erstellt und zu den selbst gebbaren Rollen hinzugefügt.")
-                    .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
-        }
-
+    private void sendFormat(Message msg) {
+        msg.reply(new EmbedBuilder().setTitle("Falsches Format")
+                .setDescription("````\n%selfrole @role1 @role2 @roleN\n```")
+                .build()).queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
     }
 
     private void sendAuditMessage(Role role, Member member) {
         TextChannel audit = channelDatabase.getAuditChannel(role.getGuild());
+
+        if (audit == null) return;
 
         EmbedBuilder b = new EmbedBuilder();
         b.setColor(0xff00ff); //pink

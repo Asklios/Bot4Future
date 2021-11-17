@@ -15,7 +15,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class RemoveSelfRoleCommand implements ServerCommand{
+public class RemoveSelfRoleCommand implements ServerCommand {
 
     SelfRoles selfRoles = new SelfRolesSQLite();
     ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
@@ -28,9 +28,6 @@ public class RemoveSelfRoleCommand implements ServerCommand{
             return;
         }
 
-        //%rmselfrole <roleName>
-        String[] messageSplit = message.getContentDisplay().split("\\s+");
-
         if (!message.getMentionedRoles().isEmpty()) {
             Role role = message.getMentionedRoles().get(0);
 
@@ -40,42 +37,20 @@ public class RemoveSelfRoleCommand implements ServerCommand{
 
             channel.sendMessage("`" + role.getName() + "` wird von den selbstgebbaren Rollen entfernt.")
                     .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
-        }
-        else {
-            String searchString = "";
-            for (int i = 1; i < messageSplit.length; i++) {
-                if (searchString.equals("")) searchString = messageSplit[i];
-                else searchString = searchString + " " + messageSplit[i];
-            }
+        } else sendFormat(message);
 
-            List<Role> roles = channel.getGuild().getRoles();
-            Role role = null;
-            for (Role r : roles) {
-                if (r.getName().equals(searchString)) {
-                    role = r;
-                    break;
-                }
-            }
+    }
 
-            if (role != null) {
-                sendAuditMessage(role, member);
-
-                selfRoles.removeSelfRoleByRoleId(message.getGuild().getIdLong(), role.getIdLong());
-
-                channel.sendMessage("`" + role.getName() + "` wird von den selbstgebbaren Rollen entfernt.")
-                        .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
-            }
-            else {
-                channel.sendMessage("Es konnte keine Rolle mit dem Namen \"" + searchString + "\" gefunden werden. " +
-                        "Versuche es alternativ mit einer Erwähnung und beachte Groß- und kleinschreibung.")
-                        .queue(m -> m.delete().queueAfter(10, TimeUnit.SECONDS));
-            }
-        }
+    private void sendFormat(Message msg) {
+        msg.reply(new EmbedBuilder().setTitle("Falsches Format")
+                .setDescription("```\n%rmselfrole @role1 @role2 @roleN\n```")
+                .build()).queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
     }
 
     private void sendAuditMessage(Role role, Member member) {
         TextChannel audit = channelDatabase.getAuditChannel(role.getGuild());
 
+        if (audit == null) return;
         EmbedBuilder b = new EmbedBuilder();
         b.setColor(0xff00ff); //pink
         b.setTitle(":cricket: SelfRole entfernt");

@@ -1,6 +1,5 @@
 package main.java.commands.server;
 
-import main.java.DiscordBot;
 import main.java.commands.server.administation.*;
 import main.java.commands.server.administation.poll.CreatePollCommand;
 import main.java.commands.server.administation.presence.PresenceCommand;
@@ -9,7 +8,9 @@ import main.java.commands.server.administation.presence.RequestCallDatabase;
 import main.java.commands.server.audit.*;
 import main.java.commands.server.bump.BumpRoleCommand;
 import main.java.commands.server.bump.GetBumpRoleCommand;
-import main.java.commands.server.developer.*;
+import main.java.commands.server.developer.DbClearCommand;
+import main.java.commands.server.developer.GetDbCommand;
+import main.java.commands.server.developer.GetGuildsCommand;
 import main.java.commands.server.developer.KillCommand;
 import main.java.commands.server.invite.*;
 import main.java.commands.server.pmCommands.GetPmChannelCommand;
@@ -107,10 +108,6 @@ public class CommandManager {
 
         //PollCommands
         this.commands.put("poll", new CreatePollCommand());
-
-        //SlashCommands
-        this.commands.put("registerslash", new RegisterSlashCommandsCommand());
-        this.commands.put("unregisterslash", new UnregisterSlashCommandsCommand());
 
         //Fun
         this.commands.put("cookies", new CookieCommand());

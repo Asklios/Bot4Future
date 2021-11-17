@@ -7,4 +7,6 @@ public interface SelfRoles {
     void addSelfRole(long guildId, String role, long roleId);
 
     void removeSelfRoleByRoleId(long guildId, long roleId);
+
+    void cleanUp();
 }
