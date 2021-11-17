@@ -22,15 +22,13 @@ public class IamNotHandler implements SlashCommandHandler {
         try {
             roleId = guildRoles.get(event.getOption("rolle").getAsRole().getName().toLowerCase());
         } catch (NullPointerException e) {
-            event.replyEmbeds(new EmbedBuilder().setDescription("Entweder diese Rolle exsistiert nicht, oder du bist nicht" +
-                    " berechtigt diese dir selber zu geben.").build())
+            event.replyEmbeds(new EmbedBuilder().setDescription("Diese Rolle ist keine selbst-gebbare Rolle!").build())
                     .setEphemeral(true)
                     .queue();
             return;
         }
 
-        Guild guild = event.getGuild();
-        Role role = guild.getRoleById(roleId);
+        Role role = event.getGuild().getRoleById(roleId);
 
         if (role == null) {
             event.replyEmbeds(new EmbedBuilder().setDescription("Die Rolle mit der ID: "
@@ -43,7 +41,7 @@ public class IamNotHandler implements SlashCommandHandler {
         }
 
         if (event.getMember().getRoles().contains(role)) {
-            guild.removeRoleFromMember(event.getMember(), role).queue();
+            event.getGuild().removeRoleFromMember(event.getMember(), role).queue();
             event.replyEmbeds(new EmbedBuilder().setDescription(event.getMember().getAsMention() + ", " +
                     "du hast die Rolle `" + role.getName() + "` entfernt.").build())
                     .setEphemeral(true)
