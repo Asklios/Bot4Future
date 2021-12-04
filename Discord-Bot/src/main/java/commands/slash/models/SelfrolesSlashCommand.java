@@ -8,7 +8,7 @@ public class SelfrolesSlashCommand extends CommandData {
     public SelfrolesSlashCommand() {
         super("selfroles", "Zum Verwalten der Selbstgebbaren Rollen.");
         setDefaultEnabled(false);
-        addSubcommands(new AddSelfrole(), new RemoveSelfrole());
+        addSubcommands(new AddSelfrole(), new RemoveSelfrole(), new AddRangeSelfrole());
     }
 
     private class AddSelfrole extends SubcommandData {
@@ -25,4 +25,11 @@ public class SelfrolesSlashCommand extends CommandData {
         }
     }
 
+    private class AddRangeSelfrole extends SubcommandData {
+        public AddRangeSelfrole() {
+            super("addrange", "Füge alle Rollen zwischen zwei Rollen zu den selbst gebbaren Rollen hinzu.");
+            addOption(OptionType.ROLE, "start", "Die erste Rolle.", true);
+            addOption(OptionType.ROLE, "ende", "Die letzte Rolle.", true);
+        }
+    }
 }

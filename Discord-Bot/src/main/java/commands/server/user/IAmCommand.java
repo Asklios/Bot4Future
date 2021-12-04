@@ -12,7 +12,8 @@ import java.util.concurrent.TimeUnit;
 
 public class IAmCommand implements ServerCommand {
 
-    @Getter @Setter
+    @Getter
+    @Setter
     static HashMap<Long, HashMap<String, Long>> serverSelfRoles = new HashMap<>();
 
     private SelfRoles selfRoles = new SelfRolesSQLite();
@@ -45,9 +46,15 @@ public class IAmCommand implements ServerCommand {
 
         if (role == null) {
             channel.sendMessage("Die Rolle mit der id: " + roleId + " kann nicht mehr gefunden werden. " +
-                    "Sie wird aus der Datenbank enfernt.")
+                            "Sie wird aus der Datenbank enfernt.")
                     .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
             selfRoles.removeSelfRoleByRoleId(guildId, roleId);
+            return;
+        }
+
+        if (member.getRoles().contains(role)) {
+            channel.sendMessage("Du hast die Rolle " + role.getName() + " bereits!")
+                    .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
             return;
         }
 

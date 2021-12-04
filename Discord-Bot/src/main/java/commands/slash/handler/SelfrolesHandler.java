@@ -14,7 +14,9 @@ import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SelfrolesHandler implements SlashCommandHandler {
@@ -35,12 +37,47 @@ public class SelfrolesHandler implements SlashCommandHandler {
                     handleRemove(event);
                     break;
                 }
+                case "addrange": {
+                    handleAddRange(event);
+                    break;
+                }
             }
         } else {
             event.reply("Nur Administratoren dürfen die Selbstgebbaren Rollen verwalten!")
                     .setEphemeral(true)
                     .queue();
         }
+    }
+
+    private void handleAddRange(SlashCommandEvent event) {
+        List<Role> roles = event.getGuild().getRoles();
+        Role start = event.getOption("start").getAsRole();
+        Role end = event.getOption("ende").getAsRole();
+
+        int startRoleIndex = roles.indexOf(start);
+        int endRoleIndex = roles.indexOf(end);
+
+        if (endRoleIndex - startRoleIndex <= 1) {
+            event.reply("Die `@Start-Rolle` muss höher als die `@End-Rolle` sein." +
+                            " Zwischen ihnen müssen sich min. 2 Rollen befinden.")
+                    .setEphemeral(true).queue();
+            return;
+        }
+
+        List<Role> targetRoles = new ArrayList<>(roles.subList(startRoleIndex, endRoleIndex  + 1));
+        Map<Long, HashMap<String, Long>> selfRoles = IAmCommand.getServerSelfRoles();
+        int count = 0;
+        for (Role role : targetRoles) {
+            if (!(selfRoles.get(event.getGuild().getIdLong()) != null && selfRoles
+                    .get(event.getGuild().getIdLong())
+                    .containsValue(role.getIdLong()))) {
+                this.selfRoles.addSelfRole(end.getGuild().getIdLong(), role.getName(), role.getIdLong());
+                count++;
+            }
+        }
+
+        event.reply("Es wurden " + count + " Rollen zu den selbstgebbaren Rollen hinzugefügt.")
+                .setEphemeral(true).queue();
     }
 
     private void handleRemove(SlashCommandEvent event) {
