@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public class SlowModeCommand implements ServerCommand {
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.KICK_MEMBERS)) {
             channel.sendMessage("Du musst Kick_Members besitzen um diesen Command zu nutzen.").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));

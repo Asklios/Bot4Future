@@ -2,6 +2,7 @@ package main.java.commands.server.developer;
 
 import main.java.DiscordBot;
 import main.java.commands.server.ServerCommand;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
@@ -15,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 public class GetGuildsCommand implements ServerCommand {
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
         if (!Arrays.asList(DiscordBot.INSTANCE.getDefIds()).contains(member.getId())) {
             return;
         }
@@ -34,7 +35,7 @@ public class GetGuildsCommand implements ServerCommand {
 
         member.getUser().openPrivateChannel().queue(p -> {
             try {
-                p.sendMessage(b.build()).queue();
+                p.sendMessage(MsgCreator.of(b)).queue();
             } catch (ErrorResponseException e) {
                 channel.sendMessage(member.getAsMention() + ", der Bot kann dir keine PN schicken. Bitte überprüfe deine Privatsphäreeinstellungen.")
                         .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));

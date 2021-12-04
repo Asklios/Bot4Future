@@ -4,10 +4,10 @@ import main.java.commands.server.ServerCommand;
 import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.helper.GetMemberFromMessage;
 import main.java.files.interfaces.ChannelDatabase;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.exceptions.ContextException;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.time.OffsetDateTime;
@@ -19,7 +19,7 @@ public class BanCommand implements ServerCommand {
     ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         if (member.hasPermission(channel, Permission.BAN_MEMBERS)) {
 
@@ -98,7 +98,7 @@ public class BanCommand implements ServerCommand {
 
                 try {
                     banMember.getUser().openPrivateChannel().queue(p -> {
-                        p.sendMessage(pn.build()).queue();
+                        p.sendMessage(MsgCreator.of(pn.build())).queue();
                         System.out.println("PM sent to " + banMember.getUser().getName() +
                                 " (" + banMember.getUser().getId() + ")");
                     });
@@ -144,6 +144,6 @@ public class BanCommand implements ServerCommand {
         builder.addField(":page_facing_up:Begründung: ", reason, false);
         builder.setTitle(":hammer: Nutzer gebannt:");
 
-        audit.sendMessage(builder.build()).queue();
+        audit.sendMessage(MsgCreator.of(builder.build())).queue();
     }
 }

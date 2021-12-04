@@ -3,10 +3,7 @@ package main.java.commands.server.administation;
 import main.java.commands.server.ServerCommand;
 import main.java.files.LiteSQL;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 
@@ -18,7 +15,7 @@ public class ReactRolesCommand implements ServerCommand {
     boolean isEmote = true;
 
     @Override
-    public synchronized void performCommand(Member member, TextChannel channel, Message message) {
+    public synchronized void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         // %reactionrole #channel <MessageID> <Emote> @Rolle
         if (!member.hasPermission(channel, Permission.MESSAGE_MANAGE)) {

@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class RoleSortCommand implements ServerCommand {
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.ADMINISTRATOR)) {
             channel.sendMessage("Du benötigst die Berechtigung Administrator um diesen Command zu nutzen. :(")

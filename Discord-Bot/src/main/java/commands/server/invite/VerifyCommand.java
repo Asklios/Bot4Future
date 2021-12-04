@@ -16,7 +16,7 @@ public class VerifyCommand implements ServerCommand {
     InviteDatabase inviteDatabase = new InviteDatabaseSQLite();
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         Role highestBotRole = message.getGuild().getSelfMember().getRoles().get(0);
         Role verifiableRole = this.roleDatabase.getVerifyRole(channel.getGuild());
@@ -49,7 +49,7 @@ public class VerifyCommand implements ServerCommand {
         }
     }
 
-    private void giveVerifiableRole(Member member, TextChannel channel, Message message, Role verifiableRole) {
+    private void giveVerifiableRole(Member member, GuildMessageChannel channel, Message message, Role verifiableRole) {
         try {
             if (verifiableRole == null) {
                 channel.sendMessage("Die aktuelle VerifiableRole ist nicht festgelegt.\n```%verifiablerole @role```").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));

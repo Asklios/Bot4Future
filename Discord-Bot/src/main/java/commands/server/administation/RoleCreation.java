@@ -1,12 +1,10 @@
 package main.java.commands.server.administation;
 
 import main.java.commands.server.ServerCommand;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.*;
 
 import java.awt.*;
 import java.util.concurrent.TimeUnit;
@@ -15,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class RoleCreation implements ServerCommand {
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
         // %createrole <Name> #99AAB5
 
         if (member.hasPermission(channel, Permission.MANAGE_ROLES)) {
@@ -40,7 +38,7 @@ public class RoleCreation implements ServerCommand {
                         EmbedBuilder embed = new EmbedBuilder();
                         embed.setDescription("Die Rolle " + roleName + " wurde erstellt."); // Antwort auf Rolle erstellt
                         embed.setColor(color);
-                        channel.sendMessage(embed.build()).queue();
+                        channel.sendMessage(MsgCreator.of(embed)).queue();
                     });
                 } else {
                     for (int i = 1; i < length; i++) builder.append(args[i] + " ");
@@ -54,7 +52,7 @@ public class RoleCreation implements ServerCommand {
                         EmbedBuilder embed = new EmbedBuilder();
                         embed.setDescription("Die Rolle " + roleName + " wurde erstellt."); // Antwort auf Rolle erstellt
                         embed.setColor(color);
-                        channel.sendMessage(embed.build()).queue();
+                        channel.sendMessage(MsgCreator.of(embed)).queue();
                     });
                 }
 
@@ -62,7 +60,7 @@ public class RoleCreation implements ServerCommand {
                 channel.sendMessage("Falsche Formatierung!").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 EmbedBuilder builder = new EmbedBuilder();
                 builder.setDescription("%createrole <Name> (<#FarbeHex>)"); // Antwort auf nur %createrole
-                channel.sendMessage(builder.build()).queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+                channel.sendMessage(MsgCreator.of(builder)).queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             }
             //message.delete().queue();
         } else {

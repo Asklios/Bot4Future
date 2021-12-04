@@ -3,11 +3,12 @@ package main.java.commands.server.audit;
 import main.java.commands.server.ServerCommand;
 import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.util.concurrent.TimeUnit;
 
@@ -17,7 +18,7 @@ public class EventAuditChannelCommand implements ServerCommand {
     ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         guildID = channel.getGuild().getIdLong();
 
@@ -44,7 +45,7 @@ public class EventAuditChannelCommand implements ServerCommand {
                 EmbedBuilder builder = new EmbedBuilder();
                 channel.sendMessage("Falsche Formatierung!").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
                 builder.setDescription("%eventaudit #channel");
-                channel.sendMessage(builder.build()).queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+                channel.sendMessage(MsgCreator.of(builder)).queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             }
         } else {
             channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));

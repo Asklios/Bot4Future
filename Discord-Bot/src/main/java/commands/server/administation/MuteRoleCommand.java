@@ -14,7 +14,7 @@ public class MuteRoleCommand implements ServerCommand {
     private RoleDatabase roleDatabase = new RoleDatabaseSQLite();
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         if (!member.hasPermission(Permission.ADMINISTRATOR)) {
             channel.sendMessage("Du benötigst die Berechtigung Administrator um diesen Command zu nutzen. :(")

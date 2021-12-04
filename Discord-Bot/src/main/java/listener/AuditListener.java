@@ -4,6 +4,7 @@ import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
 import main.java.files.interfaces.UserRecordsDatabase;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
@@ -89,7 +90,7 @@ public class AuditListener extends ListenerAdapter {
             builder.addField(":page_facing_up:Begründung: ", logEntry.getReason() == null ? "" : logEntry.getReason(), false);
             builder.setTitle(":hammer: Nutzer gebannt:");
 
-            channel.sendMessage(builder.build()).queue();
+            channel.sendMessage(MsgCreator.of(builder)).queue();
         }
 
         //write ban to .db
@@ -115,6 +116,8 @@ public class AuditListener extends ListenerAdapter {
         builder.addField("ID: ", targetUser.getId(), false);
         builder.setTitle(":gear: Nutzer entbannt");
 
-        channel.sendMessage(builder.build()).queue();
+        channel.sendMessage(MsgCreator.of(builder)).queue();
     }
+
+
 }

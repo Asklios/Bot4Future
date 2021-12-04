@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class RequestCallDatabase implements ServerCommand {
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         CallDatabase callDatabase = new CallDatabaseSQLite();
 
@@ -89,10 +89,10 @@ public class RequestCallDatabase implements ServerCommand {
             embed.setTitle("Anwesenheitsliste \"" + finalSearch + "\" ");
 
             try {
-                member.getUser().openPrivateChannel().queue(p -> p.sendFile(file, fileName).embed(embed.build()).queue());
+                member.getUser().openPrivateChannel().queue(p -> p.sendFile(file, fileName).setEmbeds(embed.build()).queue());
             } catch (ErrorResponseException e) {
                 channel.sendMessage(member.getAsMention() + ", der Bot kann dir keine PN schicken. Bitte überprüfe deine Privatsphäreeinstellungen.")
-                        .queue(me -> me.delete().queueAfter(5,TimeUnit.SECONDS));
+                        .queue(me -> me.delete().queueAfter(5, TimeUnit.SECONDS));
             }
         });
     }

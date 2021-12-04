@@ -7,6 +7,7 @@ import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
 import main.java.files.interfaces.RoleDatabase;
 import main.java.files.interfaces.UserRecordsDatabase;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -50,7 +51,7 @@ public class UnBan {
         b.setFooter("by " + guild.getSelfMember().getEffectiveName(), guild.getSelfMember().getUser().getEffectiveAvatarUrl());
         b.setTimestamp(OffsetDateTime.now());
 
-        audit.sendMessage(b.build()).queue();
+        audit.sendMessage(MsgCreator.of(b)).queue();
 
         userRecord.setNote("lifted");
         userRecordsDatabase.setNoteLiftedById(userRecord.getId());

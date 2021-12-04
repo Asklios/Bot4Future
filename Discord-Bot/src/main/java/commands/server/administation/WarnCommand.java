@@ -5,6 +5,7 @@ import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
 import main.java.files.interfaces.UserRecordsDatabase;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -18,7 +19,7 @@ public class WarnCommand implements ServerCommand {
     private UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         if (!member.hasPermission(Permission.KICK_MEMBERS)) {
             return;
@@ -90,6 +91,6 @@ public class WarnCommand implements ServerCommand {
             return;
         }
 
-        audit.sendMessage(builder.build()).queue();
+        audit.sendMessage(MsgCreator.of(builder)).queue();
     }
 }

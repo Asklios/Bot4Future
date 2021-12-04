@@ -4,6 +4,7 @@ import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.impl.UnbanHandlerDatabaseSQLite;
 import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.UnbanHandlerDatabase;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.PrivateChannel;
@@ -125,7 +126,7 @@ public class UnbanRequestHandler {
             long auditChannelId = audit.getIdLong();
 
             try {
-                audit.sendMessage(b.build()).queue(m -> {
+                audit.sendMessage(MsgCreator.of(b)).queue(m -> {
                     m.addReaction("U+2705").queue();
                     m.addReaction("U+274C").queue();
                     unbanHandlerDatabase.addVoteReactions(guild.getIdLong(), auditChannelId, m.getIdLong(), channel.getUser().getIdLong());

@@ -27,7 +27,7 @@ public class LogCommand implements ServerCommand {
     ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.MESSAGE_MANAGE)) {
             channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
@@ -154,7 +154,7 @@ public class LogCommand implements ServerCommand {
                 embed.setTimestamp(OffsetDateTime.now());
                 embed.setThumbnail(originMessage.getGuild().getSelfMember().getUser().getAvatarUrl());
                 embed.setDescription("Log - requested by " + originMessage.getAuthor().getAsMention() + "\n enthält die letzten " + amount + " Nachrichten aus <#" + channel.getId() + ">");
-                audit.sendFile(file, fileName).embed(embed.build()).queue();
+                audit.sendFile(file, fileName).setEmbeds(embed.build()).queue();
 
                 channel.sendMessage(originMessage.getAuthor().getAsMention() + " Es wurde ein Log-File in den Audit-Channel geschickt").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             } catch (IllegalArgumentException | UnsupportedOperationException e) {

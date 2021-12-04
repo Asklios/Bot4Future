@@ -4,8 +4,8 @@ import main.java.files.LiteSQL;
 import main.java.files.interfaces.CallDatabase;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -86,7 +86,7 @@ public class CallDatabaseSQLite implements CallDatabase {
      * @return the String of userIds that was previously saved, empty if there is no entry, null for missing permissions.
      */
     @Override
-    public String getUsersFromDb(String search, TextChannel channel, Member member) {
+    public String getUsersFromDb(String search, GuildMessageChannel channel, Member member) {
 
         String users = "";
         ResultSet result = null;

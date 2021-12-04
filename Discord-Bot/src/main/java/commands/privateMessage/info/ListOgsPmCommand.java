@@ -1,6 +1,7 @@
 package main.java.commands.privateMessage.info;
 
 import main.java.commands.privateMessage.PrivateCommand;
+import main.java.util.MsgCreator;
 import main.java.helper.api.LocalGroups;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
@@ -49,7 +50,7 @@ public class ListOgsPmCommand implements PrivateCommand {
                 b.addField("", l.stream().collect(Collectors.joining(", ")), true);
                 i++;
             }
-            channel.sendMessage(b.build()).queue();
+            channel.sendMessage(MsgCreator.of(b)).queue();
             b.clearFields();
         }
     }

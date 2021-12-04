@@ -18,6 +18,7 @@ import main.java.commands.server.pmCommands.PmChannelCommand;
 import main.java.commands.server.question.GetQuestionChannelCommand;
 import main.java.commands.server.question.QuestionChannelCommand;
 import main.java.commands.server.user.*;
+import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -111,7 +112,7 @@ public class CommandManager {
         this.commands.put("cookies", new CookieCommand());
     }
 
-    public boolean perform(String command, Member m, TextChannel channel, Message message) {
+    public boolean perform(String command, Member m, GuildMessageChannel channel, Message message) {
 
         ServerCommand cmd;
         if ((cmd = this.commands.get(command.toLowerCase())) != null) {

@@ -1,6 +1,7 @@
 package main.java.commands.privateMessage.info;
 
 import main.java.commands.privateMessage.PrivateCommand;
+import main.java.util.MsgCreator;
 import main.java.helper.api.LocalGroup;
 import main.java.helper.api.LocalGroups;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -47,6 +48,6 @@ public class OgInfoPmCommand implements PrivateCommand {
         if (localGroup.getTelegram() != null) b.addField("Telegram: ", localGroup.getTelegram(), false);
         if (localGroup.getEmail() != null) b.addField("Email: ", localGroup.getEmail(), false);
         if (localGroup.getOther() != null) b.addField("Other: ", localGroup.getOther(), false);
-        channel.sendMessage(b.build()).queue(m -> m.delete().queueAfter(1, TimeUnit.MINUTES));
+        channel.sendMessage(MsgCreator.of(b)).queue(m -> m.delete().queueAfter(1, TimeUnit.MINUTES));
     }
 }

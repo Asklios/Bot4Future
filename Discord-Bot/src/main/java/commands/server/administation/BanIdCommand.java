@@ -3,6 +3,7 @@ package main.java.commands.server.administation;
 import main.java.commands.server.ServerCommand;
 import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -16,7 +17,7 @@ public class BanIdCommand implements ServerCommand {
     ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.BAN_MEMBERS)) {
             channel.sendMessage("Du benötigst die Berechtigung Nutzer zu bannen um diesen Command nutzen zu können.")
@@ -100,7 +101,7 @@ public class BanIdCommand implements ServerCommand {
                     pn.setColor(0xff000);
 
                     banMember.getUser().openPrivateChannel().queue(p -> {
-                        p.sendMessage(pn.build()).queue();
+                        p.sendMessage(MsgCreator.of(pn.build())).queue();
                         System.out.println("PN sent to " + banMember.getUser().getName() + " (" + banMember.getUser().getId() + ")");
                     });
 
@@ -140,6 +141,6 @@ public class BanIdCommand implements ServerCommand {
         builder.addField(":page_facing_up:Begründung: ", reason, false);
         builder.setTitle(":hammer: Nutzer gebannt:");
 
-        audit.sendMessage(builder.build()).queue();
+        audit.sendMessage(MsgCreator.of(builder.build())).queue();
     }
 }

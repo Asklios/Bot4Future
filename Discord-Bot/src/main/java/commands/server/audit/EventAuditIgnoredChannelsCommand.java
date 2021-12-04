@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class EventAuditIgnoredChannelsCommand implements ServerCommand {
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
         if (!member.hasPermission(channel, Permission.ADMINISTRATOR)) {
             channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(")
                     .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));

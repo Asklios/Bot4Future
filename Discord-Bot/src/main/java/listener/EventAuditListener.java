@@ -26,6 +26,7 @@ public class EventAuditListener extends ListenerAdapter {
         new EventAudit().messageDeleteAudit(event);
     }
 
+
     @Override
     public void onMessageBulkDelete(@Nonnull MessageBulkDeleteEvent event) {
         new EventAudit().messageBulkDelete(event);

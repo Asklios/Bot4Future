@@ -16,7 +16,7 @@ public class NewMuteRoleCommand implements ServerCommand {
     private RoleDatabase roleDatabase = new RoleDatabaseSQLite();
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         if (!member.hasPermission(Permission.ADMINISTRATOR)) return;
         if (message.getMentionedRoles().isEmpty()) {
@@ -35,9 +35,9 @@ public class NewMuteRoleCommand implements ServerCommand {
             if (publicRole.hasAccess(t)) publicChannels.add(t);
         }
 
-        EnumSet<Permission> allow = EnumSet.of(Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY);
+        EnumSet<Permission> allow = EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_HISTORY);
         EnumSet<Permission> deny = EnumSet.of(Permission.CREATE_INSTANT_INVITE, Permission.MANAGE_CHANNEL, Permission.MANAGE_PERMISSIONS,
-                Permission.MANAGE_WEBHOOKS, Permission.MESSAGE_WRITE, Permission.MESSAGE_TTS, Permission.MESSAGE_MANAGE,Permission.MESSAGE_EMBED_LINKS,
+                Permission.MANAGE_WEBHOOKS, Permission.MESSAGE_SEND, Permission.MESSAGE_TTS, Permission.MESSAGE_MANAGE,Permission.MESSAGE_EMBED_LINKS,
                 Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_MENTION_EVERYONE, Permission.MESSAGE_EXT_EMOJI, Permission.MESSAGE_ADD_REACTION);
 
         guild.createRole().setName("mute").setColor(0x793da6).setPermissions(Permission.EMPTY_PERMISSIONS)

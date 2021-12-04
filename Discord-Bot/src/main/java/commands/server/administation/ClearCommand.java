@@ -1,12 +1,10 @@
 package main.java.commands.server.administation;
 
 import main.java.commands.server.ServerCommand;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.util.ArrayList;
@@ -16,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class ClearCommand implements ServerCommand {
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.MESSAGE_MANAGE)) {
             channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
@@ -59,7 +57,7 @@ public class ClearCommand implements ServerCommand {
             EmbedBuilder builder = new EmbedBuilder();
             channel.sendMessage("Falsche Formatierung!").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             builder.setDescription(praefix + "clear <Anzahl der zu löschenden Nachrichten>");
-            channel.sendMessage(builder.build()).queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+            channel.sendMessage(MsgCreator.of(builder.build())).queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
         }
 
     }

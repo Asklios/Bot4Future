@@ -19,7 +19,7 @@ public class IAmCommand implements ServerCommand {
     private SelfRoles selfRoles = new SelfRolesSQLite();
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         //% iam <roleName>
         String[] messageSplit = message.getContentDisplay().split("\\s+");

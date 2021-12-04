@@ -2,9 +2,9 @@ package main.java.activitylog;
 
 import lombok.Getter;
 import lombok.Setter;
-import main.java.files.LiteSQL;
 import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
@@ -23,6 +23,12 @@ import java.time.OffsetDateTime;
 import java.util.*;
 
 public class EventAudit {
+    private List<ChannelType> allowedChannelTypes = List.of(
+            ChannelType.TEXT,
+            ChannelType.GUILD_NEWS_THREAD,
+            ChannelType.GUILD_PRIVATE_THREAD,
+            ChannelType.GUILD_PUBLIC_THREAD
+    );
 
     ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
@@ -68,7 +74,7 @@ public class EventAudit {
 
     public void messageUpdateAudit(MessageUpdateEvent event) {
 
-        if (!event.isFromType(ChannelType.TEXT) || event.getMember().getUser().isBot()) {
+        if (!allowedChannelTypes.contains(event.getChannelType()) || event.getMember().getUser().isBot()) {
             return;
         }
 
@@ -105,8 +111,9 @@ public class EventAudit {
         b.addField("Message ID: ", event.getMessage().getId(), false);
 
         MessageChannel eventAudit = channelDatabase.getEventAuditChannel(event.getGuild());
+
         if (eventAudit == null) return;
-        eventAudit.sendMessage(b.build()).queue();
+        eventAudit.sendMessage(MsgCreator.of(b)).queue();
 
         //update encrypted message in database
         long messageId = event.getMessage().getIdLong();
@@ -117,7 +124,7 @@ public class EventAudit {
 
     public void messageDeleteAudit(MessageDeleteEvent event) {
 
-        if (!event.isFromType(ChannelType.TEXT)) {
+        if (!allowedChannelTypes.contains(event.getChannelType())) {
             return;
         }
 
@@ -163,7 +170,7 @@ public class EventAudit {
 
         MessageChannel eventAudit = channelDatabase.getEventAuditChannel(event.getGuild());
         if (eventAudit == null) return;
-        eventAudit.sendMessage(b.build()).queue();
+        eventAudit.sendMessage(MsgCreator.of(b)).queue();
     }
 
     public void messageBulkDelete(MessageBulkDeleteEvent event) {
@@ -179,7 +186,7 @@ public class EventAudit {
 
         MessageChannel eventAudit = channelDatabase.getEventAuditChannel(event.getGuild());
         if (eventAudit == null) return;
-        eventAudit.sendMessage(b.build()).queue();
+        eventAudit.sendMessage(MsgCreator.of(b)).queue();
     }
 
     private String trimZeros(String str) {
@@ -203,7 +210,7 @@ public class EventAudit {
 
         MessageChannel eventAudit = channelDatabase.getEventAuditChannel(event.getGuild());
         if (eventAudit == null) return;
-        eventAudit.sendMessage(b.build()).queue();
+        eventAudit.sendMessage(MsgCreator.of(b)).queue();
     }
 
     public void messageVoiceMove(GuildVoiceMoveEvent event) {
@@ -224,7 +231,7 @@ public class EventAudit {
 
         MessageChannel eventAudit = channelDatabase.getEventAuditChannel(event.getGuild());
         if (eventAudit == null) return;
-        eventAudit.sendMessage(b.build()).queue();
+        eventAudit.sendMessage(MsgCreator.of(b)).queue();
     }
 
     public void messageVoiceLeave(GuildVoiceLeaveEvent event) {
@@ -243,7 +250,7 @@ public class EventAudit {
 
         MessageChannel eventAudit = channelDatabase.getEventAuditChannel(event.getGuild());
         if (eventAudit == null) return;
-        eventAudit.sendMessage(b.build()).queue();
+        eventAudit.sendMessage(MsgCreator.of(b)).queue();
     }
 
     public void messageRoleAdded(GuildMemberRoleAddEvent event) {
@@ -263,7 +270,7 @@ public class EventAudit {
 
         MessageChannel eventAudit = channelDatabase.getEventAuditChannel(event.getGuild());
         if (eventAudit == null) return;
-        eventAudit.sendMessage(b.build()).queue();
+        eventAudit.sendMessage(MsgCreator.of(b)).queue();
     }
 
     public void messageRoleRemoved(GuildMemberRoleRemoveEvent event) {
@@ -283,6 +290,6 @@ public class EventAudit {
 
         MessageChannel eventAudit = channelDatabase.getEventAuditChannel(event.getGuild());
         if (eventAudit == null) return;
-        eventAudit.sendMessage(b.build()).queue();
+        eventAudit.sendMessage(MsgCreator.of(b)).queue();
     }
 }

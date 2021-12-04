@@ -59,8 +59,11 @@ public class CommandListener extends ListenerAdapter {
         }
 
         // wenn die Nachricht aus einem Text-Channel von einem Server stammt
-        if (event.isFromType(ChannelType.TEXT)) {
-            TextChannel channel = event.getTextChannel();
+        if (event.isFromType(ChannelType.TEXT)
+                || event.isFromType(ChannelType.GUILD_NEWS_THREAD)
+                || event.isFromType(ChannelType.GUILD_PUBLIC_THREAD)
+                || event.isFromType(ChannelType.GUILD_PRIVATE_THREAD)) {
+            GuildMessageChannel channel = event.getGuildChannel();
 
             new CryptoMessageHandler().saveNewMessage(messageString, event.getGuild().getIdLong(),
                     event.getChannel().getIdLong(), event.getMessage().getIdLong(),
@@ -69,7 +72,7 @@ public class CommandListener extends ListenerAdapter {
             if (messageString.startsWith("%")) { // Festlegung des Präfix
                 if (args.length > 0) {
                     if (!DiscordBot.INSTANCE.getCmdMan().perform(args[0], event.getMember(), channel, event.getMessage())) {
-                        channel.sendMessage("unknown command").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
+                        channel.sendMessage("unknown command").queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
                     }
                 }
                 try {

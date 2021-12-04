@@ -5,10 +5,7 @@ import main.java.files.impl.CallDatabaseSQLite;
 import main.java.files.interfaces.CallDatabase;
 import main.java.helper.TimeMillis;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.*;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -18,7 +15,7 @@ import java.util.stream.Collectors;
 public class PresenceCommand implements ServerCommand {
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         CallDatabase callDatabase = new CallDatabaseSQLite();
 

@@ -6,6 +6,7 @@ import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.impl.SelfRolesSQLite;
 import main.java.files.interfaces.ChannelDatabase;
 import main.java.files.interfaces.SelfRoles;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -102,7 +103,7 @@ public class SelfrolesHandler implements SlashCommandHandler {
                     + role.getName() + "(" + role.getId() + ") " +
                     "von den selbstgebbaren Rollen entfernt.");
 
-            audit.sendMessage(b.build()).queue();
+            audit.sendMessage(MsgCreator.of(b.build())).queue();
         }
 
         this.selfRoles.removeSelfRoleByRoleId(event.getGuild().getIdLong(), role.getIdLong());
@@ -142,7 +143,7 @@ public class SelfrolesHandler implements SlashCommandHandler {
                 + "(" + role.getId() + ") " +
                 "zu den selbstgebbaren Rollen hinzugefügt");
 
-        audit.sendMessage(b.build()).queue();
+        audit.sendMessage(MsgCreator.of(b.build())).queue();
 
 
     }

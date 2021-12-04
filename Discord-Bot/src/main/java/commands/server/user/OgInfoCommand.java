@@ -1,19 +1,20 @@
 package main.java.commands.server.user;
 
 import main.java.commands.server.ServerCommand;
+import main.java.util.MsgCreator;
 import main.java.helper.api.LocalGroup;
 import main.java.helper.api.LocalGroups;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.util.concurrent.TimeUnit;
 
 public class OgInfoCommand implements ServerCommand {
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         String[] messageSplit = message.getContentDisplay().split("\\s+");
 
@@ -48,6 +49,6 @@ public class OgInfoCommand implements ServerCommand {
         if (localGroup.getTelegram() != null) b.addField("Telegram: ", localGroup.getTelegram(), false);
         if (localGroup.getEmail() != null) b.addField("Email: ", localGroup.getEmail(), false);
         if (localGroup.getOther() != null) b.addField("Other: ", localGroup.getOther(), false);
-        channel.sendMessage(b.build()).queue(m -> m.delete().queueAfter(1, TimeUnit.MINUTES));
+        channel.sendMessage(MsgCreator.of(b)).queue(m -> m.delete().queueAfter(1, TimeUnit.MINUTES));
     }
 }

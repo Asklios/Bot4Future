@@ -1,11 +1,12 @@
 package main.java.commands.server.administation;
 
 import main.java.commands.server.ServerCommand;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.time.OffsetDateTime;
@@ -14,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class AdminHelpCommand implements ServerCommand {
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         if (member.hasPermission(channel, Permission.MESSAGE_MANAGE)) {
 
@@ -192,10 +193,10 @@ public class AdminHelpCommand implements ServerCommand {
 
             try {
                 member.getUser().openPrivateChannel().queue((ch) -> {
-                    ch.sendMessage(builder1.build()).queue();
-                    ch.sendMessage(builder2.build()).queue();
-                    ch.sendMessage(builder3.build()).queue();
-                    ch.sendMessage(builder4.build()).queue();
+                    ch.sendMessage(MsgCreator.of(builder1.build())).queue();
+                    ch.sendMessage(MsgCreator.of(builder2.build())).queue();
+                    ch.sendMessage(MsgCreator.of(builder3.build())).queue();
+                    ch.sendMessage(MsgCreator.of(builder4.build())).queue();
                 });
 
                 channel.sendMessage(member.getAsMention() + ", du findest eine Wall-of-Text in deinen PNs.")

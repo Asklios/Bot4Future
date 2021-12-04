@@ -3,12 +3,10 @@ package main.java.commands.server.invite;
 import main.java.commands.server.ServerCommand;
 import main.java.files.impl.RoleDatabaseSQLite;
 import main.java.files.interfaces.RoleDatabase;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.*;
 
 import java.util.concurrent.TimeUnit;
 
@@ -17,7 +15,7 @@ public class SpecialCodeRoleCommand implements ServerCommand {
     RoleDatabase roleDatabase = new RoleDatabaseSQLite();
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.ADMINISTRATOR)) {
             channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
@@ -31,7 +29,7 @@ public class SpecialCodeRoleCommand implements ServerCommand {
             channel.sendMessage("Falsche Formatierung!").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             EmbedBuilder builder = new EmbedBuilder();
             builder.setDescription("%specialrole @role");
-            channel.sendMessage(builder.build()).queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
+            channel.sendMessage(MsgCreator.of(builder)).queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
             return;
         }
 

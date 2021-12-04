@@ -2,9 +2,9 @@ package main.java.files;
 
 import main.java.DiscordBot;
 import main.java.commands.server.ServerCommand;
+import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -20,7 +20,7 @@ public class DiagramGenerator implements ServerCommand {
     private int height = 80;
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message){
+    public void performCommand(Member member, GuildMessageChannel channel, Message message){
 
 
         Integer[] values = {5,5,5,5,10,10,10,10,10,5,5,5,5,5,5};

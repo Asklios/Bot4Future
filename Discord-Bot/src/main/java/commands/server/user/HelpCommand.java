@@ -1,10 +1,11 @@
 package main.java.commands.server.user;
 
 import main.java.commands.server.ServerCommand;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.time.OffsetDateTime;
@@ -13,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class HelpCommand implements ServerCommand {
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle("Bot Info");
@@ -54,7 +55,7 @@ public class HelpCommand implements ServerCommand {
 
         member.getUser().openPrivateChannel().queue((ch) -> {
             try {
-                ch.sendMessage(builder.build()).queue();
+                ch.sendMessage(MsgCreator.of(builder)).queue();
                 channel.sendMessage(member.getAsMention() + ", bitte schau in deine PNs.")
                         .queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
             } catch (ErrorResponseException e) {

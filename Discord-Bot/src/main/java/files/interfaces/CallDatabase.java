@@ -1,8 +1,8 @@
 package main.java.files.interfaces;
 
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.TextChannel;
 
 /**
  * Interface for requests to the calldata table in the database.
@@ -40,7 +40,7 @@ public interface CallDatabase {
      * @param member the member that is requesting the information.
      * @return the String of userIds that was previously saved, empty if there is no entry, null for missing permissions.
      */
-    String getUsersFromDb(String search, TextChannel channel, Member member);
+    String getUsersFromDb(String search, GuildMessageChannel channel, Member member);
 
     /**
      * Deletes all entries that are related to the provided guild.

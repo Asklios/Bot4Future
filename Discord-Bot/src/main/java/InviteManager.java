@@ -6,6 +6,7 @@ import main.java.files.impl.RoleDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
 import main.java.files.interfaces.InviteDatabase;
 import main.java.files.interfaces.RoleDatabase;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
@@ -73,7 +74,7 @@ public class InviteManager {
                                 + " vergeben werden, da " + role.getAsMention() + " über der höchsten BotRolle steht.", false);
                         builder.setTitle(":no_pedestrians: HierarchyException:");
 
-                        auditChannel.sendMessage(builder.build()).queue();
+                        auditChannel.sendMessage(MsgCreator.of(builder)).queue();
                     }
                     System.out.println(member.getUser().getName() + " used special code");
                     inviteCount = invite.getUses();

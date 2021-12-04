@@ -6,7 +6,7 @@ import main.java.files.impl.RoleDatabaseSQLite;
 import main.java.files.interfaces.RoleDatabase;
 import main.java.util.Emojis;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +23,8 @@ public class BumpListener extends ListenerAdapter {
     private Random RANDOM = new Random();
 
     @Override
-    public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
+    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+        if(event.getGuild() == null) return;
         if (roleDatabase.getBumpRole(event.getGuild()) == null) return;
         if (event.getAuthor().getIdLong() == 302050872383242240L //is disboard bot
                 && event.getMessage().getEmbeds().size() == 1) { //message has embed

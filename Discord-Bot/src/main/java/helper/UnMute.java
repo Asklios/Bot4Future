@@ -7,6 +7,7 @@ import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
 import main.java.files.interfaces.RoleDatabase;
 import main.java.files.interfaces.UserRecordsDatabase;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
@@ -79,7 +80,7 @@ public class UnMute {
         TextChannel audit = channelDatabase.getAuditChannel(guild);
         if (audit == null) return;
 
-        audit.sendMessage(b.build()).queue();
+        audit.sendMessage(MsgCreator.of(b)).queue();
 
         userRecordsDatabase.setNoteLiftedById(userRecordId);
     }

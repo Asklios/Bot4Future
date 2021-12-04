@@ -3,6 +3,7 @@ package main.java.commands.server.administation;
 import main.java.commands.server.ServerCommand;
 import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.UserRecordsDatabase;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -18,7 +19,7 @@ public class UserInfoCommand implements ServerCommand {
     private final UserRecordsDatabase userRecordsDatabase = new UserRecordsDatabaseSQLite();
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         if (!member.hasPermission(channel, Permission.KICK_MEMBERS)) {
             channel.sendMessage(member.getAsMention() + " Du hast nicht die Berechtigung diesen Befehl zu nutzen :(").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
@@ -75,7 +76,7 @@ public class UserInfoCommand implements ServerCommand {
     }
 
 
-    private void onInfo(Member requester, Member user, TextChannel channel) {
+    private void onInfo(Member requester, Member user, GuildMessageChannel channel) {
 
 
         OffsetDateTime usercreated = user.getTimeCreated();
@@ -153,7 +154,7 @@ public class UserInfoCommand implements ServerCommand {
 
         builder.setDescription(strBuilder);
 
-        channel.sendMessage(builder.build()).queue(m -> m.delete().queueAfter(60,TimeUnit.SECONDS));
+        channel.sendMessage(MsgCreator.of(builder)).queue(m -> m.delete().queueAfter(60,TimeUnit.SECONDS));
 
     }
 }

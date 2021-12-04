@@ -1,9 +1,9 @@
 package main.java.listener;
 
 import main.java.DiscordBot;
+import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +23,7 @@ public class AutoListener {
         readFile();
     }
 
-    public void autoListen(Member member, TextChannel channel, Message message) {
+    public void autoListen(Member member, GuildMessageChannel channel, Message message) {
 
         if (member.getUser().equals(member.getJDA().getSelfUser())) {
             return;
@@ -92,7 +92,7 @@ public class AutoListener {
         return false;
     }
 
-    private void performNtd(String s, TextChannel channel) {
+    private void performNtd(String s, GuildMessageChannel channel) {
         s = s.replace("ntd", "");
         long index = 0;
         if (isNumeric(s)) {

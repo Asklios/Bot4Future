@@ -4,8 +4,7 @@ import com.vdurmont.emoji.EmojiParser;
 import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
 import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +18,8 @@ public class QuestionListener extends ListenerAdapter {
     private Map<Long, Long> channelCache = new HashMap<>();
 
     @Override
-    public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
+    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+        if(event.getGuild() == null) return;
         long questionChannelId = channelCache.getOrDefault(event.getGuild().getIdLong(), 0L);
 
         TextChannel questionChannel = db.getQuestionChannel(event.getGuild());

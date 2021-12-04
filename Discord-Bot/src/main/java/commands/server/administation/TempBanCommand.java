@@ -6,6 +6,7 @@ import main.java.files.impl.UserRecordsDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
 import main.java.files.interfaces.UserRecordsDatabase;
 import main.java.helper.*;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
@@ -22,7 +23,7 @@ public class TempBanCommand implements ServerCommand {
     private ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         if (!member.hasPermission(Permission.BAN_MEMBERS)) {
             channel.sendMessage("Du hast nicht die Berechtigung diesen Command zu nutzen :(").queue(m -> m.delete().queueAfter(5,TimeUnit.SECONDS));
@@ -49,7 +50,7 @@ public class TempBanCommand implements ServerCommand {
         new TimedTasks().addTimedTask(TimedTask.TimedTaskType.UNBAN, endTime, userRecord.getId() + "");
     }
 
-    private long getTimeMillis(Member member, TextChannel channel, String timeString) {
+    private long getTimeMillis(Member member, GuildMessageChannel channel, String timeString) {
         long timeMillis;
         try {
             if (timeString.endsWith("m")) {
@@ -81,7 +82,7 @@ public class TempBanCommand implements ServerCommand {
         return timeMillis;
     }
 
-    private void sendMessageTimeFormat(Member member, TextChannel channel) {
+    private void sendMessageTimeFormat(Member member, GuildMessageChannel channel) {
         channel.sendMessage(member.getAsMention() + " Die Zeitangabe wurde falsch formatiert. ```<time> = <Anzahl><Einheit> \n \n " +
                 "m = Monat(e) \n w = Woche(n) \n d = Tag(e) \n h = Stunde(n) \n min = Minute(n)```").queue(m -> m.delete().queueAfter(10,TimeUnit.SECONDS));
     }
@@ -114,7 +115,7 @@ public class TempBanCommand implements ServerCommand {
                 pn.setColor(0xff000);
 
                 banMember.getUser().openPrivateChannel().queue(p -> {
-                    p.sendMessage(pn.build()).queue();
+                    p.sendMessage(MsgCreator.of(pn)).queue();
                     System.out.println("PN sent to " + banMember.getUser().getName() + " (" + banMember.getUser().getId() + ")");
                 });
 
@@ -153,6 +154,6 @@ public class TempBanCommand implements ServerCommand {
         builder.addField(":page_facing_up:Begründung: ", reason, false);
         builder.addField("Endet: ", endDate, false);
 
-        audit.sendMessage(builder.build()).queue();
+        audit.sendMessage(MsgCreator.of(builder)).queue();
     }
 }

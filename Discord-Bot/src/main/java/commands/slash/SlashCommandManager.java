@@ -11,6 +11,7 @@ import main.java.commands.slash.models.ListSelfrolesCommand;
 import main.java.commands.slash.models.SelfrolesSlashCommand;
 import main.java.files.impl.ChannelDatabaseSQLite;
 import main.java.files.interfaces.ChannelDatabase;
+import main.java.util.MsgCreator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.ChannelType;
@@ -34,6 +35,12 @@ public class SlashCommandManager {
     private final Map<String, SlashCommandHandler> handlers = new HashMap<>();
     private final List<CommandData> commands = new ArrayList<>();
     private final ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
+    private final List<ChannelType> allowedChannelTypes = List.of(
+            ChannelType.TEXT,
+            ChannelType.GUILD_NEWS_THREAD,
+            ChannelType.GUILD_PRIVATE_THREAD,
+            ChannelType.GUILD_PUBLIC_THREAD
+    );
 
     public SlashCommandManager() {
         registerHandlers();
@@ -60,10 +67,10 @@ public class SlashCommandManager {
         try {
             for (CommandData cmdData : commands) {
                 Command cmd = guild.upsertCommand(cmdData).complete();
-                if(!cmd.isDefaultEnabled()) {
+                if (!cmd.isDefaultEnabled()) {
                     List<CommandPrivilege> privileges = new ArrayList<>();
                     guild.getRoles().forEach(role -> {
-                        if(role.hasPermission(Permission.MESSAGE_MANAGE) && !role.isManaged()){
+                        if (role.hasPermission(Permission.MESSAGE_MANAGE) && !role.isManaged()) {
                             privileges.add(CommandPrivilege.enable(role));
                         }
                     });
@@ -80,31 +87,30 @@ public class SlashCommandManager {
 
     public void handleSlashCommand(SlashCommandEvent event) {
         String commandName = event.getName();
-        if(event.getSubcommandGroup() != null)
-            commandName +=  " " + event.getSubcommandGroup();
-        if(event.getSubcommandName() != null)
+        if (event.getSubcommandGroup() != null)
+            commandName += " " + event.getSubcommandGroup();
+        if (event.getSubcommandName() != null)
             commandName += " " + event.getSubcommandName();
 
-        if (event.getChannel() == null || event.getChannel().getType() != ChannelType.TEXT) {
+        if (event.getChannel() == null || !allowedChannelTypes.contains(event.getChannelType())) {
             event.replyEmbeds(new EmbedBuilder().setDescription("Slash-Commands werden" +
-                    " nur in normalen Kanälen unterstützt. In Threads oder" +
-                    " Direktnachrichten sind diese deaktiviert.").build())
+                            " nur in normalen Kanälen und Threads unterstützt.").build())
                     .setEphemeral(true).queue();
             return;
         }
         TextChannel c = channelDatabase.getEventAuditChannel(event.getGuild());
         if (c != null) {
-            c.sendMessage(new EmbedBuilder().setTitle("Slash-Command genutzt: " + commandName)
+            c.sendMessage(MsgCreator.of(new EmbedBuilder().setTitle("Slash-Command genutzt: " + commandName)
                     .addField("User", event.getMember().getUser().getAsTag(), false)
                     .addField("Argumente", getArgString(event), false)
                     .addField("Channel", event.getTextChannel().getAsMention(), false)
                     .setColor(Color.YELLOW)
-                    .build()).queue();
+            )).queue();
         }
         SlashCommandHandler handler = handlers.getOrDefault(event.getName(), null);
         if (handler == null) {
             event.reply("Für diesen Befehl ist kein Handler registriert :(\n" +
-                    "Bitte melde dies einem Developer, das ist definitiv nicht so gedacht").setEphemeral(true)
+                            "Bitte melde dies einem Developer, das ist definitiv nicht so gedacht").setEphemeral(true)
                     .queue();
             return;
         } else {

@@ -4,16 +4,16 @@ import main.java.commands.server.ServerCommand;
 import main.java.files.impl.CallDatabaseSQLite;
 import main.java.files.interfaces.CallDatabase;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
 
 import java.util.concurrent.TimeUnit;
 
 public class RemoveCallDataCommand implements ServerCommand {
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         CallDatabase callDatabase = new CallDatabaseSQLite();
 

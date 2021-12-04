@@ -25,7 +25,7 @@ public class ReportCommand implements ServerCommand {
     ChannelDatabase channelDatabase = new ChannelDatabaseSQLite();
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         String[] messageSplit = message.getContentDisplay().split(" ", 3);
 
@@ -152,7 +152,7 @@ public class ReportCommand implements ServerCommand {
                 embed.setDescription(reportedMember.getAsMention() + " wurde von " + originMessage.getAuthor().getAsMention() + " reported" +
                         "\n reason: *" + reason + "*\n" +
                         "\n Das Log enthält die letzten " + amount + " Nachrichten aus <#" + channel.getId() + ">");
-                audit.sendFile(file, fileName).embed(embed.build()).queue();
+                audit.sendFile(file, fileName).setEmbeds(embed.build()).queue();
 
                 channel.sendMessage(reportingUser.getAsMention() + " Die verantwortlichen Moderatoren wurden benachrichtigt, es sind keine weiteren Pings nötig.")
                         .queue(m -> m.delete().queueAfter(15,TimeUnit.SECONDS));

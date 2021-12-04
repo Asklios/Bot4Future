@@ -1,11 +1,12 @@
 package main.java.commands.server.user;
 
 import main.java.commands.server.ServerCommand;
+import main.java.util.MsgCreator;
 import main.java.helper.api.LocalGroups;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
 import java.util.ArrayList;
@@ -13,12 +14,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 public class ListOgsCommand implements ServerCommand {
 
     @Override
-    public void performCommand(Member member, TextChannel channel, Message message) {
+    public void performCommand(Member member, GuildMessageChannel channel, Message message) {
 
         List<String> groupNames = new ArrayList<>();
         Arrays.stream(new LocalGroups().getLocalGroups()).forEach(g -> groupNames.add(g.getName()));
@@ -53,7 +53,7 @@ public class ListOgsCommand implements ServerCommand {
                 i++;
             }
             try {
-                channel.sendMessage(b.build()).queue(m -> m.delete().queueAfter(5, TimeUnit.MINUTES));
+                channel.sendMessage(MsgCreator.of(b)).queue(m -> m.delete().queueAfter(5, TimeUnit.MINUTES));
             } catch (ErrorResponseException e) {
                 //message was deleted
             }
