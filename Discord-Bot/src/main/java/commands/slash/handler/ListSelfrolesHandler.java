@@ -60,7 +60,9 @@ public class ListSelfrolesHandler implements SlashCommandHandler {
                     builder.addField("", column, true);
                 }
             }
-            event.replyEmbeds(builders.stream().map(EmbedBuilder::build).collect(Collectors.toList())).queue();
+            event.replyEmbeds(builders.stream().map(EmbedBuilder::build).collect(Collectors.toList()))
+                 .setEphemeral(true)
+                 .queue();
         }
     }
 }
