@@ -1,15 +1,14 @@
 package main.java.commands.slash.handler;
 
-import com.sun.source.tree.Tree;
 import main.java.commands.server.user.IAmCommand;
 import main.java.commands.slash.SlashCommandHandler;
-import main.java.helper.api.LocalGroups;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
-import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 public class ListSelfrolesHandler implements SlashCommandHandler {
@@ -19,47 +18,49 @@ public class ListSelfrolesHandler implements SlashCommandHandler {
         HashMap<String, Long> server = IAmCommand.getServerSelfRoles().get(guildId);
         if (server == null) {
             event.replyEmbeds(new EmbedBuilder().setDescription("Für diesen Server" +
-                            " exsistieren keine selbst gebbaren Rollen.").build())
-                    .setEphemeral(true)
-                    .queue();
+                                                                        " exsistieren keine selbst gebbaren Rollen.")
+                                                .build())
+                 .setEphemeral(true)
+                 .queue();
             return;
         }
         List<Long> guildRoles = new ArrayList<>(new TreeMap<>(IAmCommand.getServerSelfRoles().get(guildId)).values());
 
-
         if (guildRoles.isEmpty()) {
             event.replyEmbeds(new EmbedBuilder().setDescription("Für diesen Server" +
-                            " exsistieren keine selbst gebbaren Rollen.").build())
-                    .setEphemeral(true)
-                    .queue();
+                                                                        " exsistieren keine selbst gebbaren Rollen.")
+                                                .build())
+                 .setEphemeral(true)
+                 .queue();
         } else {
-            int fieldLength = 60;
-            List<String>[] colums = new List[guildRoles.size() / fieldLength + 2];
-
-            int j = 0;
-            int k = 0;
-            for (int i = 0; i < colums.length; i++) {
-                colums[i] = new ArrayList();
-                while (j * fieldLength > k) {
-                    if (k >= guildRoles.size()) break;
-                    colums[i].add( "<@&" + guildRoles.get(k) + ">");
-                    k++;
+            List<String> columns = new ArrayList<>();
+            columns.add("");
+            for (Long role : guildRoles) {
+                String currentColumn = columns.get(columns.size() - 1);
+                if (currentColumn.equals("")) currentColumn = "<@&" + role + ">";
+                else
+                    currentColumn += ", <@&" + role + ">";
+                if (currentColumn.length() > 1024) {
+                    columns.add("<@&" + role + ">");
+                } else {
+                    columns.set(columns.size() - 1, currentColumn);
                 }
-                j++;
             }
-
-            EmbedBuilder b = new EmbedBuilder();
-            b.setTitle("Selbst gebbare Rollen (" + guildRoles.size() + ")");
-            for (int i = 1; i < colums.length; ) {
-                while (b.length() < 5000) {
-                    if (i >= colums.length) break;
-                    List<String> l = colums[i];
-                    b.addField("", String.join("\n", l), true);
-                    i++;
+            List<EmbedBuilder> builders = new ArrayList<>();
+            builders.add(new EmbedBuilder()
+                                 .setTitle("Selbst gebbare Rollen (" + guildRoles.size() + ")"));
+            for (String column : columns) {
+                EmbedBuilder builder = builders.get(builders.size() - 1);
+                if (builder.getFields().size() == 25) {
+                    builders.add(new EmbedBuilder()
+                                         .setTitle("Selbst gebbare Rollen (" + guildRoles.size() + ")")
+                                         .addField("", column, true)
+                    );
+                } else {
+                    builder.addField("", column, true);
                 }
-                event.replyEmbeds(b.build()).setEphemeral(true).queue();
-                b.clearFields();
             }
+            event.replyEmbeds(builders.stream().map(EmbedBuilder::build).collect(Collectors.toList())).queue();
         }
     }
 }
